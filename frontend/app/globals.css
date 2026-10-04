@@ -1,0 +1,42 @@
+@import "tailwindcss";
+
+@theme inline {
+  /* Geist covers Latin text; the browser falls through to the Noto fonts for Sinhala and Tamil glyphs */
+  --font-sans: var(--font-geist-sans), var(--font-sinhala), var(--font-tamil), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono);
+}
+
+@theme {
+  /* Brand green, used for buttons, badges, active nav and the e-learning banner */
+  --color-brand-50: #ecf7f0;
+  --color-brand-100: #d3eddc;
+  --color-brand-200: #a8dbbc;
+  --color-brand-300: #74c294;
+  --color-brand-500: #23955a;
+  --color-brand-600: #1a7f4b;
+  --color-brand-700: #14693d;
+  --color-brand-800: #105432;
+  --color-brand-900: #0b3f26;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: #f2f4f3;
+  color: #1e293b;
+  font-family: var(--font-geist-sans), var(--font-sinhala), var(--font-tamil), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Keep anchored sections clear of the sticky header */
+[id] {
+  scroll-margin-top: 7rem;
+}
+
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
