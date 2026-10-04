@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  SELLER
+  CUSTOMER
+}
+
+enum ApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique
+  phone         String          @unique
+  passwordHash  String
+  role          Role            @default(CUSTOMER)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  sellerProfile SellerProfile?
+  customerProfile CustomerProfile?
+  adminProfile  AdminProfile?
+}
+
+// Ministry staff who use the admin dashboard (they log in with email + NIC + emailed code)
+model AdminProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName  String
+  nicNumber String   @unique
+  createdAt DateTime @default(now())
+}
+
+model SellerProfile {
+  id             String            @id @default(uuid())
+  userId         String            @unique
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName   String
+  description    String?
+  district       String
+  nicNumber      String            @unique
+  status         ApplicationStatus @default(PENDING)
+
+  // Direct Social Media Redirection Links
+  whatsappNo     String?
+  facebookUrl    String?
+  messengerUrl   String?
+
+  products       Product[]
+  analytics      ClickAnalytics[]
+
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+}
+
+model CustomerProfile {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName  String
+  // Customers log in with email + NIC + emailed code. Empty only for accounts made before that.
+  nicNumber String?  @unique
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  sellerId    String
+  seller      SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  title       String
+  description String
+  category    String
+  images      String[]
+  price       Decimal?
+  isPublished Boolean  @default(true)
+
+  analytics   ClickAnalytics[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ClickAnalytics {
+  id             String   @id @default(uuid())
+  sellerId       String
+  seller         SellerProfile @relation(fields: [sellerId], references: [id])
+  productId      String?
+  product        Product? @relation(fields: [productId], references: [id])
+  targetPlatform String   // "WHATSAPP", "MESSENGER"
+  timestamp      DateTime @default(now())
+}
