@@ -47,6 +47,12 @@ export function homePathFor(role) {
   return '/dashboard';
 }
 
+// A page on this site from a ?next= link (e.g. /store/checkout), or null.
+// Anything that isn't a plain path here is ignored, so links can't send people to another website.
+export function safeNextPath(value) {
+  return typeof value === 'string' && /^\/(?![/\\])/.test(value) ? value : null;
+}
+
 // Where to send someone after they log out
 export function loginPathFor(role) {
   if (role === 'SUPER_ADMIN') return '/admin/login';

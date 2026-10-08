@@ -5,6 +5,7 @@ require('dotenv').config();
 const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const orderRoutes = require('./routes/orderRoutes');
 const { isEmailConfigured } = require('./utils/mailer');
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/orders', orderRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Lanka Women E-Market API is Running Smoothly!' });
@@ -35,10 +37,4 @@ app.listen(PORT, (error) => {
       ? `Email: login codes are sent through ${process.env.SMTP_HOST}`
       : 'Email: NOT set up - login codes will be printed here. Add SMTP settings to backend/.env to email them.'
   );
-
-  // While developing, show the admin registration code here (like the login codes) so it's easy to copy
-  const adminCode = process.env.ADMIN_SIGNUP_CODE?.trim();
-  if (adminCode && process.env.NODE_ENV !== 'production') {
-    console.log(`Admin registration code (for /admin/register): ${adminCode}`);
-  }
 });

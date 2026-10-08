@@ -10,8 +10,8 @@ export const CATEGORIES = [
 const unsplash = (id) =>
   `https://images.unsplash.com/photo-${id}?w=640&h=520&fit=crop&auto=format&q=70`;
 
-export const HERO_IMAGE =
-  'https://images.unsplash.com/photo-1638310533874-6c124c012e1d?w=1920&fit=crop&auto=format&q=70';
+// Women artisans at work (public/hero_main.jpg)
+export const HERO_IMAGE = '/hero_main.jpg';
 
 // Shown on the home page until the API returns real products
 export const SAMPLE_PRODUCTS = [
@@ -126,4 +126,26 @@ export function formatPrice(price) {
   const value = Number(price);
   if (price === null || price === undefined || price === '' || Number.isNaN(value)) return null;
   return `LKR ${value.toLocaleString('en-LK')}`;
+}
+
+// The 25 districts of Sri Lanka (seller registration and delivery addresses)
+export const DISTRICTS = [
+  'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha',
+  'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala',
+  'Mannar', 'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa',
+  'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya',
+];
+
+// A WhatsApp chat with the seller about this product, or null when the seller has no number
+export function whatsappOrderLink(product) {
+  const number = toWhatsAppNumber(getSeller(product).whatsappNo);
+  if (!number) return null;
+  const text = `Hello! I'm interested in "${product.title}" on Lanka Women E-Market.`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
+}
+
+// 6 Oct 2026, in the reader's language
+export function formatDate(value, lang = 'en') {
+  const locale = { si: 'si-LK', ta: 'ta-LK' }[lang] || 'en-GB';
+  return new Date(value).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
 }

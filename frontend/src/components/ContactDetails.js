@@ -49,7 +49,7 @@ function Dialog({ title, onClose, children }) {
         aria-modal="true"
         aria-labelledby="contact-dialog-title"
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-[28px] bg-white p-6 shadow-2xl"
       >
         <div className="mb-5 flex items-center justify-between gap-4">
           <h2 id="contact-dialog-title" className="text-lg font-extrabold text-slate-900">
@@ -59,7 +59,7 @@ function Dialog({ title, onClose, children }) {
             type="button"
             onClick={onClose}
             aria-label={t.dash.form.cancel}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-lg p-1.5 text-slate-400 hover:bg-sand/60 hover:text-slate-600"
           >
             <X className="h-5 w-5" />
           </button>
@@ -291,7 +291,6 @@ function PhoneDialog({ user, onClose, onChanged, onAuthError }) {
             }}
             aria-invalid={!!fieldErrors.phone}
             className={inputClass(fieldErrors.phone)}
-            placeholder="0771234567"
           />
         </Field>
 
@@ -310,7 +309,6 @@ function PhoneDialog({ user, onClose, onChanged, onAuthError }) {
               }}
               aria-invalid={!!fieldErrors.whatsapp}
               className={inputClass(fieldErrors.whatsapp)}
-              placeholder="0771234567"
             />
             <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-slate-600">
               <input
@@ -329,7 +327,7 @@ function PhoneDialog({ user, onClose, onChanged, onAuthError }) {
         )}
 
         <div className="flex gap-3 pt-2">
-          <button type="button" onClick={onClose} className="w-1/3 rounded-xl border border-slate-300 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+          <button type="button" onClick={onClose} className="w-1/3 rounded-xl border border-slate-300 py-3 text-sm font-semibold text-slate-600 hover:bg-cream">
             {t.dash.form.cancel}
           </button>
           <button type="submit" disabled={loading} className={primaryButtonClass}>
@@ -385,8 +383,8 @@ export default function ContactDetails({ user, onUpdated, onAuthError, className
   };
 
   return (
-    <section className={`rounded-2xl bg-white px-6 py-5 shadow-sm ring-1 ring-slate-200 ${className}`}>
-      <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800">{c.title}</h2>
+    <section className={`rounded-[28px] bg-white px-6 py-5 shadow-sm ring-1 ring-ink/5 ${className}`}>
+      <h2 className="font-sans text-sm font-bold uppercase tracking-wider text-slate-800">{c.title}</h2>
 
       {notice && (
         <p role="status" className="mt-3 flex items-start gap-2.5 rounded-xl bg-brand-50 px-3.5 py-2.5 text-sm font-medium text-brand-800 ring-1 ring-brand-200">

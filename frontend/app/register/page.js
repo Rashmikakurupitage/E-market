@@ -2,21 +2,16 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { LoaderCircle, CircleAlert, CircleCheck, ArrowRight, KeyRound } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage } from '../../src/lib/i18n';
-import { saveSession } from '../../src/lib/auth';
+import { saveSession, safeNextPath } from '../../src/lib/auth';
 import AuthPanel from '../../src/components/AuthPanel';
 import AccountTypeTabs, { useAccountType } from '../../src/components/AccountTypeTabs';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
-
-const DISTRICTS = [
-  'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha',
-  'Hambantota', 'Jaffna', 'Kalutara', 'Kandy', 'Kegalle', 'Kilinochchi', 'Kurunegala',
-  'Mannar', 'Matale', 'Matara', 'Monaragala', 'Mullaitivu', 'Nuwara Eliya', 'Polonnaruwa',
-  'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya',
-];
+import { PageArt } from '../../src/components/Art';
+import { DISTRICTS } from '../../src/lib/catalog';
 
 // Same rules as the backend (authController.js)
 const NIC_PATTERN = /^(\d{9}[VvXx]|\d{12})$/;
@@ -26,7 +21,7 @@ const cleanPhone = (value) => value.replace(/[\s-]/g, '');
 
 function SectionTitle({ number, children }) {
   return (
-    <h2 className="flex items-center gap-2.5 text-sm font-bold uppercase tracking-wider text-slate-800">
+    <h2 className="font-sans flex items-center gap-2.5 text-sm font-bold uppercase tracking-wider text-slate-800">
       <span className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-xs text-white">{number}</span>
       {children}
     </h2>
@@ -128,7 +123,7 @@ function SellerRegisterForm({ onRegistered }) {
             <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
           </Field>
           <Field id="nic" label={r.nic} required hint={r.nicHint} error={fieldErrors.nic} className="sm:col-span-2">
-            <input id="nic" name="nic" type="text" required value={formData.nic} onChange={handleChange} aria-invalid={!!fieldErrors.nic} className={`${inputClass(fieldErrors.nic)} uppercase`} placeholder="198584700123" />
+            <input id="nic" name="nic" type="text" required value={formData.nic} onChange={handleChange} aria-invalid={!!fieldErrors.nic} className={`${inputClass(fieldErrors.nic)} uppercase`} />
           </Field>
         </div>
         <p className="flex items-start gap-2.5 rounded-xl bg-brand-50 p-3.5 text-sm text-slate-700 ring-1 ring-brand-100">
@@ -164,7 +159,7 @@ function SellerRegisterForm({ onRegistered }) {
         <SectionTitle number={3}>{r.sectionContact}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="phone" label={r.phone} required error={fieldErrors.phone}>
-            <input id="phone" name="phone" type="tel" inputMode="tel" required autoComplete="tel" value={formData.phone} onChange={handleChange} aria-invalid={!!fieldErrors.phone} className={inputClass(fieldErrors.phone)} placeholder="0771234567" />
+            <input id="phone" name="phone" type="tel" inputMode="tel" required autoComplete="tel" value={formData.phone} onChange={handleChange} aria-invalid={!!fieldErrors.phone} className={inputClass(fieldErrors.phone)} />
           </Field>
           <Field id="whatsappNo" label={r.whatsapp} required hint={r.whatsappHint} error={fieldErrors.whatsappNo}>
             <input
@@ -178,7 +173,6 @@ function SellerRegisterForm({ onRegistered }) {
               onChange={handleChange}
               aria-invalid={!!fieldErrors.whatsappNo}
               className={inputClass(fieldErrors.whatsappNo)}
-              placeholder="0771234567"
             />
             <label className="mt-2 flex cursor-pointer items-center gap-2 text-sm text-slate-600">
               <input
@@ -284,10 +278,10 @@ function CustomerRegisterForm({ onRegistered }) {
             <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
           </Field>
           <Field id="nic" label={r.nic} required hint={r.nicHint} error={fieldErrors.nic}>
-            <input id="nic" name="nic" type="text" required value={formData.nic} onChange={handleChange} aria-invalid={!!fieldErrors.nic} className={`${inputClass(fieldErrors.nic)} uppercase`} placeholder="198584700123" />
+            <input id="nic" name="nic" type="text" required value={formData.nic} onChange={handleChange} aria-invalid={!!fieldErrors.nic} className={`${inputClass(fieldErrors.nic)} uppercase`} />
           </Field>
           <Field id="phone" label={r.phone} required error={fieldErrors.phone}>
-            <input id="phone" name="phone" type="tel" inputMode="tel" required autoComplete="tel" value={formData.phone} onChange={handleChange} aria-invalid={!!fieldErrors.phone} className={inputClass(fieldErrors.phone)} placeholder="0771234567" />
+            <input id="phone" name="phone" type="tel" inputMode="tel" required autoComplete="tel" value={formData.phone} onChange={handleChange} aria-invalid={!!fieldErrors.phone} className={inputClass(fieldErrors.phone)} />
           </Field>
         </div>
         <p className="flex items-start gap-2.5 rounded-xl bg-brand-50 p-3.5 text-sm text-slate-700 ring-1 ring-brand-100">
@@ -320,7 +314,9 @@ function Register() {
   const type = useAccountType();
   const [registered, setRegistered] = useState(null); // 'seller' | 'customer' once signed up
 
-  const nextPage = registered === 'customer' ? '/account' : '/dashboard';
+  // Customers sent here from the Store's checkout go back there after signing up
+  const next = safeNextPath(useSearchParams().get('next'));
+  const nextPage = registered === 'customer' ? next || '/account' : '/dashboard';
 
   // After a successful sign-up, move on to the dashboard (sellers) or account page (customers)
   useEffect(() => {
@@ -335,8 +331,9 @@ function Register() {
       : { title: r.title, subtitle: r.subtitle, listTitle: r.benefitsTitle, items: r.benefits };
 
   return (
-    <main className="flex-1 bg-slate-100 px-4 py-10 sm:py-14">
-      <div className="mx-auto grid max-w-6xl overflow-hidden rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 lg:grid-cols-[2fr_3fr]">
+    <main className="relative isolate flex-1 px-4 py-10 sm:py-14">
+      <PageArt />
+      <div className="mx-auto grid max-w-6xl animate-zoom-in overflow-hidden rounded-[32px] bg-white shadow-xl ring-1 ring-ink/5 lg:grid-cols-[2fr_3fr]">
         <AuthPanel {...panel} />
 
         <section className="px-6 py-8 sm:px-10 sm:py-10">
@@ -350,7 +347,7 @@ function Register() {
               <button
                 type="button"
                 onClick={() => router.push(nextPage)}
-                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-700"
+                className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-700"
               >
                 {registered === 'customer' ? c.goToAccount : r.goToDashboard}
                 <ArrowRight className="h-4 w-4" />
@@ -377,7 +374,7 @@ function Register() {
 // The Seller/Customer choice comes from the URL (?as=customer), which needs a Suspense boundary
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<main className="flex-1 bg-slate-100" />}>
+    <Suspense fallback={<main className="flex-1" />}>
       <Register />
     </Suspense>
   );

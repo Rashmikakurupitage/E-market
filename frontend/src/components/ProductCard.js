@@ -10,7 +10,7 @@ import { getSeller, toWhatsAppNumber, formatPhone, formatPrice, initials } from 
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
 
 // Counts the click for the seller's dashboard. Sample products (no sellerId) are skipped.
-function trackWhatsAppClick(product) {
+export function trackWhatsAppClick(product) {
   if (!product.sellerId) return;
   API.post('/products/track-click', { productId: product.id, platform: 'WHATSAPP' }).catch(() => {});
 }
@@ -30,9 +30,9 @@ export default function ProductCard({ product }) {
     : null;
 
   return (
-    <article className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl">
+    <article className="group flex h-full flex-col rounded-[28px] border border-ink/5 bg-white p-3 shadow-sm shadow-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/10">
       {/* Image */}
-      <div className="relative aspect-[5/4] overflow-hidden bg-slate-100">
+      <div className="shine relative aspect-square overflow-hidden rounded-[22px] bg-sand">
         {image && !imageFailed ? (
           <img
             src={image}
@@ -42,43 +42,43 @@ export default function ProductCard({ product }) {
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-slate-300">
+          <div className="flex h-full w-full items-center justify-center text-ink/20">
             <Package className="h-12 w-12" />
           </div>
         )}
-        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-brand-600 px-2.5 py-1 text-[11px] font-semibold text-white shadow-md">
+        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-magenta px-3 py-1 text-[11px] font-semibold text-white shadow-md">
           <BadgeCheck className="h-3.5 w-3.5" />
           {t.verifiedSeller}
         </span>
       </div>
 
       {/* Details */}
-      <div className="flex flex-1 flex-col p-4">
-        <h3 className="line-clamp-1 text-base font-bold text-slate-900">{product.title}</h3>
-        <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-sm leading-5 text-slate-500">
+      <div className="flex flex-1 flex-col px-2 pb-1 pt-4">
+        <h3 className="line-clamp-1 font-semibold text-ink">{product.title}</h3>
+        <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-sm leading-5 text-ink/55">
           {product.description}
         </p>
 
         <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="text-lg font-extrabold text-slate-900">
-            {price || <span className="text-sm font-semibold text-slate-500">{t.priceOnRequest}</span>}
+          <span className="text-lg font-bold tabular-nums text-ink">
+            {price || <span className="text-sm font-semibold text-ink/50">{t.priceOnRequest}</span>}
           </span>
           {product.category && (
-            <span className="truncate rounded-full bg-brand-50 px-2.5 py-0.5 text-[11px] font-semibold text-brand-700 ring-1 ring-brand-100">
+            <span className="truncate rounded-full bg-sand/70 px-3 py-1 text-[11px] font-semibold text-ink/80">
               {t.categories[product.category] || product.category}
             </span>
           )}
         </div>
 
         {/* Seller */}
-        <div className="mt-3 flex items-center gap-2.5 border-t border-slate-100 pt-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-100 text-xs font-bold text-brand-800">
+        <div className="mt-3 flex items-center gap-2.5 border-t border-ink/5 pt-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-magenta to-saffron text-xs font-bold text-white">
             {initials(seller.businessName) || '?'}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-slate-800">{seller.businessName || '—'}</p>
+            <p className="truncate text-sm font-semibold text-ink">{seller.businessName || '—'}</p>
             {seller.district && (
-              <p className="flex items-center gap-1 text-xs text-slate-500">
+              <p className="flex items-center gap-1 text-xs text-ink/55">
                 <MapPin className="h-3 w-3" />
                 {seller.district}
               </p>
@@ -95,16 +95,16 @@ export default function ProductCard({ product }) {
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackWhatsAppClick(product)}
-              className="flex w-full items-center justify-center gap-2.5 rounded-xl bg-brand-600 px-3 py-2.5 text-white shadow-sm transition-colors hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+              className="group/order flex w-full items-center justify-center gap-2.5 rounded-full border border-ink/15 px-3 py-2 text-ink transition-all duration-200 hover:border-leaf hover:bg-leaf hover:text-white active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-leaf"
             >
-              <WhatsAppIcon className="h-5 w-5 shrink-0" />
+              <WhatsAppIcon className="h-5 w-5 shrink-0 text-leaf transition-transform duration-300 group-hover/order:-rotate-12 group-hover/order:scale-110 group-hover/order:text-white" />
               <span className="flex flex-col items-start leading-tight">
-                <span className="text-sm font-bold">{t.orderWhatsapp}</span>
-                <span className="text-[11px] font-medium text-white/80">{formatPhone(whatsapp)}</span>
+                <span className="text-sm font-semibold">{t.orderWhatsapp}</span>
+                <span className="text-[11px] font-medium tabular-nums opacity-70">{formatPhone(whatsapp)}</span>
               </span>
             </a>
           ) : (
-            <span className="flex w-full items-center justify-center gap-2 rounded-xl bg-slate-100 px-3 py-3 text-sm font-semibold text-slate-400">
+            <span className="flex w-full items-center justify-center gap-2 rounded-full bg-sand/70 px-3 py-3 text-sm font-semibold text-ink/40">
               <WhatsAppIcon className="h-5 w-5" />
               {t.whatsappUnavailable}
             </span>

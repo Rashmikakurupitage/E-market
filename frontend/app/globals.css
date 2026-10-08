@@ -4,19 +4,31 @@
   /* Geist covers Latin text; the browser falls through to the Noto fonts for Sinhala and Tamil glyphs */
   --font-sans: var(--font-geist-sans), var(--font-sinhala), var(--font-tamil), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
+  /* Headings: Playfair Display for English, Noto for Sinhala and Tamil */
+  --font-display: var(--font-playfair), var(--font-sinhala), var(--font-tamil), Georgia, serif;
 }
 
 @theme {
-  /* Brand green, used for buttons, badges, active nav and the e-learning banner */
-  --color-brand-50: #ecf7f0;
-  --color-brand-100: #d3eddc;
-  --color-brand-200: #a8dbbc;
-  --color-brand-300: #74c294;
-  --color-brand-500: #23955a;
-  --color-brand-600: #1a7f4b;
-  --color-brand-700: #14693d;
-  --color-brand-800: #105432;
-  --color-brand-900: #0b3f26;
+  /* Palette taken from the Lanka Women lotus logo */
+  --color-ink: #1e2029;
+  --color-cream: #fdf7ee;
+  --color-sand: #f6ead6;
+  --color-magenta: #c8336f;
+  --color-magenta-dark: #a3245a;
+  --color-saffron: #ee7d2b;
+  --color-turmeric: #f4b93e;
+  --color-leaf: #4f9a52;
+
+  /* Brand scale (magenta), used for buttons, badges, links and banners on every page */
+  --color-brand-50: #fdf1f6;
+  --color-brand-100: #fadce8;
+  --color-brand-200: #f3b8d0;
+  --color-brand-300: #e98bb1;
+  --color-brand-500: #d6487f;
+  --color-brand-600: #c8336f;
+  --color-brand-700: #a3245a;
+  --color-brand-800: #4a1d3a;
+  --color-brand-900: #1e2029;
 }
 
 html {
@@ -24,14 +36,54 @@ html {
 }
 
 body {
-  background: #f2f4f3;
-  color: #1e293b;
+  background: #fdf7ee;
+  color: #1e2029;
   font-family: var(--font-geist-sans), var(--font-sinhala), var(--font-tamil), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  h1,
+  h2 {
+    font-family: var(--font-display);
+  }
+}
+
+/* Cream background with soft saffron, magenta, turmeric and leaf glows */
+.bg-mesh {
+  background-color: #fdf7ee;
+  background-image:
+    radial-gradient(at 8% 12%, rgb(238 125 43 / 0.26) 0, transparent 42%),
+    radial-gradient(at 92% 6%, rgb(200 51 111 / 0.24) 0, transparent 44%),
+    radial-gradient(at 62% 92%, rgb(244 185 62 / 0.32) 0, transparent 48%),
+    radial-gradient(at 4% 88%, rgb(79 154 82 / 0.18) 0, transparent 42%),
+    radial-gradient(at 48% 40%, rgb(255 255 255 / 0.7) 0, transparent 55%);
+}
+
+/* Frosted glass surface (in the components layer so utilities can override it) */
+@layer components {
+  .glass {
+    background: rgb(255 255 255 / 0.55);
+    /* The build adds the -webkit- prefix itself; writing it here too made it drop this standard line */
+    backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid rgb(255 255 255 / 0.75);
+    box-shadow: 0 12px 40px -14px rgb(30 32 41 / 0.22);
+  }
+}
+
+/* Magenta → saffron → turmeric text. The padding keeps Sinhala and Tamil marks from being cut off. */
+.text-gradient-brand {
+  background-image: linear-gradient(100deg, #c8336f 0%, #ee7d2b 55%, #f4b93e 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  padding-block: 0.08em;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
 }
 
 /* Keep anchored sections clear of the sticky header */
 [id] {
-  scroll-margin-top: 7rem;
+  scroll-margin-top: 9.5rem;
 }
 
 .no-scrollbar {
@@ -39,4 +91,239 @@ body {
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ---------- Animations (used as animate-fade-up, animate-float, ...) ---------- */
+@theme {
+  --animate-fade-up: fade-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-page-in: page-in 0.45s ease-out both;
+  --animate-float: float 8s ease-in-out infinite;
+  --animate-bob: bob 6s ease-in-out infinite;
+  --animate-ken-burns: ken-burns 26s ease-in-out infinite alternate;
+  --animate-gradient: gradient-pan 12s ease infinite;
+  --animate-bounce-soft: bounce-soft 2.2s ease-in-out infinite;
+  --animate-zoom-in: zoom-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-grow-x: grow-x 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  --animate-spin-slow: spin-slow 40s linear infinite;
+  --animate-twinkle: twinkle 3s ease-in-out infinite;
+  --animate-morph: morph 14s ease-in-out infinite;
+  --animate-slide-in: slide-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes page-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes float {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    50% { transform: translate3d(0, -22px, 0) scale(1.05); }
+  }
+  /* Gentle up-and-down for the floating cards beside photos */
+  @keyframes bob {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes ken-burns {
+    from { transform: scale(1); }
+    to { transform: scale(1.12) translate3d(-1.5%, -1%, 0); }
+  }
+  @keyframes gradient-pan {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  @keyframes bounce-soft {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(6px); }
+  }
+  @keyframes shimmer {
+    from { background-position: 100% 0; }
+    to { background-position: -100% 0; }
+  }
+  @keyframes zoom-in {
+    from { opacity: 0; transform: scale(0.94); }
+    to { opacity: 1; transform: none; }
+  }
+  @keyframes grow-x {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+  /* Side panels (the cart) slide in from the right */
+  @keyframes slide-in {
+    from { transform: translateX(100%); }
+    to { transform: none; }
+  }
+  @keyframes spin-slow {
+    to { transform: rotate(360deg); }
+  }
+  /* Sparkles: gently grow, brighten and turn */
+  @keyframes twinkle {
+    0%, 100% { opacity: 0.35; transform: scale(0.7) rotate(0deg); }
+    50% { opacity: 1; transform: scale(1) rotate(25deg); }
+  }
+  /* Background blobs: the outline slowly changes shape */
+  @keyframes morph {
+    0%, 100% { border-radius: 42% 58% 63% 37% / 41% 44% 56% 59%; transform: rotate(0deg); }
+    33% { border-radius: 63% 37% 41% 59% / 58% 36% 64% 42%; }
+    66% { border-radius: 37% 63% 56% 44% / 49% 63% 37% 51%; transform: rotate(10deg); }
+  }
+}
+
+/* Used by the rules below (plain CSS, so defined outside @theme) */
+@keyframes draw-line {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@layer components {
+  /* Wavy underlines (<Squiggle>) draw themselves when their <Reveal> becomes visible, or at once inside .draw-now */
+  .draw-path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .reveal.is-visible .draw-path {
+    animation: draw-line 1.3s cubic-bezier(0.65, 0, 0.35, 1) 0.35s both;
+  }
+  .draw-now .draw-path {
+    animation: draw-line 1.3s cubic-bezier(0.65, 0, 0.35, 1) 0.9s both;
+  }
+
+  /* Lines that grow from the left when their <Reveal> becomes visible */
+  .grow-line {
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.4s;
+  }
+  .reveal.is-visible .grow-line {
+    transform: scaleX(1);
+  }
+
+  /* A light sweep across a button on hover */
+  .btn-shine {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .btn-shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(115deg, transparent 30%, rgb(255 255 255 / 0.35) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform 0.8s ease;
+  }
+  .btn-shine:hover::after {
+    transform: translateX(120%);
+  }
+}
+
+/* Background patterns: soft dots and a batik-style diamond motif */
+.pattern-dots {
+  background-image: radial-gradient(rgb(255 255 255 / 0.14) 1.2px, transparent 1.6px);
+  background-size: 20px 20px;
+}
+/* (named "green" from the earlier colour scheme; now drawn in the brand magenta) */
+.pattern-dots-green {
+  background-image: radial-gradient(rgb(200 51 111 / 0.12) 1.2px, transparent 1.6px);
+  background-size: 20px 20px;
+}
+.pattern-batik {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='white' stroke-opacity='0.09' stroke-width='1.2'%3E%3Cpath d='M28 4 52 28 28 52 4 28Z'/%3E%3Cpath d='M28 16 40 28 28 40 16 28Z'/%3E%3Ccircle cx='28' cy='28' r='3'/%3E%3Ccircle cx='0' cy='0' r='5'/%3E%3Ccircle cx='56' cy='0' r='5'/%3E%3Ccircle cx='0' cy='56' r='5'/%3E%3Ccircle cx='56' cy='56' r='5'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+::selection {
+  background: #f3b8d0;
+  color: #1e2029;
+}
+
+html {
+  scrollbar-color: #e98bb1 transparent;
+}
+
+/* Standard scroll animations (see src/components/Reveal.js):
+   fade-up, fade-down, fade-left (comes in from the right), fade-right (from the left) and zoom-in */
+.reveal {
+  opacity: 0;
+  transform: translate3d(0, 32px, 0);
+  transition:
+    opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal[data-animation='fade-down'] {
+  transform: translate3d(0, -32px, 0);
+}
+.reveal[data-animation='fade-left'] {
+  transform: translate3d(48px, 0, 0);
+}
+.reveal[data-animation='fade-right'] {
+  transform: translate3d(-48px, 0, 0);
+}
+.reveal[data-animation='zoom-in'] {
+  transform: scale(0.9);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Sideways animations must never cause a horizontal scrollbar */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* A light sweep across product photos on hover (put .shine on an element inside a .group) */
+.shine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 35%, rgb(255 255 255 / 0.4) 50%, transparent 65%);
+  transform: translateX(-120%);
+  transition: transform 0.9s ease;
+}
+.group:hover .shine::after {
+  transform: translateX(120%);
+}
+
+/* Loading placeholders */
+.skeleton {
+  background: linear-gradient(90deg, #f6ead6 25%, #fdf7ee 50%, #f6ead6 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s linear infinite;
+}
+
+/* Visitors who ask their device for less motion get no animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal,
+  .reveal[data-animation] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media print {
+  .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .draw-path {
+    animation: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+  .grow-line {
+    transform: none !important;
+  }
 }

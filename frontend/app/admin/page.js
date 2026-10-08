@@ -15,6 +15,7 @@ import ProductThumb from '../../src/components/ProductThumb';
 import SellerStatusBadge from '../../src/components/SellerStatusBadge';
 import ConfirmDialog from '../../src/components/ConfirmDialog';
 import WhatsAppIcon from '../../src/components/WhatsAppIcon';
+import { PageArt } from '../../src/components/Art';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -28,7 +29,7 @@ const productVisibility = (product) =>
 const VISIBILITY_STYLES = {
   onSite: 'bg-brand-50 text-brand-700 ring-brand-200',
   waiting: 'bg-amber-50 text-amber-800 ring-amber-200',
-  hidden: 'bg-slate-100 text-slate-600 ring-slate-200',
+  hidden: 'bg-sand/60 text-slate-600 ring-slate-200',
 };
 
 // Search box that waits until typing stops before searching
@@ -67,7 +68,7 @@ function Toolbar({ filters, active, onFilter, search, onSearch, placeholder }) {
             onClick={() => onFilter(filter.value)}
             aria-pressed={active === filter.value}
             className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-              active === filter.value ? 'bg-slate-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              active === filter.value ? 'bg-slate-800 text-white' : 'bg-sand/60 text-slate-600 hover:bg-slate-200'
             }`}
           >
             {filter.label}
@@ -124,7 +125,7 @@ function SellerProducts({ sellerId, onAuthError }) {
   return (
     <ul className="grid gap-3 sm:grid-cols-2">
       {products.map((product) => (
-        <li key={product.id} className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-slate-200">
+        <li key={product.id} className="flex items-center gap-3 rounded-xl bg-white p-3 ring-1 ring-ink/5">
           <ProductThumb src={product.images?.[0]} alt={product.title} size="h-12 w-12" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-slate-900">{product.title}</p>
@@ -259,7 +260,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                         type="button"
                         disabled={busy}
                         onClick={() => changeStatus(seller, 'APPROVED')}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-60"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-60"
                       >
                         {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
                         {a.approve}
@@ -279,7 +280,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                 </div>
 
                 {open && (
-                  <div className="mt-4 rounded-xl bg-slate-50 p-4">
+                  <div className="mt-4 rounded-xl bg-cream p-4">
                     <SellerProducts sellerId={seller.id} onAuthError={onAuthError} />
                   </div>
                 )}
@@ -394,7 +395,7 @@ function ProductsPanel({ onChanged, onAuthError }) {
                     type="button"
                     disabled={busy}
                     onClick={() => togglePublished(product)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-60"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-cream disabled:opacity-60"
                   >
                     {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : product.isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     {product.isPublished ? a.hide : a.show}
@@ -480,7 +481,7 @@ export default function AdminDashboard() {
 
   if (!hydrated || !isAdmin) {
     return (
-      <main className="flex flex-1 items-center justify-center bg-slate-100 px-4 py-20">
+      <main className="flex flex-1 items-center justify-center px-4 py-20">
         <LoaderCircle className="h-6 w-6 animate-spin text-brand-600" />
       </main>
     );
@@ -492,7 +493,8 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <main className="flex-1 bg-slate-100 px-4 py-8 sm:py-10">
+    <main className="relative isolate flex-1 px-4 py-8 sm:py-10">
+      <PageArt />
       <div className="mx-auto max-w-6xl space-y-6">
         <section className="flex flex-col gap-2 rounded-2xl bg-slate-800 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -543,7 +545,7 @@ export default function AdminDashboard() {
           />
         </section>
 
-        <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
+        <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
           <div role="tablist" className="flex border-b border-slate-200">
             {tabs.map(({ value, label, icon: Icon }) => (
               <button

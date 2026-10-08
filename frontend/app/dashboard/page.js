@@ -15,6 +15,10 @@ import ProductThumb from '../../src/components/ProductThumb';
 import SellerStatusBadge from '../../src/components/SellerStatusBadge';
 import ConfirmDialog from '../../src/components/ConfirmDialog';
 import ContactDetails from '../../src/components/ContactDetails';
+import Reveal from '../../src/components/Reveal';
+import CountUp from '../../src/components/CountUp';
+import { SellerOrders } from '../../src/components/Orders';
+import { Lotus, PageArt } from '../../src/components/Art';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -24,18 +28,30 @@ async function fetchDashboard() {
   return { user: me.data.user, products: products.data };
 }
 
-function StatCard({ icon: Icon, label, value, sub }) {
+const STAT_TONES = {
+  green: 'from-brand-500 to-brand-700 shadow-brand-600/30',
+  dark: 'from-brand-600 to-brand-800 shadow-brand-700/30',
+  gold: 'from-turmeric to-saffron shadow-saffron/30',
+};
+
+function StatCard({ icon: Icon, label, value, sub, tone = 'green', delay = 0 }) {
+  const gradient = STAT_TONES[tone];
   return (
-    <div className="flex items-center gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200">
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
-        <Icon className="h-6 w-6" />
-      </span>
-      <div>
-        <p className="text-sm font-medium text-slate-500">{label}</p>
-        <p className="text-2xl font-extrabold text-slate-900">{value}</p>
-        {sub && <p className="text-xs text-slate-400">{sub}</p>}
+    <Reveal animation="zoom-in" delay={delay} className="grid">
+      <div className="group relative flex items-center gap-4 overflow-hidden rounded-[28px] bg-white p-5 shadow-sm ring-1 ring-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg">
+        <span aria-hidden="true" className={`absolute -right-8 -top-8 h-28 w-28 rounded-full bg-linear-to-br opacity-10 transition-transform duration-500 group-hover:scale-125 ${gradient}`} />
+        <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-linear-to-br text-white shadow-lg transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 ${gradient}`}>
+          <Icon className="h-6 w-6" />
+        </span>
+        <div className="relative">
+          <p className="text-sm font-medium text-slate-500">{label}</p>
+          <p className="text-3xl font-extrabold text-slate-900">
+            <CountUp value={value} />
+          </p>
+          {sub && <p className="text-xs text-slate-400">{sub}</p>}
+        </div>
       </div>
-    </div>
+    </Reveal>
   );
 }
 
@@ -80,11 +96,11 @@ function AddProductModal({ onClose, onAdded }) {
         aria-modal="true"
         aria-labelledby="add-product-title"
         onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl bg-white p-6 shadow-2xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-[28px] bg-white p-6 shadow-2xl"
       >
         <div className="mb-5 flex items-center justify-between">
           <h2 id="add-product-title" className="text-lg font-extrabold text-slate-900">{f.title}</h2>
-          <button type="button" onClick={onClose} aria-label={f.cancel} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600">
+          <button type="button" onClick={onClose} aria-label={f.cancel} className="rounded-lg p-1.5 text-slate-400 hover:bg-sand/60 hover:text-slate-600">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -124,7 +140,7 @@ function AddProductModal({ onClose, onAdded }) {
           </Field>
 
           <div className="flex gap-3 pt-2">
-            <button type="button" onClick={onClose} className="w-1/3 rounded-xl border border-slate-300 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50">
+            <button type="button" onClick={onClose} className="w-1/3 rounded-xl border border-slate-300 py-3 text-sm font-semibold text-slate-600 hover:bg-cream">
               {f.cancel}
             </button>
             <button type="submit" disabled={saving} className={primaryButtonClass}>
@@ -229,7 +245,7 @@ export default function Dashboard() {
 
   if (status === 'loading' || !loggedIn) {
     return (
-      <main className="flex flex-1 items-center justify-center bg-slate-100 px-4 py-20">
+      <main className="flex flex-1 items-center justify-center px-4 py-20">
         <p className="flex items-center gap-3 text-sm font-medium text-slate-500">
           <LoaderCircle className="h-5 w-5 animate-spin text-brand-600" />
           {d.loading}
@@ -240,12 +256,12 @@ export default function Dashboard() {
 
   if (status === 'error') {
     return (
-      <main className="flex flex-1 items-center justify-center bg-slate-100 px-4 py-20">
-        <div className="max-w-sm rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
+      <main className="flex flex-1 items-center justify-center px-4 py-20">
+        <div className="max-w-sm rounded-[28px] bg-white p-8 text-center shadow-sm ring-1 ring-ink/5">
           <CircleAlert className="mx-auto h-10 w-10 text-red-400" />
           <p className="mt-4 font-semibold text-slate-800">{d.loadError}</p>
           <p className="mt-1 text-sm text-slate-500">{t.loginPage.networkError}</p>
-          <button type="button" onClick={retry} className="mt-5 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">
+          <button type="button" onClick={retry} className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700">
             <RefreshCw className="h-4 w-4" />
             {d.retry}
           </button>
@@ -271,7 +287,8 @@ export default function Dashboard() {
   };
 
   return (
-    <main className="flex-1 bg-slate-100 px-4 py-8 sm:py-10">
+    <main className="relative isolate flex-1 px-4 py-8 sm:py-10">
+      <PageArt />
       <div className="mx-auto max-w-6xl space-y-6">
         {notice && (
           <div role="status" className="flex items-center gap-2.5 rounded-xl bg-brand-50 px-4 py-3 text-sm font-medium text-brand-800 ring-1 ring-brand-200">
@@ -281,17 +298,22 @@ export default function Dashboard() {
         )}
 
         {/* Welcome */}
-        <section className="flex flex-col gap-5 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:flex-row sm:items-center sm:justify-between">
+        <Reveal as="section" animation="fade-down" className="relative isolate flex flex-col gap-5 overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />
+          <div aria-hidden="true" className="pointer-events-none absolute -left-10 -top-16 -z-10 h-48 w-48 animate-float rounded-full bg-magenta/50 blur-3xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 right-10 -z-10 h-56 w-56 animate-float rounded-full bg-saffron/35 blur-3xl [animation-delay:-4s]" />
+          <Lotus color="white" className="pointer-events-none absolute -bottom-3 right-1/3 -z-10 hidden w-40 opacity-40 md:block" />
+
           <div className="flex items-center gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-600 text-lg font-bold text-white">
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-xl font-extrabold text-brand-700 shadow-lg ring-4 ring-white/25">
               {initials(profile?.businessName) || '?'}
             </span>
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{d.title}</p>
-              <h1 className="break-words text-xl font-extrabold text-slate-900 sm:text-2xl">
+              <p className="text-xs font-semibold uppercase tracking-wider text-turmeric">{d.title}</p>
+              <h1 className="break-words text-xl font-extrabold sm:text-3xl">
                 {fill(d.welcome, { name: profile?.businessName || '' })}
               </h1>
-              <div className="mt-1.5 flex flex-wrap items-center gap-2 text-sm text-slate-500">
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-white/80">
                 <span className="inline-flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" />
                   {profile?.district}
@@ -301,14 +323,15 @@ export default function Dashboard() {
             </div>
           </div>
           <button
+            id="add-product"
             type="button"
             onClick={() => setShowAddProduct(true)}
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-brand-700"
+            className="group inline-flex items-center justify-center gap-2 rounded-xl bg-turmeric px-5 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-saffron/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-turmeric/85 hover:shadow-xl active:translate-y-0"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
             {d.addProduct}
           </button>
-        </section>
+        </Reveal>
 
         {/* Until approved, products don't appear on the website */}
         {sellerStatus === 'PENDING' && (
@@ -326,15 +349,15 @@ export default function Dashboard() {
 
         {/* Results */}
         <section className="grid gap-4 sm:grid-cols-3">
-          <StatCard icon={Package} label={d.statProducts} value={products.length} />
-          <StatCard icon={MessageCircle} label={d.statClicks} value={totalClicks} sub={d.statClicksSub} />
-          <StatCard icon={TrendingUp} label={d.statWeek} value={weekClicks} sub={d.statWeekSub} />
+          <StatCard icon={Package} label={d.statProducts} value={products.length} tone="green" />
+          <StatCard icon={MessageCircle} label={d.statClicks} value={totalClicks} sub={d.statClicksSub} tone="dark" delay={100} />
+          <StatCard icon={TrendingUp} label={d.statWeek} value={weekClicks} sub={d.statWeekSub} tone="gold" delay={200} />
         </section>
         <p className="px-1 text-xs leading-relaxed text-slate-500">{d.resultsNote}</p>
 
         {/* Products */}
-        <section className="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-slate-200">
-          <h2 className="border-b border-slate-100 px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-800">{d.myProducts}</h2>
+        <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
+          <h2 className="font-sans border-b border-slate-100 px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-800">{d.myProducts}</h2>
 
           {products.length === 0 ? (
             <div className="px-6 py-14 text-center">
@@ -344,7 +367,7 @@ export default function Dashboard() {
               <button
                 type="button"
                 onClick={() => setShowAddProduct(true)}
-                className="mt-5 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+                className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
               >
                 <Plus className="h-4 w-4" />
                 {d.addProduct}
@@ -352,8 +375,8 @@ export default function Dashboard() {
             </div>
           ) : (
             <ul className="divide-y divide-slate-100">
-              {products.map((product) => (
-                <li key={product.id} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50">
+              {products.map((product, index) => (
+                <Reveal as="li" delay={Math.min(index, 8) * 60} key={product.id} className="flex items-center gap-4 px-6 py-4 hover:bg-cream">
                   <ProductThumb src={product.images?.[0]} alt={product.title} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-slate-900">{product.title}</p>
@@ -378,14 +401,17 @@ export default function Dashboard() {
                     <Trash2 className="h-4 w-4" />
                     <span className="hidden md:inline">{d.remove}</span>
                   </button>
-                </li>
+                </Reveal>
               ))}
             </ul>
           )}
         </section>
 
+        {/* Orders customers placed in the Store */}
+        <SellerOrders onAuthError={loggedOut} />
+
         {/* Email, phone and the WhatsApp number customers order on */}
-        <ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} />
+        <Reveal><ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} /></Reveal>
       </div>
 
       {showAddProduct && <AddProductModal onClose={() => setShowAddProduct(false)} onAdded={productAdded} />}

@@ -3,7 +3,6 @@ const router = express.Router();
 const {
   register,
   login,
-  registerAdmin,
   requestSellerLoginCode,
   verifySellerLoginCode,
   requestCustomerLoginCode,
@@ -28,8 +27,7 @@ router.post('/seller-login/verify-code', verifySellerLoginCode);
 router.post('/customer-login/request-code', requestCustomerLoginCode);
 router.post('/customer-login/verify-code', verifyCustomerLoginCode);
 
-// Admins: register with the admin registration code from backend/.env, then log in like sellers
-router.post('/admin-register', registerAdmin);
+// Admins log in like sellers. New admin accounts are added on the server with `npm run add-admin`.
 router.post('/admin-login/request-code', requestAdminLoginCode);
 router.post('/admin-login/verify-code', verifyAdminLoginCode);
 

@@ -9,8 +9,14 @@ import { useLanguage, fill } from '../../src/lib/i18n';
 import { useSession, useHydrated, clearSession, updateSessionUser, homePathFor } from '../../src/lib/auth';
 import { initials } from '../../src/lib/catalog';
 import ContactDetails from '../../src/components/ContactDetails';
+import Reveal from '../../src/components/Reveal';
+import { CustomerOrders } from '../../src/components/Orders';
+import { Lotus, PageArt } from '../../src/components/Art';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
+
+// Colour of the "how to buy" step numbers
+const STEP_TONES = ['from-brand-500 to-brand-700'];
 
 function Detail({ icon: Icon, label, value }) {
   return (
@@ -77,7 +83,7 @@ export default function Account() {
 
   if (status === 'loading' || !isCustomer) {
     return (
-      <main className="flex flex-1 items-center justify-center bg-slate-100 px-4 py-20">
+      <main className="flex flex-1 items-center justify-center px-4 py-20">
         <p className="flex items-center gap-3 text-sm font-medium text-slate-500">
           <LoaderCircle className="h-5 w-5 animate-spin text-brand-600" />
           {c.loading}
@@ -88,8 +94,8 @@ export default function Account() {
 
   if (status === 'error') {
     return (
-      <main className="flex flex-1 items-center justify-center bg-slate-100 px-4 py-20">
-        <div className="max-w-sm rounded-2xl bg-white p-8 text-center shadow-sm ring-1 ring-slate-200">
+      <main className="flex flex-1 items-center justify-center px-4 py-20">
+        <div className="max-w-sm rounded-[28px] bg-white p-8 text-center shadow-sm ring-1 ring-ink/5">
           <CircleAlert className="mx-auto h-10 w-10 text-red-400" />
           <p className="mt-4 font-semibold text-slate-800">{c.loadError}</p>
           <p className="mt-1 text-sm text-slate-500">{t.loginPage.networkError}</p>
@@ -99,7 +105,7 @@ export default function Account() {
               setStatus('loading');
               setReloadKey((key) => key + 1);
             }}
-            className="mt-5 inline-flex items-center gap-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+            className="mt-5 inline-flex items-center gap-2 rounded-full bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
           >
             <RefreshCw className="h-4 w-4" />
             {t.dash.retry}
@@ -123,55 +129,64 @@ export default function Account() {
   };
 
   return (
-    <main className="flex-1 bg-slate-100 px-4 py-8 sm:py-10">
+    <main className="relative isolate flex-1 px-4 py-8 sm:py-10">
+      <PageArt />
       <div className="mx-auto max-w-4xl space-y-6">
         {/* Welcome */}
-        <section className="flex flex-col gap-5 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200 sm:flex-row sm:items-center sm:justify-between">
+        <Reveal as="section" animation="fade-down" className="relative isolate flex flex-col gap-5 overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between sm:p-8">
+          <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />
+          <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-16 -z-10 h-48 w-48 animate-float rounded-full bg-magenta/50 blur-3xl" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 right-10 -z-10 h-56 w-56 animate-float rounded-full bg-saffron/35 blur-3xl [animation-delay:-4s]" />
+          <Lotus color="white" className="pointer-events-none absolute -bottom-3 right-1/3 -z-10 hidden w-40 opacity-60 md:block" />
+
           <div className="flex items-center gap-4">
-            <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-brand-600 text-lg font-bold text-white">
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-xl font-extrabold text-brand-700 shadow-lg ring-4 ring-white/25">
               {initials(name) || '?'}
             </span>
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">{c.accountTitle}</p>
-              <h1 className="break-words text-xl font-extrabold text-slate-900 sm:text-2xl">{fill(c.welcome, { name })}</h1>
+              <p className="text-xs font-semibold uppercase tracking-wider text-turmeric">{c.accountTitle}</p>
+              <h1 className="break-words text-xl font-extrabold sm:text-3xl">{fill(c.welcome, { name })}</h1>
             </div>
           </div>
           <Link
-            href="/#products"
-            className="inline-flex items-center justify-center gap-2 rounded-xl bg-brand-600 px-5 py-3 text-sm font-bold text-white shadow-sm hover:bg-brand-700"
+            href="/store"
+            className="group inline-flex items-center justify-center gap-2 rounded-xl bg-turmeric px-5 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-saffron/25 transition-all duration-200 hover:-translate-y-0.5 hover:bg-turmeric/85 hover:shadow-xl"
           >
-            <ShoppingBag className="h-4 w-4" />
+            <ShoppingBag className="h-4 w-4 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110" />
             {c.browse}
           </Link>
-        </section>
+        </Reveal>
 
         <div className="grid gap-6 md:grid-cols-2">
           {/* Details */}
-          <section className="rounded-2xl bg-white px-6 py-5 shadow-sm ring-1 ring-slate-200">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800">{c.detailsTitle}</h2>
+          <Reveal as="section" animation="fade-right" className="rounded-[28px] bg-white px-6 py-5 shadow-sm ring-1 ring-ink/5">
+            <h2 className="font-sans text-sm font-bold uppercase tracking-wider text-slate-800">{c.detailsTitle}</h2>
             <dl className="mt-2 divide-y divide-slate-100">
               <Detail icon={UserRound} label={r.fullName} value={name} />
               <Detail icon={IdCard} label={r.nic} value={user?.profile?.nicNumber || c.noNic} />
             </dl>
-          </section>
+          </Reveal>
 
           {/* Email and phone, with Change buttons */}
-          <ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} />
+          <Reveal animation="fade-left" className="grid"><ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} /></Reveal>
+
+          {/* Orders placed in the Store */}
+          <div className="md:col-span-2"><CustomerOrders onAuthError={loggedOut} /></div>
 
           {/* How buying works */}
-          <section className="rounded-2xl bg-white px-6 py-5 shadow-sm ring-1 ring-slate-200 md:col-span-2">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-800">{c.howTitle}</h2>
+          <Reveal as="section" delay={100} className="rounded-[28px] bg-white px-6 py-5 shadow-sm ring-1 ring-ink/5 md:col-span-2">
+            <h2 className="font-sans text-sm font-bold uppercase tracking-wider text-slate-800">{c.howTitle}</h2>
             <ol className="mt-4 space-y-4">
               {c.howSteps.map((step, index) => (
                 <li key={step} className="flex items-start gap-3 text-sm text-slate-700">
-                  <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-50 text-xs font-bold text-brand-700 ring-1 ring-brand-100">
+                  <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-linear-to-br text-xs font-bold text-white shadow-md ${STEP_TONES[index % STEP_TONES.length]}`}>
                     {index + 1}
                   </span>
                   <span className="pt-0.5">{step}</span>
                 </li>
               ))}
             </ol>
-          </section>
+          </Reveal>
         </div>
       </div>
     </main>

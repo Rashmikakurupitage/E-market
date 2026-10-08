@@ -33,7 +33,7 @@ export default function ConfirmDialog({ title, text, confirmLabel, busyLabel, ca
         aria-modal="true"
         aria-labelledby="confirm-title"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"
+        className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl"
       >
         <div className="flex items-start gap-4">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
@@ -57,7 +57,7 @@ export default function ConfirmDialog({ title, text, confirmLabel, busyLabel, ca
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="flex-1 rounded-xl border border-slate-300 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+            className="flex-1 rounded-xl border border-slate-300 py-3 text-sm font-semibold text-slate-600 hover:bg-cream disabled:opacity-50"
           >
             {cancelLabel}
           </button>

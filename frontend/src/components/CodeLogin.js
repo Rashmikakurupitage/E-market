@@ -122,7 +122,6 @@ export default function CodeLogin({ requestPath, verifyPath, texts: l, redirectT
               value={nic}
               onChange={(e) => setNic(e.target.value)}
               className={`${inputClass(false)} uppercase`}
-              placeholder="198584700123"
             />
           </Field>
 
