@@ -1,17 +1,28 @@
 const nodemailer = require('nodemailer');
 
-// Email settings come from backend/.env (see .env.example):
-//   SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS, MAIL_FROM
-// If SMTP_HOST is not set, login codes are printed in the backend terminal instead,
-// so you can test the login while developing.
-// Check your settings with:  npm run test-email -- your.address@example.com
-
 let transporter;
 
-const isEmailConfigured = () => Boolean(process.env.SMTP_HOST);
+const getEmailProvider = () => (process.env.EMAIL_PROVIDER || 'smtp').trim().toLowerCase();
+const canLogDevelopmentCodes = () =>
+  process.env.EMAIL_DEV_LOG_CODES === 'true' && process.env.NODE_ENV !== 'production';
+
+function isProviderConfigured() {
+  switch (getEmailProvider()) {
+    case 'smtp':
+      return Boolean(process.env.SMTP_HOST);
+    case 'resend':
+      return Boolean(process.env.RESEND_API_KEY && process.env.MAIL_FROM);
+    case 'dev':
+      return process.env.NODE_ENV !== 'production';
+    default:
+      return false;
+  }
+}
+
+const isEmailConfigured = () => isProviderConfigured() || canLogDevelopmentCodes();
 
 function getTransporter() {
-  if (!isEmailConfigured()) return null;
+  if (getEmailProvider() !== 'smtp' || !process.env.SMTP_HOST) return null;
 
   if (!transporter) {
     const host = process.env.SMTP_HOST.trim();
@@ -30,8 +41,46 @@ function getTransporter() {
   return transporter;
 }
 
-// Turns common SMTP errors into a hint you can act on
+async function resendRequest(path, options = {}) {
+  const response = await fetch(`https://api.resend.com${path}`, {
+    ...options,
+    headers: {
+      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+      ...(options.body ? { 'Content-Type': 'application/json' } : {}),
+      ...options.headers,
+    },
+  });
+
+  if (!response.ok) {
+    const detail = await response.text();
+    const error = new Error(`Resend API returned HTTP ${response.status}${detail ? `: ${detail}` : ''}`);
+    error.code = 'ERESEND';
+    error.status = response.status;
+    throw error;
+  }
+
+  return response.json();
+}
+
 function explainMailError(error) {
+  if (error?.code === 'ERESEND') {
+    if (error.status === 401 || error.status === 403) {
+      return 'Resend rejected the API key. Check RESEND_API_KEY and make sure it is active.';
+    }
+    if (error.status === 422) {
+      return 'Resend rejected the sender or recipient. Verify the sending domain in Resend and check MAIL_FROM.';
+    }
+    return 'Check the Resend API key, verified sender domain, and Resend service status.';
+  }
+
+  const errorCode = error?.code || error?.cause?.code;
+  if (
+    ['SELF_SIGNED_CERT_IN_CHAIN', 'DEPTH_ZERO_SELF_SIGNED_CERT'].includes(errorCode) ||
+    /self-signed certificate/i.test(error?.message || '')
+  ) {
+    return 'The network is presenting an untrusted TLS certificate. Do not disable certificate verification; trust the network inspection certificate or use the development fallback.';
+  }
+
   switch (error?.code) {
     case 'EAUTH':
       return 'The email server rejected SMTP_USER / SMTP_PASS. For Gmail, turn on 2-Step Verification and use an App Password (not your normal password).';
@@ -43,7 +92,10 @@ function explainMailError(error) {
     case 'EENVELOPE':
       return 'The sender or recipient address was refused. Check MAIL_FROM (for Gmail it must be your own Gmail address).';
     default:
-      return 'Check the SMTP settings in backend/.env, then run: npm run test-email -- your.address@example.com';
+      if (['ECONNECTION', 'ESOCKET', 'ETIMEDOUT', 'EDNS'].includes(error?.cause?.code)) {
+        return 'Could not reach the email server. Check your network, firewall, and SMTP host/port.';
+      }
+      return 'Check the email settings in backend/.env, then run: npm run test-email -- your.address@example.com';
   }
 }
 
@@ -60,6 +112,14 @@ const CODE_EMAILS = {
     ta: 'உங்கள் உள்நுழைவுக் குறியீடு:',
     ignore: "If you didn't try to log in, you can ignore this email.",
   },
+  'password-reset': {
+    devLabel: 'Password reset code',
+    subject: (code) => `${code} is your Lanka Women E-Market password reset code`,
+    intro: 'To choose a new password, enter this code:',
+    si: 'ඔබේ මුරපදය යළි පිහිටුවීමේ කේතය:',
+    ta: 'உங்கள் கடவுச்சொல்லை மீட்டமைக்கும் குறியீடு:',
+    ignore: "If you didn't ask to reset your password, you can ignore this email. Your password will not change.",
+  },
   'email-change': {
     devLabel: 'New-email code',
     subject: (code) => `${code} is your code to confirm your new email`,
@@ -71,21 +131,9 @@ const CODE_EMAILS = {
 };
 
 async function sendLoginCode({ to, businessName, code, minutes, purpose = 'login' }) {
-  const transport = getTransporter();
   const wording = CODE_EMAILS[purpose];
-
-  if (!transport) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('SMTP is not configured, so login codes cannot be emailed.');
-    }
-    console.log(`\n[DEV] Email is not set up (no SMTP_HOST in backend/.env).`);
-    console.log(`[DEV] ${wording.devLabel} for ${to}: ${code}  (valid ${minutes} minutes)\n`);
-    return { emailed: false };
-  }
-
   const name = escapeHtml(businessName || 'Seller');
-
-  await transport.sendMail({
+  const message = {
     from: process.env.MAIL_FROM || process.env.SMTP_USER,
     to,
     subject: wording.subject(code),
@@ -116,16 +164,60 @@ async function sendLoginCode({ to, businessName, code, minutes, purpose = 'login
           <p style="color:#94a3b8;font-size:13px">${wording.ignore}</p>
         </div>
       </div>`,
-  });
+  };
+
+  const logDevelopmentCode = () => {
+    console.info(`[DEV EMAIL] ${wording.devLabel} for ${to}: ${code} (valid ${minutes} minutes)`);
+    return { emailed: false };
+  };
+
+  if (getEmailProvider() === 'dev') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('The development email provider is disabled in production.');
+    }
+    return logDevelopmentCode();
+  }
+
+  if (!isProviderConfigured()) {
+    if (canLogDevelopmentCodes()) return logDevelopmentCode();
+    throw new Error(`Email provider "${getEmailProvider()}" is not configured.`);
+  }
+
+  try {
+    if (getEmailProvider() === 'resend') {
+      await resendRequest('/emails', { method: 'POST', body: JSON.stringify(message) });
+    } else {
+      const transport = getTransporter();
+      await transport.sendMail(message);
+    }
+  } catch (error) {
+    if (!canLogDevelopmentCodes()) throw error;
+    console.warn(`[DEV EMAIL FALLBACK] ${explainMailError(error)}`);
+    return logDevelopmentCode();
+  }
 
   return { emailed: true };
 }
 
-// Logs in to the email server without sending anything (used by `npm run test-email`)
 async function verifyConnection() {
+  if (!isProviderConfigured()) {
+    throw new Error(`Email provider "${getEmailProvider()}" is not configured.`);
+  }
+
+  if (getEmailProvider() === 'dev') {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('The development email provider is disabled in production.');
+    }
+    return;
+  }
+
+  if (getEmailProvider() === 'resend') {
+    await resendRequest('/domains?limit=1');
+    return;
+  }
+
   const transport = getTransporter();
-  if (!transport) throw new Error('SMTP_HOST is not set in backend/.env');
   await transport.verify();
 }
 
-module.exports = { isEmailConfigured, sendLoginCode, verifyConnection, explainMailError };
+module.exports = { getEmailProvider, isEmailConfigured, sendLoginCode, verifyConnection, explainMailError };

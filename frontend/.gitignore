@@ -41,3 +41,5 @@ yarn-error.log*
 next-env.d.ts
 .env
 *.env
+# admin dev server build cache (npm run admin:dev)
+.next-admin/

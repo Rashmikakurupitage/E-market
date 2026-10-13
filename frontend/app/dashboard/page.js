@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Plus, Package, MessageCircle, TrendingUp, MapPin, LoaderCircle, CircleAlert, X,
-  Hourglass, CircleX, RefreshCw, Trash2, CircleCheck,
+  Hourglass, CircleX, RefreshCw, Trash2, CircleCheck, LayoutDashboard, ClipboardList, Settings,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -14,11 +14,16 @@ import { Field, inputClass, primaryButtonClass } from '../../src/components/form
 import ProductThumb from '../../src/components/ProductThumb';
 import SellerStatusBadge from '../../src/components/SellerStatusBadge';
 import ConfirmDialog from '../../src/components/ConfirmDialog';
+import ProductPhotosField from '../../src/components/ProductPhotosField';
 import ContactDetails from '../../src/components/ContactDetails';
 import Reveal from '../../src/components/Reveal';
 import CountUp from '../../src/components/CountUp';
 import { SellerOrders } from '../../src/components/Orders';
 import { Lotus, PageArt } from '../../src/components/Art';
+import DashboardSidebar from '../../src/components/DashboardSidebar';
+import SellerInsights from '../../src/components/SellerInsights';
+import { cleanMessengerUrl } from '../../src/lib/catalog';
+import Portal from '../../src/components/Portal';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -58,7 +63,8 @@ function StatCard({ icon: Icon, label, value, sub, tone = 'green', delay = 0 }) 
 function AddProductModal({ onClose, onAdded }) {
   const { t } = useLanguage();
   const f = t.dash.form;
-  const [form, setForm] = useState({ title: '', price: '', category: CATEGORIES[0], imageUrl: '', description: '' });
+  const [form, setForm] = useState({ title: '', price: '', category: CATEGORIES[0], messengerUrl: '', description: '' });
+  const [photos, setPhotos] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -68,29 +74,43 @@ function AddProductModal({ onClose, onAdded }) {
     return () => window.removeEventListener('keydown', closeOnEscape);
   }, [onClose]);
 
-  const update = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const update = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    if (e.target.name === 'messengerUrl') setMessengerError('');
+  };
+
+  const [messengerError, setMessengerError] = useState('');
 
   const submit = async (e) => {
     e.preventDefault();
-    setSaving(true);
     setError('');
+    if (cleanMessengerUrl(form.messengerUrl) === null) {
+      setMessengerError(f.messengerInvalid);
+      document.getElementById('messengerUrl')?.focus();
+      return;
+    }
+    setMessengerError('');
+    setSaving(true);
     try {
       await API.post('/products', {
         title: form.title.trim(),
         description: form.description.trim(),
         category: form.category,
         price: form.price === '' ? null : Number(form.price),
-        images: form.imageUrl.trim() ? [form.imageUrl.trim()] : [],
+        images: photos,
+        messengerUrl: form.messengerUrl.trim(),
       });
       onAdded();
-    } catch {
-      setError(f.error);
+    } catch (err) {
+      const code = err.response?.data?.code;
+      setError(code === 'TOO_MANY_IMAGES' || code === 'INVALID_IMAGE' ? t.productPhotos.errors[code] : err.response?.status === 413 ? t.productPhotos.errors.big : f.error);
       setSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4" onClick={onClose}>
+    <Portal>
+<div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
@@ -129,11 +149,9 @@ function AddProductModal({ onClose, onAdded }) {
               </select>
             </Field>
           </div>
-          <Field id="imageUrl" label={f.imageUrl} hint={f.imageHint}>
-            <div className="flex items-center gap-3">
-              <input id="imageUrl" name="imageUrl" type="url" value={form.imageUrl} onChange={update} className={inputClass(false)} placeholder="https://..." />
-              <ProductThumb key={form.imageUrl} src={form.imageUrl.trim()} alt="" />
-            </div>
+          <ProductPhotosField value={photos} onChange={setPhotos} />
+          <Field id="messengerUrl" label={f.messenger} hint={f.messengerHint} error={messengerError}>
+            <input id="messengerUrl" name="messengerUrl" type="text" inputMode="url" value={form.messengerUrl} onChange={update} aria-invalid={!!messengerError} className={inputClass(messengerError)} placeholder="m.me/yourshop" />
           </Field>
           <Field id="description" label={f.description} required>
             <textarea id="description" name="description" rows={3} required value={form.description} onChange={update} className={inputClass(false)} placeholder={f.descriptionPlaceholder} />
@@ -151,6 +169,7 @@ function AddProductModal({ onClose, onAdded }) {
         </form>
       </div>
     </div>
+</Portal>
   );
 }
 
@@ -171,6 +190,7 @@ export default function Dashboard() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [productToRemove, setProductToRemove] = useState(null);
   const [notice, setNotice] = useState('');
+  const [section, setSection] = useState('overview'); // 'overview' | 'products' | 'orders' | 'settings'
 
   // Hide the "removed" message after a few seconds
   useEffect(() => {
@@ -286,10 +306,27 @@ export default function Dashboard() {
     router.replace('/login');
   };
 
+  const menu = [
+    { value: 'overview', label: t.admin.tabOverview, icon: LayoutDashboard },
+    { value: 'products', label: d.myProducts, icon: Package },
+    { value: 'orders', label: t.orders.sellerTitle, icon: ClipboardList },
+    { value: 'settings', label: t.contactEdit.title, icon: Settings },
+  ];
+
   return (
     <main className="relative isolate flex-1 px-4 py-8 sm:py-10">
       <PageArt />
-      <div className="mx-auto max-w-6xl space-y-6">
+      <DashboardSidebar
+        items={menu}
+        active={section}
+        onSelect={setSection}
+        name={profile?.businessName || ''}
+        subtitle={user?.email}
+        onLogout={loggedOut}
+        menuLabel={d.title}
+        stickyClass="lg:top-28"
+        card={{ icon: Plus, title: d.addProduct, text: fill(d.statProducts + ': {count}', { count: products.length }), label: d.addProduct, onClick: () => setShowAddProduct(true) }}
+      >
         {notice && (
           <div role="status" className="flex items-center gap-2.5 rounded-xl bg-brand-50 px-4 py-3 text-sm font-medium text-brand-800 ring-1 ring-brand-200">
             <CircleCheck className="h-5 w-5 shrink-0 text-brand-600" />
@@ -297,6 +334,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {section === 'overview' && (<>
         {/* Welcome */}
         <Reveal as="section" animation="fade-down" className="relative isolate flex flex-col gap-5 overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />
@@ -355,8 +393,11 @@ export default function Dashboard() {
         </section>
         <p className="px-1 text-xs leading-relaxed text-slate-500">{d.resultsNote}</p>
 
+        <SellerInsights profile={profile} productCount={products.length} onAddProduct={() => setShowAddProduct(true)} onNavigate={setSection} onAuthError={loggedOut} />
+        </>)}
+
         {/* Products */}
-        <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
+        {section === 'products' && <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
           <h2 className="font-sans border-b border-slate-100 px-6 py-4 text-sm font-bold uppercase tracking-wider text-slate-800">{d.myProducts}</h2>
 
           {products.length === 0 ? (
@@ -405,14 +446,14 @@ export default function Dashboard() {
               ))}
             </ul>
           )}
-        </section>
+        </section>}
 
         {/* Orders customers placed in the Store */}
-        <SellerOrders onAuthError={loggedOut} />
+        {section === 'orders' && <SellerOrders onAuthError={loggedOut} />}
 
         {/* Email, phone and the WhatsApp number customers order on */}
-        <Reveal><ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} /></Reveal>
-      </div>
+        {section === 'settings' && <Reveal><ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} /></Reveal>}
+      </DashboardSidebar>
 
       {showAddProduct && <AddProductModal onClose={() => setShowAddProduct(false)} onAdded={productAdded} />}
       {productToRemove && (

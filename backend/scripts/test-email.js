@@ -3,18 +3,22 @@
 //   npm run test-email -- your.address@example.com
 
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env'), quiet: true });
-const { isEmailConfigured, verifyConnection, sendLoginCode, explainMailError } = require('../src/utils/mailer');
+const { getEmailProvider, isEmailConfigured, verifyConnection, sendLoginCode, explainMailError } = require('../src/utils/mailer');
 
 const to = process.argv[2];
 
 (async () => {
   if (!isEmailConfigured()) {
-    console.log('✗ Email is not set up: SMTP_HOST is missing in backend/.env');
-    console.log('  Add SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS and MAIL_FROM (see backend/.env.example).');
+    console.log('✗ Email is not set up for the selected provider in backend/.env.');
+    console.log('  See backend/.env.example for SMTP, Resend, and local development settings.');
     process.exit(1);
   }
 
-  console.log(`Connecting to ${process.env.SMTP_HOST}:${process.env.SMTP_PORT || 587} as ${process.env.SMTP_USER || '(no user)'} ...`);
+  const endpoint =
+    getEmailProvider() === 'smtp'
+      ? `${process.env.SMTP_HOST}:${process.env.SMTP_PORT || 587}`
+      : getEmailProvider();
+  console.log(`Checking ${endpoint} ...`);
   try {
     await verifyConnection();
     console.log('✓ Logged in to the email server');
@@ -30,8 +34,12 @@ const to = process.argv[2];
   }
 
   try {
-    await sendLoginCode({ to, businessName: 'Test', code: '123456', minutes: 10 });
-    console.log(`✓ Test email sent to ${to} (check the inbox and the spam folder)`);
+    const result = await sendLoginCode({ to, businessName: 'Test', code: '123456', minutes: 10 });
+    console.log(
+      result.emailed
+        ? `✓ Test email sent to ${to} (check the inbox and the spam folder)`
+        : '✓ Development fallback logged the test code in this terminal'
+    );
   } catch (error) {
     console.log(`✗ ${error.message}`);
     console.log(`  Hint: ${explainMailError(error)}`);

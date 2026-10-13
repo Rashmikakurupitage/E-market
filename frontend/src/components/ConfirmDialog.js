@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Trash2, LoaderCircle, CircleAlert } from 'lucide-react';
+import Portal from './Portal';
 
 // "Are you sure?" box for actions that can't be undone.
 // onConfirm should return a promise; if it throws, errorText is shown and the box stays open.
@@ -27,7 +28,8 @@ export default function ConfirmDialog({ title, text, confirmLabel, busyLabel, ca
   };
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4" onClick={() => !busy && onClose()}>
+    <Portal>
+<div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4" onClick={() => !busy && onClose()}>
       <div
         role="alertdialog"
         aria-modal="true"
@@ -74,5 +76,6 @@ export default function ConfirmDialog({ title, text, confirmLabel, busyLabel, ca
         </div>
       </div>
     </div>
+</Portal>
   );
 }

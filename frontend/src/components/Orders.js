@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  CalendarDays, CircleAlert, CircleCheck, Clock, LoaderCircle, MapPin, MessageSquareText, Package, PackageCheck, Phone,
+  CalendarDays, CircleAlert, CircleCheck, Clock, Flag, LoaderCircle, MapPin, MessageSquareText, Package, PackageCheck, Phone,
   RotateCw, ShoppingBag, Store, Truck, UserRound, XCircle,
 } from 'lucide-react';
 import API from '../lib/api';
 import { useLanguage, fill } from '../lib/i18n';
 import { formatDate, formatPhone, formatPrice, toWhatsAppNumber } from '../lib/catalog';
 import ConfirmDialog from './ConfirmDialog';
+import { ComplaintDialog, ComplaintStatusBadge, useMyComplaints } from './Complaints';
 import Reveal from './Reveal';
 import WhatsAppIcon from './WhatsAppIcon';
 
@@ -160,6 +161,10 @@ export function CustomerOrders({ onAuthError }) {
   const o = t.orders;
   const { orders, status, retry, replace } = useOrders('/orders/mine', onAuthError);
   const [toCancel, setToCancel] = useState(null);
+  const [toReport, setToReport] = useState(null);
+  // The newest complaint about each order, so an order with an open complaint shows its status instead of the button
+  const { complaints } = useMyComplaints();
+  const complaintFor = (orderId) => complaints.find((complaint) => complaint.orderId === orderId);
 
   const cancelOrder = async () => {
     const res = await API.patch(`/orders/${toCancel.id}/cancel`);
@@ -221,11 +226,25 @@ export function CustomerOrders({ onAuthError }) {
                   <p className="text-sm text-ink/60">
                     {o.total} <span className="ml-1 text-lg font-bold tabular-nums text-ink">{formatPrice(order.total)}</span>
                   </p>
-                  {order.status === 'PENDING' && (
-                    <button type="button" onClick={() => setToCancel(order)} className="rounded-full border border-ink/15 px-4 py-2 text-xs font-semibold text-ink/70 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700">
-                      {o.cancel}
-                    </button>
-                  )}
+                  <div className="flex flex-wrap items-center gap-2">
+                    {complaintFor(order.id) && ['OPEN', 'IN_REVIEW'].includes(complaintFor(order.id).status) ? (
+                      <span className="inline-flex items-center gap-2 text-xs font-semibold text-ink/60">
+                        <Flag className="h-3.5 w-3.5 text-magenta" />
+                        {t.complaints.badge.split('{status}')[0]}
+                        <ComplaintStatusBadge status={complaintFor(order.id).status} />
+                      </span>
+                    ) : (
+                      <button type="button" onClick={() => setToReport(order)} className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-4 py-2 text-xs font-semibold text-ink/70 transition-colors hover:border-magenta hover:bg-magenta/10 hover:text-magenta">
+                        <Flag className="h-3.5 w-3.5" />
+                        {t.complaints.report}
+                      </button>
+                    )}
+                    {order.status === 'PENDING' && (
+                      <button type="button" onClick={() => setToCancel(order)} className="rounded-full border border-ink/15 px-4 py-2 text-xs font-semibold text-ink/70 transition-colors hover:border-red-300 hover:bg-red-50 hover:text-red-700">
+                        {o.cancel}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </Reveal>
             );
@@ -245,6 +264,8 @@ export function CustomerOrders({ onAuthError }) {
           onClose={() => setToCancel(null)}
         />
       )}
+
+      {toReport && <ComplaintDialog order={toReport} onClose={() => setToReport(null)} />}
     </section>
   );
 }

@@ -6,19 +6,26 @@ const authRoutes = require('./routes/authRoutes');
 const productRoutes = require('./routes/productRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-const { isEmailConfigured } = require('./utils/mailer');
+const complaintRoutes = require('./routes/complaintRoutes');
+const siteRoutes = require('./routes/siteRoutes');
+const profileRoutes = require('./routes/profileRoutes');
+const { getEmailProvider, isEmailConfigured } = require('./utils/mailer');
 
 const app = express();
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+// 3 MB: the admin's home page picture is sent as an image in the request
+app.use(express.json({ limit: '6mb' }));
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/complaints', complaintRoutes);
+app.use('/api/site', siteRoutes);
+app.use('/api/profile', profileRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Lanka Women E-Market API is Running Smoothly!' });
@@ -34,7 +41,7 @@ app.listen(PORT, (error) => {
   console.log(`Server is running on port ${PORT}`);
   console.log(
     isEmailConfigured()
-      ? `Email: login codes are sent through ${process.env.SMTP_HOST}`
-      : 'Email: NOT set up - login codes will be printed here. Add SMTP settings to backend/.env to email them.'
+      ? `Email: login codes use the ${getEmailProvider()} provider`
+      : 'Email: NOT set up - configure EMAIL_PROVIDER and its settings in backend/.env.'
   );
 });

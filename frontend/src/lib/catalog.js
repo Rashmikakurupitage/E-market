@@ -115,6 +115,11 @@ export function toWhatsAppNumber(raw) {
   return digits;
 }
 
+// Passwords: at least 8 characters, one capital letter, and one number or symbol
+export function isStrongPassword(password) {
+  return typeof password === 'string' && password.length >= 8 && /[A-Z]/.test(password) && /[^A-Za-z]/.test(password);
+}
+
 export function formatPhone(number) {
   if (number.length === 11 && number.startsWith('94')) {
     return `+94 ${number.slice(2, 4)} ${number.slice(4, 7)} ${number.slice(7)}`;
@@ -148,4 +153,37 @@ export function whatsappOrderLink(product) {
 export function formatDate(value, lang = 'en') {
   const locale = { si: 'si-LK', ta: 'ta-LK' }[lang] || 'en-GB';
   return new Date(value).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+// Facebook Messenger chat links: m.me/shopname, messenger.com/t/shopname or a Facebook page link.
+// Returns the cleaned https link, '' when empty, or null when it is not a Messenger/Facebook link.
+// (Same rules as the backend, backend/src/utils/messengerUrl.js)
+const MESSENGER_HOSTS = new Set([
+  'm.me', 'messenger.com', 'www.messenger.com',
+  'facebook.com', 'www.facebook.com', 'm.facebook.com', 'web.facebook.com',
+  'fb.me', 'fb.com', 'www.fb.com',
+]);
+
+export function cleanMessengerUrl(value) {
+  const text = String(value ?? '').trim();
+  if (!text) return '';
+  if (text.length > 300 || /\s/.test(text)) return null;
+
+  let url;
+  try {
+    url = new URL(/^https?:\/\//i.test(text) ? text : 'https://' + text);
+  } catch {
+    return null;
+  }
+  if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
+  if (!MESSENGER_HOSTS.has(url.hostname.toLowerCase())) return null;
+  if (url.pathname.replace(/\//g, '') === '' && !url.search) return null; // just the home page
+
+  url.protocol = 'https:';
+  return url.toString();
+}
+
+// The Messenger chat for a product: the product's own link, else the seller's, else null
+export function messengerLink(product) {
+  return cleanMessengerUrl(product.messengerUrl) || cleanMessengerUrl(getSeller(product).messengerUrl) || null;
 }

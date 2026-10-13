@@ -327,3 +327,61 @@ body {
     transform: none !important;
   }
 }
+
+/* Bars in the admin charts grow up from the bottom */
+@keyframes grow-up {
+  from {
+    transform: scaleY(0);
+  }
+  to {
+    transform: scaleY(1);
+  }
+}
+.animate-grow-up {
+  animation: grow-up 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-grow-up {
+    animation: none;
+  }
+}
+
+/* ---------- Mobile app feel ---------- */
+/* Phones: everything sized in rem is about 22% smaller, so more fits on the screen */
+@media (max-width: 639px) {
+  html {
+    font-size: 12.5px;
+  }
+}
+html {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-text-size-adjust: 100%;
+}
+button, a, select, summary {
+  touch-action: manipulation;
+}
+@media (max-width: 1023px) {
+  /* 16px inputs stop iPhones zooming in when a field is tapped */
+  input, select, textarea {
+    font-size: 16px;
+  }
+  /* Room for the bottom tab bar and the phone's home indicator */
+  body {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+  .bottom-tabs {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .app-install {
+    bottom: calc(76px + env(safe-area-inset-bottom));
+  }
+}
+@media (display-mode: standalone) {
+  /* Keep the header clear of the notch when installed full-screen */
+  header.sticky {
+    padding-top: max(0.75rem, env(safe-area-inset-top));
+  }
+  body {
+    overscroll-behavior-y: none;
+  }
+}

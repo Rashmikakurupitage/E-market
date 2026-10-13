@@ -9,6 +9,7 @@ import { formatPrice } from '../lib/catalog';
 import { closeCart, groupBySeller, removeFromCart, setCartQuantity, useCart, useCartOpen } from '../lib/cart';
 import QuantityStepper from './QuantityStepper';
 import { Sparkle } from './Art';
+import Portal from './Portal';
 
 // The cart, sliding in from the right. Opened from the header's bag button and after "Add to cart".
 export default function CartDrawer() {
@@ -27,11 +28,8 @@ export default function CartDrawer() {
   useEffect(() => {
     if (!open) return;
     const onKey = (event) => event.key === 'Escape' && closeCart();
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKey);
     return () => {
-      document.body.style.overflow = overflow;
       window.removeEventListener('keydown', onKey);
     };
   }, [open]);
@@ -39,7 +37,8 @@ export default function CartDrawer() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[60] print:hidden" role="dialog" aria-modal="true" aria-labelledby="cart-title">
+    <Portal>
+<div className="fixed inset-0 z-[60] print:hidden" role="dialog" aria-modal="true" aria-labelledby="cart-title">
       <div className="absolute inset-0 animate-page-in bg-ink/40 backdrop-blur-sm" onClick={closeCart} />
 
       <aside className="absolute inset-y-0 right-0 flex w-full max-w-md animate-slide-in flex-col bg-cream shadow-2xl sm:rounded-l-[32px]">
@@ -139,5 +138,6 @@ export default function CartDrawer() {
         )}
       </aside>
     </div>
+</Portal>
   );
 }
