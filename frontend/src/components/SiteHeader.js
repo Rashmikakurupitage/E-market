@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, LogIn, LogOut, LayoutDashboard, UserPlus, UserRound, ShoppingBag } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, LayoutDashboard, UserPlus, UserRound } from 'lucide-react';
 import { useLanguage, LANGUAGES, SITE_TITLES } from '../lib/i18n';
 import { useSession, clearSession, homePathFor, loginPathFor } from '../lib/auth';
-import { openCart, useCart } from '../lib/cart';
 import Logo from './Logo';
+import ThemeToggle from './ThemeToggle';
 
 export const EMBLEM_URL = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Emblem_of_Sri_Lanka.svg';
 
@@ -15,7 +15,7 @@ function LanguageSwitcher({ className = '' }) {
   const { lang, setLang } = useLanguage();
 
   return (
-    <div role="group" aria-label="Language" className={`items-center rounded-full bg-white/70 p-1 ring-1 ring-ink/5 ${className}`}>
+    <div role="group" aria-label="Language" className={`items-center rounded-full bg-white/70 p-0.5 ring-1 ring-ink/5 ${className}`}>
       {LANGUAGES.map((option) => {
         const active = lang === option.code;
         return (
@@ -25,7 +25,7 @@ function LanguageSwitcher({ className = '' }) {
             lang={option.code}
             onClick={() => setLang(option.code)}
             aria-pressed={active}
-            className={`rounded-full px-2.5 py-1 text-xs font-semibold transition-colors duration-200 ${
+            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold transition-colors duration-200 ${
               active ? 'bg-ink text-white shadow-sm' : 'text-ink/65 hover:text-ink'
             }`}
           >
@@ -49,14 +49,35 @@ export default function SiteHeader() {
   const session = useSession();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { count: cartCount } = useCart();
+  const [hidden, setHidden] = useState(false);
+  const lastScrollY = useRef(0);
 
-  // A deeper shadow once the page has scrolled under the header
+  // Hide on downward scroll and reveal on upward scroll; keep it available near the top and with the mobile menu open.
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 8);
+    lastScrollY.current = window.scrollY;
+
+    const onScroll = () => {
+      const currentScrollY = Math.max(window.scrollY, 0);
+      const scrollDelta = currentScrollY - lastScrollY.current;
+
+      setScrolled(currentScrollY > 8);
+
+      if (currentScrollY < 80 || menuOpen) {
+        setHidden(false);
+      } else if (Math.abs(scrollDelta) > 6) {
+        setHidden(scrollDelta > 0);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    if (menuOpen) setHidden(false);
+  }, [menuOpen]);
 
   const links = [
     { href: '/', label: t.navHome, active: pathname === '/' },
@@ -71,6 +92,7 @@ export default function SiteHeader() {
 
   const role = session?.user?.role;
   const isCustomer = role === 'CUSTOMER';
+  const isAdmin = role === 'SUPER_ADMIN';
 
   const logout = () => {
     clearSession();
@@ -80,7 +102,12 @@ export default function SiteHeader() {
 
   // Login + Register when logged out; Dashboard (sellers, admins) or My account (customers) + Logout when logged in.
   // There is no admin link for visitors; an admin's own Dashboard button goes to /admin.
-  const accountButtons = session ? (
+  const accountButtons = session && isAdmin ? (
+    <button type="button" onClick={logout} className={outlineButton}>
+      <LogOut className="h-4 w-4" />
+      {t.logout}
+    </button>
+  ) : session ? (
     <>
       <Link href={homePathFor(role)} onClick={() => setMenuOpen(false)} className={solidButton}>
         {isCustomer ? <UserRound className="h-4 w-4" /> : <LayoutDashboard className="h-4 w-4" />}
@@ -93,19 +120,23 @@ export default function SiteHeader() {
     </>
   ) : (
     <>
-      <Link href="/login" onClick={() => setMenuOpen(false)} className={outlineButton}>
-        <LogIn className="h-4 w-4" />
-        {t.login}
-      </Link>
       <Link href="/register" onClick={() => setMenuOpen(false)} className={solidButton}>
         <UserPlus className="h-4 w-4" />
         {t.registerBtn}
+      </Link>
+      <Link href="/login" onClick={() => setMenuOpen(false)} className={outlineButton}>
+        <LogIn className="h-4 w-4" />
+        {t.login}
       </Link>
     </>
   );
 
   return (
-    <header className="sticky top-0 z-50 px-3 pt-3 sm:px-6 sm:pt-4">
+    <header
+      className={`sticky top-0 z-50 px-3 pt-3 transition-transform duration-300 ease-out sm:px-6 sm:pt-4 ${
+        hidden && !menuOpen ? '-translate-y-full pointer-events-none' : 'translate-y-0'
+      }`}
+    >
       <div
         className={`glass mx-auto max-w-7xl rounded-[32px] bg-white/90 px-3 py-2 transition-shadow duration-300 sm:px-5 ${
           scrolled ? 'shadow-xl shadow-ink/10' : ''
@@ -133,24 +164,6 @@ export default function SiteHeader() {
           </Link>
 
           <div className="flex shrink-0 items-center gap-2">
-            <LanguageSwitcher className="hidden xl:flex" />
-            <div className="hidden items-center gap-2 xl:flex">{accountButtons}</div>
-
-            {/* Cart */}
-            <button
-              type="button"
-              onClick={openCart}
-              aria-label={cartCount > 0 ? `${t.cart.open} (${cartCount})` : t.cart.open}
-              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/80 text-ink ring-1 ring-ink/10 transition-colors hover:bg-magenta hover:text-white"
-            >
-              <ShoppingBag className="h-[18px] w-[18px]" />
-              {cartCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 animate-zoom-in items-center justify-center rounded-full bg-magenta px-1 text-[10px] font-bold text-white ring-2 ring-white">
-                  {cartCount > 99 ? '99+' : cartCount}
-                </span>
-              )}
-            </button>
-
             {/* Menu toggle for smaller screens */}
             <button
               type="button"
@@ -167,12 +180,15 @@ export default function SiteHeader() {
 
         {/* Second row below 1280px wide: language buttons, plus the account buttons from tablet size up (on phones those are in the menu) */}
         <div className="mt-2 flex items-center justify-center gap-2 border-t border-ink/10 pt-2 sm:justify-between xl:hidden">
-          <LanguageSwitcher className="flex" />
+          <div className="flex items-center gap-2">
+            <LanguageSwitcher className="flex" />
+            <ThemeToggle className="!h-9 !w-9" />
+          </div>
           <div className="hidden items-center gap-2 sm:flex">{accountButtons}</div>
         </div>
 
         {/* Desktop navigation */}
-        <nav className="mt-2 hidden flex-wrap items-center gap-1 border-t border-ink/10 pt-2 xl:flex">
+        <nav className="mt-2 hidden flex-wrap items-center gap-1 border-t border-ink/10 pt-2 xl:flex" aria-label="Main">
           {links.map((link) => (
             <Link
               key={link.href}
@@ -185,6 +201,12 @@ export default function SiteHeader() {
               {link.label}
             </Link>
           ))}
+          {/* Language and account buttons sit at the right end of the menu row */}
+          <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
+            <LanguageSwitcher className="flex" />
+            {accountButtons}
+          </div>
         </nav>
 
         {/* Navigation for smaller screens */}

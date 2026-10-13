@@ -3,6 +3,7 @@
 import { BookOpen, Video, FileText, Award, Megaphone, Calculator, Camera, ArrowRight, GraduationCap, Lightbulb } from 'lucide-react';
 import Reveal from '../../src/components/Reveal';
 import { Lotus, PageArt } from '../../src/components/Art';
+import { useLanguage } from '../../src/lib/i18n';
 
 // Picture for each course category (all in the brand green)
 const THEMES = {
@@ -40,35 +41,9 @@ const BANNER_ICONS = [
 ];
 
 export default function ELearning() {
-  const courses = [
-    {
-      id: 1,
-      title: 'WhatsApp Business හරහා භාණ්ඩ අලෙවි කරන්නේ කෙසේද?',
-      category: 'Digital Marketing',
-      duration: '45 mins',
-      modules: 4,
-      level: 'ආධුනිකයන් සඳහා',
-      description: 'ඔබගේ ජංගම දුරකථනය භාවිතයෙන් WhatsApp Catalog සාදා පාරිභෝගිකයින් වෙත සෘජුවම අලෙවි කරන ආකාරය ඉගෙන ගන්න.',
-    },
-    {
-      id: 2,
-      title: 'නිෂ්පාදන සඳහා නිවැරදි මිලක් (Pricing Strategy) තීරණය කිරීම',
-      category: 'Financial Management',
-      duration: '1 hour',
-      modules: 3,
-      level: 'මධ්‍යම මට්ටම',
-      description: 'අමුද්‍රව්‍ය පිරිවැය, ප්‍රවාහන ගාස්තු සහ ලාභාංශ ගණනය කර නිවැරදි අලෙවි මිලක් සකස් කරගන්නා ආකාරය.',
-    },
-    {
-      id: 3,
-      title: 'ජංගම දුරකථනයෙන් ආකර්ෂණීය ඡායාරූප (Product Photography) ගැනීම',
-      category: 'Branding',
-      duration: '30 mins',
-      modules: 5,
-      level: 'ආධුනිකයන් සඳහා',
-      description: 'ස්වාභාවික ආලෝකය භාවිත කරමින් ඔබේ හස්තකර්මාන්ත සහ නිෂ්පාදන පැහැදිලිව ඡායාරූපගත කරන්නේ කෙසේද?',
-    }
-  ];
+  const { t } = useLanguage();
+  const hub = t.elearningHub;
+  const courses = hub.courses;
 
   return (
     <div className="relative isolate flex-1 px-4 py-10 font-sans">
@@ -94,14 +69,14 @@ export default function ELearning() {
 
           <div className="max-w-2xl">
             <span className="inline-flex animate-fade-up items-center gap-1.5 rounded-full bg-turmeric px-3 py-1 text-[11px] font-black uppercase tracking-wider text-slate-950 shadow-lg">
-              <Award className="h-3.5 w-3.5" /> Ministry Capacity Building Initiative
+              <Award className="h-3.5 w-3.5" /> {hub.badge}
             </span>
             <h1 className="mt-4 animate-fade-up text-2xl font-extrabold leading-snug [animation-delay:120ms] sm:text-4xl">
-              ව්‍යාපාරික වර්ධනය සඳහා ඊ-ඉගෙනුම් පියස
+              {hub.title}
             </h1>
             <span aria-hidden="true" className="mt-4 block h-1 w-16 animate-fade-up rounded-full bg-turmeric [animation-delay:180ms]" />
             <p className="mt-4 animate-fade-up text-sm leading-relaxed text-white/80 [animation-delay:240ms] sm:text-base">
-              කාන්තා හා ළමා කටයුතු අමාත්‍‍යාංශය මගින් මෙහෙයවන නොමිලේ ඩිජිටල් ව්‍යාපාර පාඨමාලා මාලාව.
+              {hub.description}
             </p>
           </div>
         </Reveal>
@@ -109,7 +84,7 @@ export default function ELearning() {
         {/* Course Cards Grid */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {courses.map((course, index) => {
-            const theme = THEMES[course.category] || DEFAULT_THEME;
+            const theme = THEMES[course.themeKey] || DEFAULT_THEME;
             const Icon = theme.icon;
             return (
               <Reveal key={course.id} animation="zoom-in" delay={index * 120} className="grid">
@@ -123,13 +98,13 @@ export default function ELearning() {
                       <Icon className="h-10 w-10" />
                     </span>
                     <span className="absolute left-4 top-4 rounded-full bg-white/95 px-3 py-1 text-[11px] font-bold text-slate-800 shadow">
-                      {course.level}
+                      {hub.levels[course.levelKey]}
                     </span>
                   </div>
 
                   <div className="flex-1 space-y-3 p-6">
                     <span className={`inline-block rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ring-1 ${theme.chip}`}>
-                      {course.category}
+                      {hub.categories[course.categoryKey]}
                     </span>
                     <h3 className="text-base font-extrabold leading-snug text-slate-800">{course.title}</h3>
                     <p className="text-xs leading-relaxed text-slate-500">{course.description}</p>
@@ -138,14 +113,14 @@ export default function ELearning() {
                   <div className="space-y-4 border-t border-slate-100 bg-cream/70 p-6">
                     <div className="flex items-center justify-between text-[11px] font-medium text-slate-500">
                       <span className="flex items-center gap-1.5"><Video className="h-4 w-4 text-slate-400" /> {course.duration}</span>
-                      <span className="flex items-center gap-1.5"><FileText className="h-4 w-4 text-slate-400" /> Mod {course.modules}</span>
+                      <span className="flex items-center gap-1.5"><FileText className="h-4 w-4 text-slate-400" /> {hub.modules.replace('{count}', String(course.modules))}</span>
                     </div>
 
                     <button
                       className={`group/btn flex w-full items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold text-white shadow-lg transition-all duration-200 active:scale-[0.98] ${theme.button}`}
                     >
                       <BookOpen className="h-4 w-4" />
-                      <span>පාඨමාලාව ආරම්භ කරන්න</span>
+                      <span>{hub.startCourse}</span>
                       <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
                     </button>
                   </div>

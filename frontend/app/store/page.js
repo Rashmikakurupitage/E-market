@@ -1,23 +1,25 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
-  BadgeCheck, BookOpen, CircleCheck, Eye, Info, LayoutDashboard, MapPin, Package, PackageSearch, PackagePlus,
-  Scissors, Search, Shirt, ShoppingBag, SlidersHorizontal, Soup, Sparkles, Sprout, Store, Tag, X, ArrowRight,
+  BadgeCheck, BookOpen, Eye, Info, LayoutDashboard, MapPin, Package, PackageSearch, PackagePlus,
+  Scissors, Search, Shirt, SlidersHorizontal, Soup, Sparkles, Sprout, Store, Tag, X, ArrowRight,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
-import { useSession } from '../../src/lib/auth';
-import { CATEGORIES, SAMPLE_PRODUCTS, formatPrice, getSeller, initials, whatsappOrderLink } from '../../src/lib/catalog';
-import { addToCart, openCart, useCartItems } from '../../src/lib/cart';
-import { trackWhatsAppClick } from '../../src/components/ProductCard';
-import QuantityStepper from '../../src/components/QuantityStepper';
+import { useSession, useHydrated } from '../../src/lib/auth';
+import { CATEGORIES, SAMPLE_PRODUCTS, formatPrice, getSeller, initials, messengerLink, whatsappOrderLink } from '../../src/lib/catalog';
+import { trackContactClick } from '../../src/components/ProductCard';
+import { useCanContact } from '../../src/components/ContactGate';
 import WhatsAppIcon from '../../src/components/WhatsAppIcon';
+import MessengerIcon from '../../src/components/MessengerIcon';
 import CountUp from '../../src/components/CountUp';
 import Reveal from '../../src/components/Reveal';
 import { DotGrid, PageArt, Sparkle, Squiggle } from '../../src/components/Art';
 import { inputClass } from '../../src/components/form';
+import Portal from '../../src/components/Portal';
 
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
 
@@ -67,18 +69,19 @@ function SellerLine({ product }) {
   );
 }
 
-function StoreCard({ product, onOpen, onAdd }) {
+function StoreCard({ product, onOpen }) {
   const { t } = useLanguage();
   const s = t.store;
   const [imageFailed, setImageFailed] = useState(false);
-  const inCart = useCartItems().find((item) => item.id === product.id)?.quantity;
   const example = isExample(product);
   const price = formatPrice(product.price);
   const image = product.images?.[0];
-  const whatsapp = whatsappOrderLink(product);
+  const { canContact } = useCanContact();
+  const whatsapp = canContact ? whatsappOrderLink(product) : null;
+  const messenger = canContact ? messengerLink(product) : null;
 
   return (
-    <article className="group flex h-full flex-col rounded-[28px] border border-ink/5 bg-white p-3 shadow-sm shadow-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/10">
+    <article className="group flex h-full flex-col rounded-[22px] border border-ink/5 bg-white p-2 shadow-sm sm:rounded-[28px] sm:p-3 shadow-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/10">
       <button
         type="button"
         onClick={onOpen}
@@ -120,18 +123,12 @@ function StoreCard({ product, onOpen, onAdd }) {
         <button type="button" onClick={onOpen} className="text-left">
           <h3 className="line-clamp-1 font-semibold text-ink transition-colors hover:text-magenta">{product.title}</h3>
         </button>
-        <p className="mt-1 line-clamp-2 min-h-[2.5rem] text-sm leading-5 text-ink/55">{product.description}</p>
+        <p className="mt-1 line-clamp-1 text-xs leading-5 text-ink/55 sm:line-clamp-2 sm:min-h-[2.5rem] sm:text-sm">{product.description}</p>
 
         <div className="mt-3 flex items-center justify-between gap-2">
           <span className="text-lg font-bold tabular-nums text-ink">
             {price || <span className="text-sm font-semibold text-ink/50">{t.priceOnRequest}</span>}
           </span>
-          {inCart > 0 && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-leaf/15 px-2.5 py-1 text-[11px] font-semibold text-leaf">
-              <CircleCheck className="h-3.5 w-3.5" />
-              {fill(s.inCart, { qty: inCart })}
-            </span>
-          )}
         </div>
 
         <div className="mt-3 border-t border-ink/5 pt-3">
@@ -143,29 +140,33 @@ function StoreCard({ product, onOpen, onAdd }) {
             <span className="flex flex-1 items-center justify-center rounded-full bg-sand/70 px-3 py-2.5 text-sm font-semibold text-ink/40">
               {s.exampleButton}
             </span>
-          ) : price ? (
-            <button
-              type="button"
-              onClick={() => onAdd(product, 1)}
-              className="btn-shine flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-4 py-2.5 text-sm font-semibold text-white shadow-lg shadow-ink/10 transition-colors hover:bg-magenta active:scale-[0.98]"
-            >
-              <ShoppingBag className="h-4 w-4" />
-              {s.addToCart}
-            </button>
-          ) : (
-            <span className="flex-1 text-xs leading-snug text-ink/55">{s.askPrice}</span>
-          )}
+          ) : !whatsapp && canContact ? (
+            <span className="flex-1 text-xs leading-snug text-ink/55">{t.whatsappUnavailable}</span>
+          ) : null}
           {whatsapp && (
             <a
               href={whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => trackWhatsAppClick(product)}
+              onClick={() => trackContactClick(product, 'WHATSAPP')}
               aria-label={t.orderWhatsapp}
               title={t.orderWhatsapp}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-ink/15 text-leaf transition-colors hover:border-leaf hover:bg-leaf hover:text-white"
             >
               <WhatsAppIcon className="h-5 w-5" />
+            </a>
+          )}
+          {messenger && (
+            <a
+              href={messenger}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackContactClick(product, 'MESSENGER')}
+              aria-label={t.store.chatMessenger}
+              title={t.store.chatMessenger}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-ink/15 text-[#0084ff] transition-colors hover:border-[#0084ff] hover:bg-[#0084ff] hover:text-white"
+            >
+              <MessengerIcon className="h-5 w-5" />
             </a>
           )}
         </div>
@@ -174,29 +175,30 @@ function StoreCard({ product, onOpen, onAdd }) {
   );
 }
 
-// Full details in a pop-up: big picture, description, seller, quantity and buttons
-function QuickView({ product, onClose, onAdd }) {
+// Full details in a pop-up: big picture, description, seller and contact actions
+function QuickView({ product, onClose }) {
   const { t } = useLanguage();
   const s = t.store;
-  const [quantity, setQuantity] = useState(1);
   const example = isExample(product);
   const price = formatPrice(product.price);
-  const image = product.images?.[0];
-  const whatsapp = whatsappOrderLink(product);
+  const photos = (product.images || []).filter(Boolean);
+  const [photoIndex, setPhotoIndex] = useState(0);
+  const image = photos[photoIndex] || photos[0];
+  const { canContact } = useCanContact();
+  const whatsapp = canContact ? whatsappOrderLink(product) : null;
+  const messenger = canContact ? messengerLink(product) : null;
 
   useEffect(() => {
     const onKey = (event) => event.key === 'Escape' && onClose();
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     window.addEventListener('keydown', onKey);
     return () => {
-      document.body.style.overflow = overflow;
       window.removeEventListener('keydown', onKey);
     };
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="quick-view-title">
+    <Portal>
+<div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="quick-view-title">
       <div className="absolute inset-0 animate-page-in bg-ink/50 backdrop-blur-sm" onClick={onClose} />
       <div className="relative grid max-h-[92vh] w-full max-w-4xl animate-zoom-in overflow-y-auto rounded-t-[32px] bg-white shadow-2xl sm:rounded-[32px] md:grid-cols-2">
         <button
@@ -215,6 +217,23 @@ function QuickView({ product, onClose, onAdd }) {
             <span className="absolute inset-0 flex items-center justify-center text-ink/20">
               <Package className="h-16 w-16" />
             </span>
+          )}
+          {photos.length > 1 && (
+            <div className="absolute inset-x-0 bottom-0 flex gap-2 overflow-x-auto bg-linear-to-t from-black/55 to-transparent p-3 pt-8">
+              {photos.map((src, index) => (
+                <button
+                  key={src + index}
+                  type="button"
+                  onClick={() => setPhotoIndex(index)}
+                  aria-label={`${product.title} ${index + 1} / ${photos.length}`}
+                  aria-current={index === photoIndex}
+                  className={`h-12 w-12 shrink-0 overflow-hidden rounded-lg ring-2 transition-all ${index === photoIndex ? 'ring-white' : 'opacity-70 ring-white/30 hover:opacity-100'}`}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt="" className="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
           )}
         </div>
 
@@ -247,46 +266,41 @@ function QuickView({ product, onClose, onAdd }) {
           </div>
 
           <div className="mt-auto pt-6">
-            {!example && price && (
-              <div className="mb-4 flex items-center justify-between gap-3">
-                <span className="text-sm font-semibold text-ink/70">{s.quantity}</span>
-                <QuantityStepper value={quantity} onChange={setQuantity} />
-              </div>
-            )}
             <div className="flex flex-col gap-2.5 sm:flex-row">
               {example ? (
                 <span className="flex flex-1 items-center justify-center rounded-full bg-sand/70 px-4 py-3 text-sm font-semibold text-ink/40">{s.exampleButton}</span>
-              ) : price ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onAdd(product, quantity);
-                    onClose();
-                  }}
-                  className="btn-shine flex flex-1 items-center justify-center gap-2 rounded-full bg-ink px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-ink/15 transition-colors hover:bg-magenta"
-                >
-                  <ShoppingBag className="h-4 w-4" />
-                  {s.addToCart} · {formatPrice(Number(product.price) * quantity)}
-                </button>
               ) : null}
               {whatsapp && (
                 <a
                   href={whatsapp}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => trackWhatsAppClick(product)}
+                  onClick={() => trackContactClick(product, 'WHATSAPP')}
                   className="flex items-center justify-center gap-2 rounded-full border border-ink/15 px-5 py-3.5 text-sm font-semibold text-ink transition-colors hover:border-leaf hover:bg-leaf hover:text-white"
                 >
                   <WhatsAppIcon className="h-5 w-5 text-leaf" />
                   {t.orderWhatsapp}
                 </a>
               )}
+              {messenger && (
+                <a
+                  href={messenger}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackContactClick(product, 'MESSENGER')}
+                  className="flex items-center justify-center gap-2 rounded-full border border-ink/15 px-5 py-3.5 text-sm font-semibold text-ink transition-colors hover:border-[#0084ff] hover:bg-[#0084ff] hover:text-white"
+                >
+                  <MessengerIcon className="h-5 w-5 text-[#0084ff]" />
+                  {t.store.chatMessenger}
+                </a>
+              )}
             </div>
-            {!example && price && <p className="mt-3 text-center text-xs text-ink/50">{s.payNote}</p>}
+            {!example && price && whatsapp && <p className="mt-3 text-center text-xs text-ink/50">{s.payNote}</p>}
           </div>
         </div>
       </div>
     </div>
+</Portal>
   );
 }
 
@@ -308,6 +322,8 @@ export default function StorePage() {
   const { t } = useLanguage();
   const s = t.store;
   const session = useSession();
+  const hydrated = useHydrated();
+  const router = useRouter();
   const isSeller = session?.user?.role === 'SELLER';
 
   const [products, setProducts] = useState([]);
@@ -320,7 +336,21 @@ export default function StorePage() {
   const [sort, setSort] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [toast, setToast] = useState(null);
+
+  // Products open for registered users. Visitors are sent to the customer sign-up form first,
+  // and come back to this product once they have registered (or logged in).
+  const openProduct = (product) => {
+    if (!session) {
+      router.push(`/register?as=customer&next=${encodeURIComponent(`/store?product=${product.id}`)}`);
+      return;
+    }
+    setSelected(product);
+  };
+
+  const closeProduct = () => {
+    setSelected(null);
+    if (new URLSearchParams(window.location.search).has('product')) window.history.replaceState(null, '', window.location.pathname);
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -328,13 +358,9 @@ export default function StorePage() {
       .then((res) => {
         const fetched = res.data?.products || res.data;
         if (ignore) return;
-        if (Array.isArray(fetched) && fetched.length > 0) {
-          setProducts(fetched);
-          setStatus('ready');
-        } else {
-          setProducts(SAMPLE_PRODUCTS);
-          setStatus('examples');
-        }
+        const list = Array.isArray(fetched) && fetched.length > 0 ? fetched : SAMPLE_PRODUCTS;
+        setProducts(list);
+        setStatus(list === SAMPLE_PRODUCTS ? 'examples' : 'ready');
       })
       .catch(() => {
         if (ignore) return;
@@ -346,12 +372,17 @@ export default function StorePage() {
     };
   }, []);
 
-  // The "added to cart" message disappears after a few seconds
+  // A link like /store?product=<id> (from the home page) opens that product straight away
   useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(null), 3500);
-    return () => clearTimeout(timer);
-  }, [toast]);
+    if (!hydrated || status === 'loading') return;
+    const id = new URLSearchParams(window.location.search).get('product');
+    if (!id) return;
+    const found = products.find((item) => String(item.id) === id);
+    if (!found) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (session) setSelected(found);
+    else router.replace(`/register?as=customer&next=${encodeURIComponent(`/store?product=${id}`)}`);
+  }, [hydrated, status, products, session, router]);
 
   const districts = useMemo(
     () => [...new Set(products.map((p) => getSeller(p).district).filter(Boolean))].sort(),
@@ -387,11 +418,6 @@ export default function StorePage() {
     setDistrict('all');
     setMinPrice('');
     setMaxPrice('');
-  };
-
-  const add = (product, quantity) => {
-    addToCart(product, quantity);
-    setToast({ id: Date.now(), title: product.title });
   };
 
   const stats = [
@@ -559,14 +585,14 @@ export default function StorePage() {
             )}
 
             {status === 'loading' ? (
-              <div className="mt-5 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-6 xl:grid-cols-3">
                 {Array.from({ length: 6 }, (_, i) => <StoreCardSkeleton key={i} />)}
               </div>
             ) : visible.length > 0 ? (
-              <div className="mt-5 grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-6 xl:grid-cols-3">
                 {visible.map((product, index) => (
                   <Reveal key={product.id} delay={(index % 3) * 80} className="grid">
-                    <StoreCard product={product} onOpen={() => setSelected(product)} onAdd={add} />
+                    <StoreCard product={product} onOpen={() => openProduct(product)} />
                   </Reveal>
                 ))}
               </div>
@@ -630,21 +656,7 @@ export default function StorePage() {
         </Reveal>
       </div>
 
-      {selected && <QuickView key={selected.id} product={selected} onClose={() => setSelected(null)} onAdd={add} />}
-
-      {/* "Added to cart" message */}
-      {toast && (
-        <div key={toast.id} role="status" className="fixed bottom-6 left-1/2 z-[55] flex w-[calc(100%-2rem)] max-w-md -translate-x-1/2 animate-fade-up items-center gap-3 rounded-full bg-ink py-2 pl-4 pr-2 text-white shadow-2xl shadow-ink/30">
-          <CircleCheck className="h-5 w-5 shrink-0 text-turmeric" />
-          <span className="min-w-0 flex-1 truncate text-sm">
-            <span className="font-semibold">{s.added}</span>
-            <span className="text-white/60"> · {toast.title}</span>
-          </span>
-          <button type="button" onClick={() => { setToast(null); openCart(); }} className="shrink-0 rounded-full bg-white px-4 py-2 text-xs font-bold text-ink transition-colors hover:bg-turmeric">
-            {s.viewCart}
-          </button>
-        </div>
-      )}
+      {selected && <QuickView key={selected.id} product={selected} onClose={closeProduct} />}
     </main>
   );
 }

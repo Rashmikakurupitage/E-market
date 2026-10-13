@@ -3,15 +3,20 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LoaderCircle, CircleAlert, RefreshCw, ShoppingBag, IdCard, UserRound } from 'lucide-react';
+import { LoaderCircle, CircleAlert, RefreshCw, ShoppingBag, UserRound, LayoutDashboard, ClipboardList, Flag, Settings } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
 import { useSession, useHydrated, clearSession, updateSessionUser, homePathFor } from '../../src/lib/auth';
-import { initials } from '../../src/lib/catalog';
+
 import ContactDetails from '../../src/components/ContactDetails';
 import Reveal from '../../src/components/Reveal';
 import { CustomerOrders } from '../../src/components/Orders';
+import { CustomerComplaints } from '../../src/components/Complaints';
 import { Lotus, PageArt } from '../../src/components/Art';
+import DashboardSidebar from '../../src/components/DashboardSidebar';
+import ProfilePhotoEditor from '../../src/components/ProfilePhotoEditor';
+import { profilePhotoUrl } from '../../src/lib/profilePhoto';
+import CustomerOverview from '../../src/components/CustomerOverview';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -45,6 +50,7 @@ export default function Account() {
   const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'error'
   const [user, setUser] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [section, setSection] = useState('overview'); // 'overview' | 'orders' | 'complaints' | 'settings'
 
   // Only logged-in customers may see this page
   useEffect(() => {
@@ -128,10 +134,29 @@ export default function Account() {
     router.replace('/login?as=customer');
   };
 
+  const menu = [
+    { value: 'overview', label: t.admin.tabOverview, icon: LayoutDashboard },
+    { value: 'orders', label: t.orders.myTitle, icon: ClipboardList },
+    { value: 'complaints', label: t.complaints.myTitle, icon: Flag },
+    { value: 'settings', label: t.contactEdit.title, icon: Settings },
+  ];
+
   return (
     <main className="relative isolate flex-1 px-4 py-8 sm:py-10">
       <PageArt />
-      <div className="mx-auto max-w-4xl space-y-6">
+      <DashboardSidebar
+        items={menu}
+        active={section}
+        onSelect={setSection}
+        name={name}
+        photoUrl={profilePhotoUrl(user)}
+        subtitle={user?.email}
+        onLogout={loggedOut}
+        menuLabel={c.accountTitle}
+        stickyClass="lg:top-28"
+        card={{ icon: ShoppingBag, title: t.store.title, text: c.browse, label: c.browse, href: '/store' }}
+      >
+        {section === 'overview' && <>
         {/* Welcome */}
         <Reveal as="section" animation="fade-down" className="relative isolate flex flex-col gap-5 overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />
@@ -140,9 +165,7 @@ export default function Account() {
           <Lotus color="white" className="pointer-events-none absolute -bottom-3 right-1/3 -z-10 hidden w-40 opacity-60 md:block" />
 
           <div className="flex items-center gap-4">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-xl font-extrabold text-brand-700 shadow-lg ring-4 ring-white/25">
-              {initials(name) || '?'}
-            </span>
+            <ProfilePhotoEditor user={user} name={name} onChanged={contactUpdated} onAuthError={loggedOut} />
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wider text-turmeric">{c.accountTitle}</p>
               <h1 className="break-words text-xl font-extrabold sm:text-3xl">{fill(c.welcome, { name })}</h1>
@@ -157,21 +180,17 @@ export default function Account() {
           </Link>
         </Reveal>
 
+        <CustomerOverview onNavigate={setSection} onAuthError={loggedOut} />
+
         <div className="grid gap-6 md:grid-cols-2">
           {/* Details */}
           <Reveal as="section" animation="fade-right" className="rounded-[28px] bg-white px-6 py-5 shadow-sm ring-1 ring-ink/5">
             <h2 className="font-sans text-sm font-bold uppercase tracking-wider text-slate-800">{c.detailsTitle}</h2>
             <dl className="mt-2 divide-y divide-slate-100">
               <Detail icon={UserRound} label={r.fullName} value={name} />
-              <Detail icon={IdCard} label={r.nic} value={user?.profile?.nicNumber || c.noNic} />
             </dl>
           </Reveal>
 
-          {/* Email and phone, with Change buttons */}
-          <Reveal animation="fade-left" className="grid"><ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} /></Reveal>
-
-          {/* Orders placed in the Store */}
-          <div className="md:col-span-2"><CustomerOrders onAuthError={loggedOut} /></div>
 
           {/* How buying works */}
           <Reveal as="section" delay={100} className="rounded-[28px] bg-white px-6 py-5 shadow-sm ring-1 ring-ink/5 md:col-span-2">
@@ -188,7 +207,12 @@ export default function Account() {
             </ol>
           </Reveal>
         </div>
-      </div>
+        </>}
+
+        {section === 'orders' && <CustomerOrders onAuthError={loggedOut} />}
+        {section === 'complaints' && <CustomerComplaints onAuthError={loggedOut} />}
+        {section === 'settings' && <Reveal className="grid"><ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} /></Reveal>}
+      </DashboardSidebar>
     </main>
   );
 }

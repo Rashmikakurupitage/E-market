@@ -1,8 +1,14 @@
 const prisma = require('../config/db');
+const crypto = require('crypto');
+const nicVault = require('../utils/nicVault');
+const bcrypt = require('bcryptjs');
 
 // Every route here is behind authmiddleware + requireAdmin (see routes/adminRoutes.js)
 
 const SELLER_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'];
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
+const NIC_PATTERN = /^(\d{9}[VX]|\d{12})$/;
 const weekAgo = () => new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
 const serverError = (res, label, error) => {
@@ -10,16 +16,104 @@ const serverError = (res, label, error) => {
   res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });
 };
 
+// Admin accounts can only be created through this route, which is protected by requireAdmin.
+exports.createAdmin = async (req, res) => {
+  try {
+    const fullName = String(req.body.fullName || '').trim();
+    const email = String(req.body.email || '').trim().toLowerCase();
+    const phone = String(req.body.phone || '').replace(/[\s-]/g, '');
+    const nicNumber = String(req.body.nicNumber || '').trim().toUpperCase();
+
+    if (!fullName || !email || !phone || !nicNumber) {
+      return res.status(400).json({ code: 'MISSING_DETAILS', message: 'All admin details are required.' });
+    }
+    if (fullName.length > 120) {
+      return res.status(400).json({ code: 'INVALID_NAME', message: 'Name must be 120 characters or fewer.' });
+    }
+    if (!EMAIL_PATTERN.test(email)) {
+      return res.status(400).json({ code: 'INVALID_EMAIL', message: 'Enter a valid email address.' });
+    }
+    if (!PHONE_PATTERN.test(phone)) {
+      return res.status(400).json({ code: 'INVALID_PHONE', message: 'Enter a valid Sri Lankan phone number.' });
+    }
+    if (!NIC_PATTERN.test(nicNumber)) {
+      return res.status(400).json({ code: 'INVALID_NIC', message: 'Enter a valid NIC number.' });
+    }
+
+    const [existingUser, existingAdminNic] = await Promise.all([
+      prisma.user.findFirst({
+        where: {
+          OR: [
+            { email: { equals: email, mode: 'insensitive' } },
+            { phone }
+          ]
+        },
+        select: { email: true, phone: true }
+      }),
+      prisma.adminProfile.findUnique({ where: { nicNumber }, select: { id: true } })
+    ]);
+
+    if (existingUser?.email.toLowerCase() === email) {
+      return res.status(409).json({ code: 'EMAIL_TAKEN', message: 'This email is already registered.' });
+    }
+    if (existingUser?.phone === phone) {
+      return res.status(409).json({ code: 'PHONE_TAKEN', message: 'This phone number is already registered.' });
+    }
+    if (existingAdminNic) {
+      return res.status(409).json({ code: 'NIC_TAKEN', message: 'This NIC number is already registered to an admin.' });
+    }
+
+    const passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10);
+    const admin = await prisma.user.create({
+      data: {
+        email,
+        phone,
+        role: 'SUPER_ADMIN',
+        passwordHash,
+        adminProfile: { create: { fullName, nicNumber } }
+      },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        adminProfile: { select: { fullName: true } }
+      }
+    });
+
+    res.status(201).json({
+      message: 'Admin account created successfully.',
+      admin: { id: admin.id, email: admin.email, phone: admin.phone, fullName: admin.adminProfile.fullName }
+    });
+  } catch (error) {
+    if (error.code === 'P2002') {
+      const target = Array.isArray(error.meta?.target) ? error.meta.target.join(' ') : String(error.meta?.target || '');
+      const code = target.includes('email')
+        ? 'EMAIL_TAKEN'
+        : target.includes('phone')
+          ? 'PHONE_TAKEN'
+          : 'NIC_TAKEN';
+      return res.status(409).json({ code, message: 'An account with these details already exists.' });
+    }
+    serverError(res, 'ADMIN_CREATE_ADMIN_ERROR:', error);
+  }
+};
+
 // 1. Totals for the top of the admin dashboard
 exports.getStats = async (req, res) => {
   try {
-    const [sellersByStatus, totalProducts, productsOnSite, totalClicks, clicksThisWeek] = await Promise.all([
-      prisma.sellerProfile.groupBy({ by: ['status'], _count: { _all: true } }),
-      prisma.product.count(),
+    const [sellersByStatus, totalProducts, productsOnSite, totalClicks, clicksThisWeek, complaintsByStatus] = await Promise.all([
+      prisma.sellerProfile.groupBy({ by: ['status'], where: { removedAt: null }, _count: { _all: true } }),
+      prisma.product.count({ where: { seller: { removedAt: null } } }),
       prisma.product.count({ where: { isPublished: true, seller: { status: 'APPROVED' } } }),
       prisma.clickAnalytics.count(),
-      prisma.clickAnalytics.count({ where: { timestamp: { gte: weekAgo() } } })
+      prisma.clickAnalytics.count({ where: { timestamp: { gte: weekAgo() } } }),
+      prisma.complaint.groupBy({ by: ['status'], _count: { _all: true } })
     ]);
+
+    const complaints = { OPEN: 0, IN_REVIEW: 0, RESOLVED: 0, DISMISSED: 0 };
+    complaintsByStatus.forEach((row) => {
+      complaints[row.status] = row._count._all;
+    });
 
     const sellers = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
     sellersByStatus.forEach((row) => {
@@ -29,10 +123,92 @@ exports.getStats = async (req, res) => {
     res.json({
       sellers,
       products: { total: totalProducts, onSite: productsOnSite },
-      clicks: { total: totalClicks, thisWeek: clicksThisWeek }
+      clicks: { total: totalClicks, thisWeek: clicksThisWeek },
+      complaints
     });
   } catch (error) {
     serverError(res, 'ADMIN_STATS_ERROR:', error);
+  }
+};
+
+// Everything the overview page needs in one call: totals, a 14-day enquiry chart, and what needs attention
+const dayKey = (date) => {
+  const d = new Date(date);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+
+exports.getOverview = async (req, res) => {
+  try {
+    const DAYS = 14;
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - (DAYS - 1));
+
+    const [customers, orders, ordersByStatus, delivered, clicks, topRaw, pendingSellers, recentComplaints] = await Promise.all([
+      prisma.customerProfile.count(),
+      prisma.order.count(),
+      prisma.order.groupBy({ by: ['status'], _count: { _all: true } }),
+      prisma.order.aggregate({ where: { status: 'DELIVERED' }, _sum: { total: true } }),
+      prisma.clickAnalytics.findMany({ where: { timestamp: { gte: start } }, select: { timestamp: true }, take: 20000 }),
+      prisma.clickAnalytics.groupBy({ by: ['sellerId'], _count: { _all: true }, orderBy: { _count: { sellerId: 'desc' } }, take: 8 }),
+      prisma.sellerProfile.findMany({
+        where: { status: 'PENDING', removedAt: null },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: { id: true, businessName: true, district: true, createdAt: true }
+      }),
+      prisma.complaint.findMany({
+        where: { status: { in: ['OPEN', 'IN_REVIEW'] } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          reference: true,
+          reason: true,
+          status: true,
+          createdAt: true,
+          customer: { select: { fullName: true } },
+          seller: { select: { businessName: true } }
+        }
+      })
+    ]);
+
+    // One entry per day, oldest first, including days with no enquiries
+    const perDay = new Map();
+    clicks.forEach((click) => perDay.set(dayKey(click.timestamp), (perDay.get(dayKey(click.timestamp)) || 0) + 1));
+    const clicksByDay = Array.from({ length: DAYS }, (_, index) => {
+      const day = new Date(start);
+      day.setDate(start.getDate() + index);
+      return { date: dayKey(day), count: perDay.get(dayKey(day)) || 0 };
+    });
+
+    const names = await prisma.sellerProfile.findMany({
+      where: { id: { in: topRaw.map((row) => row.sellerId) }, removedAt: null },
+      select: { id: true, businessName: true, district: true }
+    });
+    const topSellers = topRaw
+      .map((row) => {
+        const seller = names.find((item) => item.id === row.sellerId);
+        return seller && { id: seller.id, businessName: seller.businessName, district: seller.district, count: row._count._all };
+      })
+      .filter(Boolean)
+      .slice(0, 5);
+
+    const orderStatus = { PENDING: 0, CONFIRMED: 0, SHIPPED: 0, DELIVERED: 0, CANCELLED: 0 };
+    ordersByStatus.forEach((row) => {
+      orderStatus[row.status] = row._count._all;
+    });
+
+    res.json({
+      customers,
+      orders: { total: orders, byStatus: orderStatus, deliveredValue: Number(delivered._sum.total || 0) },
+      clicksByDay,
+      topSellers,
+      pendingSellers,
+      recentComplaints
+    });
+  } catch (error) {
+    serverError(res, 'ADMIN_OVERVIEW_ERROR:', error);
   }
 };
 
@@ -42,15 +218,22 @@ exports.listSellers = async (req, res) => {
     const status = SELLER_STATUSES.includes(req.query.status) ? req.query.status : undefined;
     const search = req.query.search?.trim();
     const contains = { contains: search, mode: 'insensitive' };
+    // A NIC can be searched by its last characters, or by the full number (matched without ever storing it in plain text)
+    const nicMatches = [];
+    if (search) {
+      if (search.length >= 3) nicMatches.push({ nicLast5: { contains: search.toUpperCase().slice(-5) } });
+      if (nicVault.isValidNic(search)) nicMatches.push({ nicHash: nicVault.hash(search) });
+    }
 
     const sellers = await prisma.sellerProfile.findMany({
       where: {
+        removedAt: null,
         ...(status && { status }),
         ...(search && {
           OR: [
             { businessName: contains },
             { district: contains },
-            { nicNumber: contains },
+            ...nicMatches,
             { user: { email: contains } },
             { user: { phone: { contains: search } } }
           ]
@@ -65,8 +248,9 @@ exports.listSellers = async (req, res) => {
     });
 
     res.json(
-      sellers.map(({ user, _count, ...seller }) => ({
+      sellers.map(({ user, _count, nicNumber, nicHash, nicEncrypted, nicLast5, ...seller }) => ({
         ...seller,
+        nicMasked: nicVault.mask(nicLast5),
         email: user.email,
         phone: user.phone,
         productCount: _count.products,
@@ -93,6 +277,39 @@ exports.getSellerProducts = async (req, res) => {
   }
 };
 
+// Remove a seller. The account is closed and the products are hidden, but nothing is deleted, so past orders
+// (and the payments made on them) and complaints stay on record. A seller with orders that are not finished
+// (customers may already have paid) or with open complaints cannot be removed until those are settled.
+exports.removeSeller = async (req, res) => {
+  try {
+    const id = String(req.params.id);
+    const seller = await prisma.sellerProfile.findUnique({ where: { id }, select: { id: true, removedAt: true } });
+    if (!seller || seller.removedAt) {
+      return res.status(404).json({ code: 'NOT_FOUND', message: 'Seller not found.' });
+    }
+
+    const [activeOrders, openComplaints] = await Promise.all([
+      prisma.order.count({ where: { sellerId: id, status: { in: ['PENDING', 'CONFIRMED', 'SHIPPED'] } } }),
+      prisma.complaint.count({ where: { sellerId: id, status: { in: ['OPEN', 'IN_REVIEW'] } } })
+    ]);
+    if (activeOrders > 0) {
+      return res.status(409).json({ code: 'HAS_ACTIVE_ORDERS', count: activeOrders, message: 'This seller has orders that are not delivered or cancelled yet.' });
+    }
+    if (openComplaints > 0) {
+      return res.status(409).json({ code: 'HAS_OPEN_COMPLAINTS', count: openComplaints, message: 'This seller has complaints that are not settled yet.' });
+    }
+
+    const note = String(req.body?.note || '').trim().slice(0, 500) || null;
+    await prisma.$transaction([
+      prisma.sellerProfile.update({ where: { id }, data: { status: 'REJECTED', removedAt: new Date(), removalNote: note } }),
+      prisma.product.updateMany({ where: { sellerId: id }, data: { isPublished: false } })
+    ]);
+    res.json({ removed: true });
+  } catch (error) {
+    serverError(res, 'ADMIN_REMOVE_SELLER_ERROR:', error);
+  }
+};
+
 // 4. Approve or reject a seller. Only APPROVED sellers' products are shown on the website.
 exports.setSellerStatus = async (req, res) => {
   try {
@@ -101,7 +318,7 @@ exports.setSellerStatus = async (req, res) => {
       return res.status(400).json({ message: 'අවලංගු තත්ත්වයකි.' });
     }
 
-    const seller = await prisma.sellerProfile.update({
+    const { nicNumber, nicHash, nicEncrypted, nicLast5, ...seller } = await prisma.sellerProfile.update({
       where: { id: String(req.params.id) },
       data: { status }
     });
@@ -128,6 +345,7 @@ exports.listProducts = async (req, res) => {
 
     const products = await prisma.product.findMany({
       where: {
+        seller: { removedAt: null },
         ...(visibilityFilters[req.query.visibility] || {}),
         ...(search && {
           OR: [{ title: contains }, { category: contains }, { seller: { businessName: contains } }]

@@ -3,13 +3,27 @@ const prisma = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const otpStore = require('../utils/otpStore');
-const { sendLoginCode, explainMailError } = require('../utils/mailer');
+const nicVault = require('../utils/nicVault');
+const { sendLoginCode, explainMailError, isEmailConfigured } = require('../utils/mailer');
 
 // Admin accounts must never be created through public sign-up
 const SELF_SERVICE_ROLES = ['CUSTOMER', 'SELLER'];
 
 // Old NIC: 9 digits + V/X (e.g. 858470123V). New NIC: 12 digits (e.g. 198584700123)
 const NIC_PATTERN = /^(\d{9}[VX]|\d{12})$/;
+const SELF_SERVICE_PASSWORD_MIN_LENGTH = 8;
+// At least 8 characters, one capital letter, and one number or symbol
+const isStrongPassword = (password) =>
+  typeof password === 'string' &&
+  password.length >= SELF_SERVICE_PASSWORD_MIN_LENGTH &&
+  /[A-Z]/.test(password) &&
+  /[^A-Za-z]/.test(password);
+const makeSelfServiceNic = (role) => `SELF-${role}-${crypto.randomBytes(8).toString('hex').toUpperCase()}`;
+const normalizeOptionalUrl = (value) => {
+  if (!value) return null;
+  const trimmed = String(value).trim();
+  return trimmed || null;
+};
 
 const signToken = (user, expiresIn = '7d') =>
   jwt.sign(
@@ -19,20 +33,45 @@ const signToken = (user, expiresIn = '7d') =>
   );
 
 // Never send passwordHash back to the browser
+// NIC data (even encrypted) never leaves the server in a login or profile response
+const withoutNic = (profile) => {
+  if (!profile) return profile;
+  const { nicNumber, nicHash, nicEncrypted, ...safe } = profile;
+  return safe;
+};
+
 const toPublicUser = (user) => ({
   id: user.id,
   email: user.email,
   phone: user.phone,
   role: user.role,
-  profile: user.sellerProfile || user.customerProfile || user.adminProfile
+  profile: withoutNic(user.sellerProfile || user.customerProfile || user.adminProfile),
+  // Changes whenever the profile photo changes (null = no photo), so browsers reload it
+  photoVersion: user.profilePhoto ? user.profilePhoto.updatedAt.getTime() : null
 });
 
 // 1. User Registration
 exports.register = async (req, res) => {
   try {
-    const { email, phone, password, fullName, businessName, district, whatsappNo, description } = req.body;
+    const {
+      email,
+      phone,
+      password,
+      fullName,
+      firstName,
+      lastName,
+      businessName,
+      district,
+      whatsappNo,
+      description,
+      messengerUrl,
+      facebookUrl
+    } = req.body;
     const role = req.body.role || 'CUSTOMER';
-    const nicNumber = req.body.nicNumber?.trim().toUpperCase();
+    const nicNumberInput = req.body.nicNumber?.trim().toUpperCase();
+    const profileFirstName = String(firstName || '').trim() || String(fullName || '').trim();
+    const profileLastName = String(lastName || '').trim();
+    const customerFullName = [profileFirstName, profileLastName].filter(Boolean).join(' ') || 'Customer';
 
     if (!email || !phone) {
       return res.status(400).json({ message: 'Email සහ Phone අංකය අවශ්‍ය වේ.' });
@@ -42,20 +81,25 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'අවලංගු ගිණුම් වර්ගයකි.' });
     }
 
-    // Sellers and customers log in with email + NIC + a code sent to their email, so no password is needed
-    if (password && password.length < 8) {
-      return res.status(400).json({ message: 'Password එක අවම වශයෙන් අක්ෂර 8ක් විය යුතුය.' });
+    if (!isStrongPassword(password)) {
+      return res.status(400).json({
+        code: 'WEAK_PASSWORD',
+        message: 'Password must have at least 8 characters, one capital letter, and one number or symbol.'
+      });
     }
 
-    if (!nicNumber) {
-      return res.status(400).json({ message: 'NIC අංකය අනිවාර්ය වේ.' });
+    if ((firstName !== undefined || lastName !== undefined) && (!profileFirstName || !profileLastName)) {
+      return res.status(400).json({ message: 'First name සහ Last name අවශ්‍ය වේ.' });
     }
 
-    if (!NIC_PATTERN.test(nicNumber)) {
-      return res.status(400).json({ message: 'NIC අංකය වලංගු නොවේ.' });
+    // Sellers must give a valid NIC (it is stored encrypted). Customers never give one.
+    if (role === 'SELLER' && !nicVault.isValidNic(nicNumberInput)) {
+      return res.status(400).json({ code: 'INVALID_NIC', message: 'Enter a valid NIC number: 12 digits, or 9 digits followed by V or X.' });
     }
+    const normalizedNicNumber = makeSelfServiceNic(role);
+    const sellerMessengerUrl = normalizeOptionalUrl(messengerUrl);
+    const sellerFacebookUrl = normalizeOptionalUrl(facebookUrl);
 
-    // Email, Phone හෝ NIC එක කලින් ලියාපදිංචි වී ඇත්දැයි බැලීම
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [{ email: { equals: email, mode: 'insensitive' } }, { phone }]
@@ -66,19 +110,13 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'Email හෝ Phone අංකය දැනටමත් ලියාපදිංචි වී ඇත.' });
     }
 
-    // One seller account and one customer account per NIC
-    const profiles = role === 'SELLER' ? prisma.sellerProfile : prisma.customerProfile;
-    const existingNic = await profiles.findUnique({
-      where: { nicNumber }
-    });
-    if (existingNic) {
-      return res.status(400).json({ message: 'මෙම NIC අංකය දැනටමත් ලියාපදිංචි වී ඇත.' });
+    const nicData = role === 'SELLER' ? nicVault.protect(nicNumberInput) : null;
+    if (nicData && (await prisma.sellerProfile.findUnique({ where: { nicHash: nicData.nicHash }, select: { id: true } }))) {
+      return res.status(409).json({ code: 'NIC_TAKEN', message: 'This NIC number is already registered.' });
     }
 
-    // Without a password, store a random one nobody knows (the column can't be empty)
-    const passwordHash = await bcrypt.hash(password || crypto.randomBytes(32).toString('hex'), 10);
+    const passwordHash = await bcrypt.hash(password, 10);
 
-    // User සහ Profile එක එකවර සාදාගැනීම (එකක් අසාර්ථක වුවහොත් කිසිවක් save නොවේ)
     const profile =
       role === 'SELLER'
         ? {
@@ -86,15 +124,20 @@ exports.register = async (req, res) => {
               create: {
                 businessName: businessName || 'My Business',
                 district: district || 'Colombo',
-                nicNumber,
+                nicNumber: normalizedNicNumber,
+                ...nicData,
+                firstName: profileFirstName || null,
+                lastName: profileLastName || null,
                 whatsappNo: whatsappNo || phone,
+                messengerUrl: sellerMessengerUrl,
+                facebookUrl: sellerFacebookUrl,
                 description: description || null
               }
             }
           }
         : {
             customerProfile: {
-              create: { fullName: fullName || 'Customer', nicNumber }
+              create: { fullName: customerFullName, nicNumber: normalizedNicNumber }
             }
           };
 
@@ -103,14 +146,12 @@ exports.register = async (req, res) => {
       include: { sellerProfile: true, customerProfile: true }
     });
 
-    // Register වූ විගසම log in කර තැබීම සඳහා token එකක් ලබාදීම
     res.status(201).json({
       message: 'User සාර්ථකව ලියාපදිංචි විය!',
       token: signToken(user),
       user: toPublicUser(user)
     });
   } catch (error) {
-    // Two sign-ups with the same email/phone/NIC at the same moment
     if (error.code === 'P2002') {
       return res.status(400).json({ message: 'Email, Phone හෝ NIC අංකය දැනටමත් ලියාපදිංචි වී ඇත.' });
     }
@@ -135,12 +176,16 @@ exports.login = async (req, res) => {
 
     // Admins must use the admin login (email + NIC + emailed code)
     if (!user || user.role === 'SUPER_ADMIN') {
-      return res.status(400).json({ message: 'Email හෝ Password වැරදියි.' });
+      return res.status(400).json({ code: 'INVALID_CREDENTIALS', message: 'Email හෝ Password වැරදියි.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Email හෝ Password වැරදියි.' });
+      return res.status(400).json({ code: 'INVALID_CREDENTIALS', message: 'Email හෝ Password වැරදියි.' });
+    }
+
+    if (user.sellerProfile?.removedAt) {
+      return res.status(403).json({ code: 'ACCOUNT_REMOVED', message: 'This seller account has been removed.' });
     }
 
     res.json({
@@ -215,6 +260,13 @@ const requestLoginCode = (type) => async (req, res) => {
       return res.status(404).json(type.notFound);
     }
 
+    if (!isEmailConfigured()) {
+      return res.status(503).json({
+        code: 'SMTP_NOT_CONFIGURED',
+        message: 'Email delivery is not configured on the server.'
+      });
+    }
+
     const issued = otpStore.issue(user.id);
     if (issued.error === 'RESEND_TOO_SOON') {
       return res.status(429).json({ code: issued.error, retryAfter: issued.retryAfter, message: `තත්පර ${issued.retryAfter}කින් නැවත උත්සාහ කරන්න.` });
@@ -240,9 +292,8 @@ const requestLoginCode = (type) => async (req, res) => {
 
     res.json({
       message: 'Login කේතය ඔබේ email වෙත යවන ලදී.',
-      // false only while developing without SMTP settings: the code is in the backend terminal
+      sentTo: delivery.emailed ? maskEmail(user.email) : null,
       emailed: delivery.emailed,
-      sentTo: maskEmail(user.email),
       expiresInMinutes: issued.expiresInMinutes,
       resendAfterSeconds: issued.resendAfterSeconds
     });
@@ -289,6 +340,86 @@ const verifyLoginCode = (type) => async (req, res) => {
   }
 };
 
+// --- Forgot password: an emailed code lets a customer or seller choose a new password ---
+
+// Reset codes are kept apart from login codes
+const resetKey = (userId) => `reset:${userId}`;
+
+// Customers and sellers only (admins use their own login). A seller an admin has removed cannot reset.
+const findResettableUser = async (email) => {
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: 'insensitive' }, role: { in: ['CUSTOMER', 'SELLER'] } },
+    include: { sellerProfile: true, customerProfile: true }
+  });
+  return user && !user.sellerProfile?.removedAt ? user : null;
+};
+
+// Step 1 - email a 6-digit code. The answer is always the same, so nobody can use this to find out who is registered.
+exports.requestPasswordReset = async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim();
+    if (!email) {
+      return res.status(400).json({ code: 'MISSING_DETAILS', message: 'Enter your email.' });
+    }
+    if (!isEmailConfigured()) {
+      return res.status(503).json({ code: 'SMTP_NOT_CONFIGURED', message: 'Email delivery is not configured on the server.' });
+    }
+
+    const user = await findResettableUser(email);
+    if (user) {
+      const issued = otpStore.issue(resetKey(user.id));
+      if (!issued.error) {
+        try {
+          await sendLoginCode({
+            to: user.email,
+            businessName: user.sellerProfile?.businessName || user.customerProfile?.fullName,
+            code: issued.code,
+            minutes: issued.expiresInMinutes,
+            purpose: 'password-reset'
+          });
+        } catch (mailError) {
+          otpStore.discard(resetKey(user.id));
+          console.error('PASSWORD_RESET_EMAIL_ERROR:', mailError.message);
+          console.error('HINT:', explainMailError(mailError));
+        }
+      }
+    }
+
+    res.json({ message: 'If this email is registered, a code has been sent to it.', expiresInMinutes: 10, resendAfterSeconds: 60 });
+  } catch (error) {
+    console.error('PASSWORD_RESET_REQUEST_ERROR:', error);
+    res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+// Step 2 - check the code and save the new password
+exports.resetPassword = async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim();
+    const code = String(req.body?.code || '').trim();
+    const newPassword = req.body?.newPassword;
+
+    if (!email || !/^\d{6}$/.test(code)) {
+      return res.status(400).json({ code: 'WRONG_CODE', message: 'Enter the 6-digit code.' });
+    }
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({ code: 'WEAK_PASSWORD', message: 'Password must have at least 8 characters, one capital letter, and one number or symbol.' });
+    }
+
+    const user = await findResettableUser(email);
+    const result = user ? otpStore.verify(resetKey(user.id), code) : 'WRONG_CODE';
+    if (result !== 'OK') {
+      return res.status(400).json({ code: result, message: 'The code is not valid. Please ask for a new one.' });
+    }
+
+    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(newPassword, 10) } });
+    res.json({ message: 'Your password was changed. You can log in now.' });
+  } catch (error) {
+    console.error('PASSWORD_RESET_ERROR:', error);
+    res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 exports.requestSellerLoginCode = requestLoginCode(LOGIN_TYPES.seller);
 exports.verifySellerLoginCode = verifyLoginCode(LOGIN_TYPES.seller);
 exports.requestCustomerLoginCode = requestLoginCode(LOGIN_TYPES.customer);
@@ -301,7 +432,7 @@ exports.me = async (req, res) => {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.userId },
-      include: { sellerProfile: true, customerProfile: true, adminProfile: true }
+      include: { sellerProfile: true, customerProfile: true, adminProfile: true, profilePhoto: { select: { updatedAt: true } } }
     });
 
     if (!user) {
@@ -348,7 +479,16 @@ exports.updatePhone = async (req, res) => {
       if (!PHONE_PATTERN.test(whatsappNo)) {
         return res.status(400).json({ code: 'INVALID_WHATSAPP', message: 'WhatsApp අංකය වලංගු නොවේ.' });
       }
-      data.sellerProfile = { update: { whatsappNo } };
+
+      const messengerUrl = normalizeOptionalUrl(req.body.messengerUrl);
+      const facebookUrl = normalizeOptionalUrl(req.body.facebookUrl);
+      data.sellerProfile = {
+        update: {
+          whatsappNo,
+          ...(messengerUrl !== null ? { messengerUrl } : {}),
+          ...(facebookUrl !== null ? { facebookUrl } : {})
+        }
+      };
     }
 
     if (phone !== user.phone && (await prisma.user.findFirst({ where: { phone, NOT: { id: user.id } } }))) {
@@ -417,7 +557,7 @@ exports.requestEmailChangeCode = async (req, res) => {
     res.json({
       message: 'තහවුරු කිරීමේ කේතය නව email ලිපිනයට යවන ලදී.',
       emailed: delivery.emailed,
-      sentTo: maskEmail(newEmail),
+      sentTo: delivery.emailed ? maskEmail(newEmail) : null,
       expiresInMinutes: issued.expiresInMinutes,
       resendAfterSeconds: issued.resendAfterSeconds
     });

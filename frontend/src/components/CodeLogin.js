@@ -20,7 +20,7 @@ export default function CodeLogin({ requestPath, verifyPath, texts: l, redirectT
   const [nic, setNic] = useState('');
   const [code, setCode] = useState('');
   const [sentTo, setSentTo] = useState('');
-  const [emailed, setEmailed] = useState(true); // false while the backend has no email (SMTP) settings
+  const [emailed, setEmailed] = useState(true);
   const [minutes, setMinutes] = useState(10);
   const [resendIn, setResendIn] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -143,20 +143,18 @@ export default function CodeLogin({ requestPath, verifyPath, texts: l, redirectT
             {l.changeDetails}
           </button>
 
-          {sentTo && !emailed && (
-            <div role="status" className="flex items-start gap-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
-              <Terminal className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-              <p>{l.notEmailed}</p>
-            </div>
-          )}
-
-          {sentTo && emailed && (
+          {emailed && sentTo ? (
             <div className="flex items-start gap-3 rounded-xl bg-brand-50 p-4 ring-1 ring-brand-100">
               <Mail className="mt-0.5 h-5 w-5 shrink-0 text-brand-700" />
               <p className="text-sm text-slate-700">
                 {l.codeSentTo} <strong className="text-slate-900">{sentTo}</strong>
                 <span className="mt-1 block text-xs text-slate-500">{l.checkSpam}</span>
               </p>
+            </div>
+          ) : (
+            <div role="status" className="flex items-start gap-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
+              <Terminal className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+              <p>{l.notEmailed}</p>
             </div>
           )}
 

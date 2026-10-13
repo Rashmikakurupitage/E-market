@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Mail, Phone, Pencil, X, LoaderCircle, CircleAlert, CircleCheck, ArrowLeft, ShieldCheck, Terminal, RefreshCw } from 'lucide-react';
+import { Mail, Phone, Pencil, X, LoaderCircle, CircleAlert, CircleCheck, ArrowLeft, ShieldCheck, Terminal, RefreshCw, MessageCircle } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import API from '../lib/api';
 import { useLanguage, fill } from '../lib/i18n';
 import { Field, inputClass, primaryButtonClass } from './form';
+import Portal from './Portal';
 
 // Same rule as the backend (authController.js)
 const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
@@ -43,7 +44,8 @@ function Dialog({ title, onClose, children }) {
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4" onClick={onClose}>
+    <Portal>
+<div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4" onClick={onClose}>
       <div
         role="dialog"
         aria-modal="true"
@@ -67,6 +69,7 @@ function Dialog({ title, onClose, children }) {
         {children}
       </div>
     </div>
+</Portal>
   );
 }
 
@@ -238,9 +241,13 @@ function PhoneDialog({ user, onClose, onChanged, onAuthError }) {
   const errorText = useErrorText();
   const isSeller = user.role === 'SELLER';
   const currentWhatsapp = user.profile?.whatsappNo || '';
+  const currentMessenger = user.profile?.messengerUrl || '';
+  const currentFacebook = user.profile?.facebookUrl || '';
 
   const [phone, setPhone] = useState(user.phone || '');
   const [whatsapp, setWhatsapp] = useState(currentWhatsapp);
+  const [messengerUrl, setMessengerUrl] = useState(currentMessenger);
+  const [facebookUrl, setFacebookUrl] = useState(currentFacebook);
   const [sameAsPhone, setSameAsPhone] = useState(!currentWhatsapp || currentWhatsapp === user.phone);
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -259,7 +266,11 @@ function PhoneDialog({ user, onClose, onChanged, onAuthError }) {
     setLoading(true);
     try {
       const body = { phone: cleanPhone(phone) };
-      if (isSeller) body.whatsappNo = sameAsPhone ? body.phone : cleanPhone(whatsapp);
+      if (isSeller) {
+        body.whatsappNo = sameAsPhone ? body.phone : cleanPhone(whatsapp);
+        body.messengerUrl = messengerUrl.trim();
+        body.facebookUrl = facebookUrl.trim();
+      }
       const res = await API.patch('/auth/me/phone', body);
       onChanged(res.data.user, c.phoneChanged);
     } catch (err) {
@@ -324,6 +335,31 @@ function PhoneDialog({ user, onClose, onChanged, onAuthError }) {
               {r.sameAsPhone}
             </label>
           </Field>
+        )}
+
+        {isSeller && (
+          <>
+            <Field id="new-messenger-url" label={r.messengerUrl || 'Facebook Messenger URL'}>
+              <input
+                id="new-messenger-url"
+                type="url"
+                value={messengerUrl}
+                onChange={(e) => setMessengerUrl(e.target.value)}
+                className={inputClass(false)}
+                placeholder="https://m.me/your-page"
+              />
+            </Field>
+            <Field id="new-facebook-url" label={r.facebookUrl || 'Facebook profile URL'}>
+              <input
+                id="new-facebook-url"
+                type="url"
+                value={facebookUrl}
+                onChange={(e) => setFacebookUrl(e.target.value)}
+                className={inputClass(false)}
+                placeholder="https://facebook.com/your-page"
+              />
+            </Field>
+          </>
         )}
 
         <div className="flex gap-3 pt-2">
@@ -397,13 +433,22 @@ export default function ContactDetails({ user, onUpdated, onAuthError, className
         <Row icon={Mail} label={r.email} value={user.email} changeLabel={c.change} onChange={() => setOpen('email')} />
         <Row icon={Phone} label={r.phone} value={user.phone} changeLabel={c.change} onChange={() => setOpen('phone')} />
         {user.role === 'SELLER' && (
-          <Row
-            icon={WhatsAppIcon}
-            label={r.whatsapp}
-            value={user.profile?.whatsappNo}
-            changeLabel={c.change}
-            onChange={() => setOpen('phone')}
-          />
+          <>
+            <Row
+              icon={WhatsAppIcon}
+              label={r.whatsapp}
+              value={user.profile?.whatsappNo}
+              changeLabel={c.change}
+              onChange={() => setOpen('phone')}
+            />
+            <Row
+              icon={MessageCircle}
+              label={r.messengerUrl || 'Facebook Messenger URL'}
+              value={user.profile?.messengerUrl}
+              changeLabel={c.change}
+              onChange={() => setOpen('phone')}
+            />
+          </>
         )}
       </dl>
 

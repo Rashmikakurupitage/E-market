@@ -3,19 +3,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Hourglass, BadgeCheck, Package, MessageCircle, Search, MapPin, Mail, Phone, IdCard,
+  BadgeCheck, Package, Search, MapPin, Mail, Phone, IdCard,
   ChevronDown, ChevronUp, Eye, EyeOff, Trash2, CircleCheck, CircleAlert, LoaderCircle,
-  Users, CalendarDays, ShieldCheck,
+  Users, CalendarDays, ShieldCheck, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
 import { useSession, useHydrated, clearSession } from '../../src/lib/auth';
 import { formatPrice, initials, toWhatsAppNumber, formatPhone } from '../../src/lib/catalog';
+import { ComplaintStatusBadge, COMPLAINT_STATUSES } from '../../src/components/Complaints';
 import ProductThumb from '../../src/components/ProductThumb';
 import SellerStatusBadge from '../../src/components/SellerStatusBadge';
 import ConfirmDialog from '../../src/components/ConfirmDialog';
 import WhatsAppIcon from '../../src/components/WhatsAppIcon';
 import { PageArt } from '../../src/components/Art';
+import DashboardSidebar from '../../src/components/DashboardSidebar';
+import AdminOverview from '../../src/components/AdminOverview';
+import { allWallpapers, shownWallpapers, BUILTIN_WALLPAPERS } from '../../src/lib/siteImage';
+import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -40,21 +45,6 @@ function useDebounced(value, delay = 300) {
     return () => clearTimeout(timer);
   }, [value, delay]);
   return debounced;
-}
-
-function StatCard({ icon: Icon, label, value, sub, highlight }) {
-  return (
-    <div className={`flex items-center gap-4 rounded-2xl p-5 shadow-sm ring-1 ${highlight ? 'bg-amber-50 ring-amber-200' : 'bg-white ring-slate-200'}`}>
-      <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ${highlight ? 'bg-amber-100 text-amber-700' : 'bg-brand-50 text-brand-700'}`}>
-        <Icon className="h-6 w-6" />
-      </span>
-      <div>
-        <p className="text-sm font-medium text-slate-500">{label}</p>
-        <p className="text-2xl font-extrabold text-slate-900">{value ?? '–'}</p>
-        {sub && <p className="text-xs text-slate-400">{sub}</p>}
-      </div>
-    </div>
-  );
 }
 
 function Toolbar({ filters, active, onFilter, search, onSearch, placeholder }) {
@@ -97,6 +87,349 @@ function ListMessage({ children, loading }) {
       {loading && <LoaderCircle className="h-4 w-4 animate-spin text-brand-600" />}
       {children}
     </p>
+  );
+}
+
+function ComplaintsPanel({ stats, onChanged, onAuthError }) {
+  const { t } = useLanguage();
+  const c = t.complaints;
+  const ca = c.admin;
+  const [status, setStatus] = useState('OPEN');
+  const [search, setSearch] = useState('');
+  const query = useDebounced(search.trim());
+  const [complaints, setComplaints] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [hiddenIds, setHiddenIds] = useState([]); // complaints are shown in full; the admin can fold one away
+
+  useEffect(() => {
+    let ignore = false;
+    API.get('/admin/complaints', { params: { status: status === 'all' ? undefined : status, search: query || undefined } })
+      .then((res) => {
+        if (ignore) return;
+        setComplaints(res.data);
+        setFailed(false);
+      })
+      .catch((err) => {
+        if (ignore) return;
+        if (isAuthError(err)) onAuthError();
+        else setFailed(true);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [status, query, onAuthError]);
+
+  const chooseStatus = (value) => {
+    setComplaints(null);
+    setStatus(value);
+  };
+
+  const counts = stats?.complaints;
+  const filters = ['all', ...COMPLAINT_STATUSES].map((value) => ({
+    value,
+    label: ca.filters[value],
+    count: value === 'all' ? (counts ? Object.values(counts).reduce((sum, n) => sum + n, 0) : undefined) : counts?.[value],
+  }));
+
+  const saved = (updated) => {
+    setComplaints((list) => (list ? list.map((item) => (item.id === updated.id ? updated : item)) : list));
+    onChanged(fill(ca.saved, { reference: updated.reference }));
+  };
+
+  return (
+    <>
+      <Toolbar filters={filters} active={status} onFilter={chooseStatus} search={search} onSearch={setSearch} placeholder={ca.search} />
+
+      {failed ? (
+        <ListMessage>{ca.loadError}</ListMessage>
+      ) : !complaints ? (
+        <ListMessage loading>{ca.loading}</ListMessage>
+      ) : complaints.length === 0 ? (
+        <ListMessage>{ca.none}</ListMessage>
+      ) : (
+        <ul className="divide-y divide-slate-100">
+          {complaints.map((complaint) => {
+            const open = !hiddenIds.includes(complaint.id);
+            return (
+              <li key={complaint.id} className="px-5 py-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="font-mono text-sm font-bold tracking-wider text-slate-900">{complaint.reference}</span>
+                      <ComplaintStatusBadge status={complaint.status} />
+                      <span className="rounded-full bg-sand/70 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">{c.reasons[complaint.reason] || complaint.reason}</span>
+                    </div>
+                    <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-slate-700">
+                      <span className="font-semibold">{complaint.customer?.fullName}</span>
+                      <span className="text-slate-400">→</span>
+                      <span className="font-semibold">{complaint.seller?.businessName}</span>
+                      {complaint.seller?.district && <span className="text-xs text-slate-500">({complaint.seller.district})</span>}
+                    </p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
+                      {complaint.customer?.user?.email && <span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{complaint.customer.user.email}</span>}
+                      {complaint.customer?.user?.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{complaint.customer.user.phone}</span>}
+                    </p>
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-slate-500">
+                      <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{fill(ca.received, { date: formatDate(complaint.createdAt) })}</span>
+                      {complaint.order?.reference && <span>{ca.order} {complaint.order.reference}</span>}
+                    </p>
+                    {!open && <p className="mt-2 line-clamp-2 text-sm text-slate-600">{complaint.message}</p>}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHiddenIds((ids) => (open ? [...ids, complaint.id] : ids.filter((id) => id !== complaint.id)))}
+                    aria-expanded={open}
+                    className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-cream"
+                  >
+                    {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                    {open ? ca.hideDetails : ca.showDetails}
+                  </button>
+                </div>
+
+                {open && <ComplaintDetails complaint={complaint} onSaved={saved} onChanged={onChanged} onAuthError={onAuthError} />}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </>
+  );
+}
+
+function ComplaintDetails({ complaint, onSaved, onChanged, onAuthError }) {
+  const { t } = useLanguage();
+  const c = t.complaints;
+  const ca = c.admin;
+  const [status, setStatus] = useState(complaint.status);
+  const [note, setNote] = useState(complaint.adminNote || '');
+  const [saving, setSaving] = useState(false);
+  const dirty = status !== complaint.status || note.trim() !== (complaint.adminNote || '');
+
+  const save = async (event) => {
+    event.preventDefault();
+    setSaving(true);
+    try {
+      const res = await API.patch(`/admin/complaints/${complaint.id}`, { status, adminNote: note });
+      onSaved(res.data);
+    } catch (err) {
+      if (isAuthError(err)) onAuthError();
+      else onChanged(err.response?.data?.code === 'NOTE_LONG' ? ca.noteLong : ca.saveError, true);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const customer = complaint.customer;
+  const seller = complaint.seller;
+  const sellerWhatsapp = toWhatsAppNumber(seller?.whatsappNo);
+
+  return (
+    <div className="mt-4 space-y-4 rounded-2xl bg-cream p-4 ring-1 ring-slate-200">
+      <div className="flex flex-wrap items-center gap-2 text-xs">
+        <span className="font-mono text-sm font-bold tracking-wider text-slate-900">{complaint.reference}</span>
+        <ComplaintStatusBadge status={complaint.status} />
+        <span className="rounded-full bg-white px-2.5 py-0.5 font-semibold text-slate-600 ring-1 ring-slate-200">{c.reasons[complaint.reason] || complaint.reason}</span>
+      </div>
+      <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+        <span>{fill(ca.received, { date: formatDate(complaint.createdAt) })}</span>
+        {complaint.updatedAt && complaint.updatedAt !== complaint.createdAt && <span>{fill(ca.lastUpdated, { date: formatDate(complaint.updatedAt) })}</span>}
+        {complaint.resolvedAt && <span>{fill(ca.closedOn, { date: formatDate(complaint.resolvedAt) })}</span>}
+      </p>
+      <p className="whitespace-pre-line rounded-xl bg-white p-3 text-sm leading-relaxed text-slate-800 ring-1 ring-slate-200">{complaint.message}</p>
+
+      {complaint.order && (
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-xl bg-white px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200">
+          <span className="font-semibold text-slate-900">{ca.order} {complaint.order.reference}</span>
+          {complaint.order.status && <span>{complaint.order.status}</span>}
+          {complaint.order.total != null && <span>{formatPrice(complaint.order.total)}</span>}
+        </p>
+      )}
+
+      <dl className="grid gap-3 text-sm sm:grid-cols-2">
+        <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+          <dt className="text-xs font-semibold text-slate-500">{ca.customer}</dt>
+          <dd className="mt-1 font-semibold text-slate-900">{customer?.fullName}</dd>
+          <dd className="mt-1 flex flex-col gap-0.5 text-slate-600">
+            <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-400" />{customer?.user?.email}</span>
+            <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-400" />{customer?.user?.phone}</span>
+            {customer?.user?.createdAt && <span className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-slate-400" />{fill(ca.memberSince, { date: formatDate(customer.user.createdAt) })}</span>}
+          </dd>
+          {customer?._count && (
+            <dd className="mt-2 flex flex-wrap gap-1.5 text-xs font-semibold">
+              <span className="rounded-full bg-sand/70 px-2.5 py-1 text-slate-700">{fill(ca.customerOrders, { count: customer._count.orders })}</span>
+              <span className={`rounded-full px-2.5 py-1 ${customer._count.complaints > 1 ? 'bg-amber-50 text-amber-800 ring-1 ring-amber-200' : 'bg-sand/70 text-slate-700'}`}>{fill(ca.customerComplaints, { count: customer._count.complaints })}</span>
+            </dd>
+          )}
+        </div>
+        <div className="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+          <dt className="flex items-center justify-between gap-2 text-xs font-semibold text-slate-500">
+            {ca.seller}
+            {seller?.status && <SellerStatusBadge status={seller.status} />}
+          </dt>
+          <dd className="mt-1 font-semibold text-slate-900">{seller?.businessName}</dd>
+          {(seller?.firstName || seller?.lastName) && <dd className="text-slate-600">{[seller.firstName, seller.lastName].filter(Boolean).join(' ')}</dd>}
+          {seller?.district && <dd className="flex items-center gap-1.5 text-slate-600"><MapPin className="h-3.5 w-3.5 text-slate-400" />{seller.district}</dd>}
+          <dd className="mt-1 flex flex-col gap-0.5 text-slate-600">
+            <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-400" />{seller?.user?.email}</span>
+            <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-400" />{seller?.user?.phone}</span>
+            {sellerWhatsapp && <span className="flex items-center gap-1.5"><WhatsAppIcon className="h-3.5 w-3.5 text-slate-400" />{formatPhone(sellerWhatsapp)}</span>}
+          </dd>
+          {seller?._count && <dd className="mt-2 text-xs font-semibold text-slate-600">{fill(ca.sellerProducts, { count: seller._count.products })}</dd>}
+          {(seller?.facebookUrl || seller?.messengerUrl) && (
+            <dd className="mt-1 flex flex-col gap-0.5 text-xs">
+              {seller.facebookUrl && <a href={seller.facebookUrl} target="_blank" rel="noopener noreferrer" className="truncate text-brand-700 underline">{seller.facebookUrl}</a>}
+              {seller.messengerUrl && <a href={seller.messengerUrl} target="_blank" rel="noopener noreferrer" className="truncate text-brand-700 underline">{seller.messengerUrl}</a>}
+            </dd>
+          )}
+          {seller?._count?.complaints > 1 && (
+            <dd className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-200">
+              <CircleAlert className="h-3.5 w-3.5" />
+              {fill(ca.complaintCount, { count: seller._count.complaints })}
+            </dd>
+          )}
+        </div>
+      </dl>
+
+      <form onSubmit={save} className="grid gap-3 sm:grid-cols-[200px_1fr]">
+        <Field id={`status-${complaint.id}`} label={ca.status}>
+          <select id={`status-${complaint.id}`} value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass(false)}>
+            {COMPLAINT_STATUSES.map((value) => (
+              <option key={value} value={value}>
+                {c.status[value]}
+              </option>
+            ))}
+          </select>
+        </Field>
+        <Field id={`note-${complaint.id}`} label={ca.note}>
+          <textarea
+            id={`note-${complaint.id}`}
+            rows={3}
+            maxLength={1000}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder={ca.notePlaceholder}
+            className={inputClass(false)}
+          />
+        </Field>
+        <div className="sm:col-span-2 sm:max-w-xs">
+          <button type="submit" disabled={saving || !dirty} className={primaryButtonClass}>
+            {saving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CircleCheck className="h-4 w-4" />}
+            {saving ? ca.saving : ca.save}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function CreateAdminPanel({ onCreated, onAuthError }) {
+  const { t } = useLanguage();
+  const a = t.admin;
+  const [form, setForm] = useState({ fullName: '', email: '', phone: '', nicNumber: '' });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const update = (event) => setForm({ ...form, [event.target.name]: event.target.value });
+
+  const submit = async (event) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError('');
+    try {
+      await API.post('/admin/admins', {
+        fullName: form.fullName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.replace(/[\s-]/g, ''),
+        nicNumber: form.nicNumber.trim().toUpperCase(),
+      });
+      setForm({ fullName: '', email: '', phone: '', nicNumber: '' });
+      onCreated(a.adminCreated);
+    } catch (err) {
+      if (isAuthError(err)) {
+        onAuthError();
+        return;
+      }
+      const code = err.response?.data?.code;
+      setError(a.creationErrors[code] || (err.response ? a.actionError : t.loginPage.networkError));
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="p-5 sm:p-7">
+      <div className="mb-6">
+        <h2 className="text-lg font-bold text-slate-900">{a.createAdminTitle}</h2>
+        <p className="mt-1 text-sm text-slate-500">{a.createAdminDescription}</p>
+      </div>
+
+      {error && (
+        <div role="alert" className="mb-5 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-800">
+          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      <form onSubmit={submit} className="grid gap-4 sm:grid-cols-2">
+        <Field id="admin-fullName" label={a.adminName} required>
+          <input
+            id="admin-fullName"
+            name="fullName"
+            type="text"
+            required
+            maxLength={120}
+            autoComplete="name"
+            value={form.fullName}
+            onChange={update}
+            className={inputClass(false)}
+          />
+        </Field>
+        <Field id="admin-email" label={a.email} required>
+          <input
+            id="admin-email"
+            name="email"
+            type="email"
+            required
+            autoComplete="email"
+            value={form.email}
+            onChange={update}
+            className={inputClass(false)}
+          />
+        </Field>
+        <Field id="admin-phone" label={a.phone} required>
+          <input
+            id="admin-phone"
+            name="phone"
+            type="tel"
+            inputMode="tel"
+            required
+            autoComplete="tel"
+            value={form.phone}
+            onChange={update}
+            className={inputClass(false)}
+            placeholder="0771234567"
+          />
+        </Field>
+        <Field id="admin-nic" label={a.nic} required hint={a.adminNicHint}>
+          <input
+            id="admin-nic"
+            name="nicNumber"
+            type="text"
+            required
+            autoComplete="off"
+            value={form.nicNumber}
+            onChange={update}
+            className={inputClass(false)}
+          />
+        </Field>
+        <div className="sm:col-span-2 sm:max-w-xs">
+          <button type="submit" disabled={submitting} className={primaryButtonClass}>
+            {submitting ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <UserPlus className="h-4 w-4" />}
+            {submitting ? a.creatingAdmin : a.createAdmin}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
 
@@ -152,6 +485,8 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
   const [busyId, setBusyId] = useState(null);
   const [openId, setOpenId] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
+  const [toRemove, setToRemove] = useState(null);
+  const [removeError, setRemoveError] = useState('');
 
   useEffect(() => {
     let ignore = false;
@@ -188,6 +523,28 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
     } finally {
       setBusyId(null);
     }
+  };
+
+  // Called by the confirm box; throwing keeps the box open with the reason
+  const removeSeller = async () => {
+    const seller = toRemove;
+    const sr = t.sellerRemoval;
+    setRemoveError('');
+    try {
+      await API.delete(`/admin/sellers/${seller.id}`);
+    } catch (err) {
+      if (isAuthError(err)) {
+        onAuthError();
+        return;
+      }
+      const code = err.response?.data?.code;
+      const count = err.response?.data?.count;
+      setRemoveError(code && sr.errors[code] ? fill(sr.errors[code], { count }) : sr.errors.generic);
+      throw err;
+    }
+    setToRemove(null);
+    onChanged(fill(sr.done, { name: seller.businessName }));
+    setReloadKey((key) => key + 1);
   };
 
   const counts = stats?.sellers;
@@ -232,7 +589,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                       </p>
                       <dl className="mt-3 grid gap-x-6 gap-y-1.5 text-sm text-slate-700 sm:grid-cols-2">
                         <div className="flex min-w-0 items-center gap-2"><Mail className="h-4 w-4 shrink-0 text-slate-400" /><dt className="sr-only">{a.email}</dt><dd className="truncate">{seller.email}</dd></div>
-                        <div className="flex items-center gap-2"><IdCard className="h-4 w-4 shrink-0 text-slate-400" /><dt className="text-slate-500">{a.nic}</dt><dd className="font-medium">{seller.nicNumber}</dd></div>
+                        <div className="flex items-center gap-2"><IdCard className="h-4 w-4 shrink-0 text-slate-400" /><dt className="text-slate-500">{a.nic}</dt><dd className="font-medium tracking-wide">{seller.nicMasked || '—'}</dd></div>
                         <div className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0 text-slate-400" /><dt className="sr-only">{a.phone}</dt><dd>{seller.phone}</dd></div>
                         {whatsapp && (
                           <div className="flex items-center gap-2"><WhatsAppIcon className="h-4 w-4 shrink-0 text-slate-400" /><dt className="sr-only">{a.whatsapp}</dt><dd>{formatPhone(whatsapp)}</dd></div>
@@ -276,6 +633,18 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                         {a.reject}
                       </button>
                     )}
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => {
+                        setRemoveError('');
+                        setToRemove(seller);
+                      }}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-red-50 hover:text-red-700 disabled:opacity-60"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      {t.sellerRemoval.remove}
+                    </button>
                   </div>
                 </div>
 
@@ -288,6 +657,19 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
             );
           })}
         </ul>
+      )}
+
+      {toRemove && (
+        <ConfirmDialog
+          title={fill(t.sellerRemoval.title, { name: toRemove.businessName })}
+          text={t.sellerRemoval.text}
+          confirmLabel={t.sellerRemoval.confirm}
+          busyLabel={t.sellerRemoval.busy}
+          cancelLabel={t.sellerRemoval.cancel}
+          errorText={removeError || t.sellerRemoval.errors.generic}
+          onConfirm={removeSeller}
+          onClose={() => setToRemove(null)}
+        />
       )}
     </>
   );
@@ -431,6 +813,243 @@ function ProductsPanel({ onChanged, onAuthError }) {
   );
 }
 
+// Shrinks a chosen picture in the browser (max 1600px wide, JPEG) so it uploads fast and loads quickly for visitors
+function shrinkPicture(file) {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new window.Image();
+    img.onload = () => {
+      const scale = Math.min(1, 1600 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('type'));
+    };
+    img.src = url;
+  });
+}
+
+// Admin: the home page wallpapers. They rotate on their own, or the admin keeps one single wallpaper.
+function WallpaperPanel({ onChanged, onAuthError }) {
+  const { t } = useLanguage();
+  const p = t.sitePicture;
+  const [state, setState] = useState(null); // { custom, rotate, seconds, active }
+  const [preview, setPreview] = useState(null); // a chosen picture, before it is added
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    let ignore = false;
+    API.get('/site/settings')
+      .then((res) => !ignore && setState(res.data))
+      .catch(() => !ignore && setError(p.errors.generic));
+    return () => {
+      ignore = true;
+    };
+  }, [p.errors.generic]);
+
+  const wallpapers = allWallpapers(state);
+  const shownId = state ? (shownWallpapers(state)[0]?.id) : null;
+  // True once an admin has uploaded or removed anything, so "restore the originals" makes sense
+  const changedFromOriginal = state ? state.custom.length > 0 || state.builtin.length < BUILTIN_WALLPAPERS.length : false;
+
+  const fail = (err) => {
+    if (isAuthError(err)) return onAuthError();
+    const code = err.response?.data?.code;
+    setError(code === 'TOO_MANY' ? p.errors.tooMany : code === 'LAST_ONE' ? p.errors.lastOne : err.response?.status === 413 ? p.errors.big : p.errors.generic);
+  };
+
+  const run = async (request, message) => {
+    setBusy(true);
+    setError('');
+    try {
+      const res = await request();
+      setState(res.data);
+      if (message) onChanged(message);
+      return true;
+    } catch (err) {
+      fail(err);
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveSettings = (changes, message) => run(() => API.put('/admin/site/wallpaper-settings', changes), message);
+
+  const choose = async (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setError('');
+    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
+      setError(p.errors.type);
+      return;
+    }
+    try {
+      setPreview(await shrinkPicture(file));
+    } catch {
+      setError(p.errors.type);
+    }
+  };
+
+  const add = async () => {
+    if (await run(() => API.post('/admin/site/wallpapers', { image: preview }), p.added)) setPreview(null);
+  };
+  const remove = (wallpaper) => run(() => API.delete(`/admin/site/wallpapers/${wallpaper.id}`), p.removed);
+  const reset = () => run(() => API.delete('/admin/site/wallpapers'), p.resetDone);
+
+  const rotating = state ? state.rotate : true;
+
+  return (
+    <div className="space-y-6 p-5 sm:p-6">
+      <div>
+        <h2 className="flex items-center gap-2 font-sans text-sm font-bold uppercase tracking-wider text-slate-800">
+          <ImageIcon className="h-4 w-4 text-magenta" />
+          {p.title}
+        </h2>
+        <p className="mt-2 text-sm text-slate-600">{p.intro}</p>
+      </div>
+
+      {error && (
+        <div role="alert" className="flex items-start gap-2.5 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">
+          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {/* Rotate or keep one */}
+      <div className="rounded-[24px] bg-cream p-5 ring-1 ring-ink/5">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="font-bold text-ink">{p.rotateTitle}</p>
+            <p className="mt-1 text-sm text-slate-600">{rotating ? p.rotateOn : p.rotateOff}</p>
+          </div>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={rotating}
+            aria-label={p.rotateTitle}
+            disabled={busy || !state}
+            onClick={() => saveSettings({ rotate: !rotating }, rotating ? p.rotationStopped : p.rotationStarted)}
+            className={`relative h-8 w-14 shrink-0 rounded-full transition-colors disabled:opacity-60 ${rotating ? 'bg-leaf' : 'bg-slate-300'}`}
+          >
+            <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${rotating ? 'left-7' : 'left-1'}`} />
+          </button>
+        </div>
+
+        {rotating && state && (
+          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
+            <label htmlFor="wallpaper-seconds" className="font-semibold text-slate-700">{p.interval}</label>
+            <select
+              id="wallpaper-seconds"
+              value={state.seconds}
+              disabled={busy}
+              onChange={(event) => saveSettings({ seconds: Number(event.target.value) }, p.settingsSaved)}
+              className={`${inputClass(false)} !w-auto`}
+            >
+              {[4, 6, 8, 10, 15, 20].map((value) => (
+                <option key={value} value={value}>{fill(p.seconds, { count: value })}</option>
+              ))}
+            </select>
+          </div>
+        )}
+      </div>
+
+      {/* Wallpapers */}
+      <div>
+        <p className="font-bold text-ink">{rotating ? p.listTitle : p.keepTitle}</p>
+        <p className="mt-1 text-sm text-slate-600">{rotating ? p.listHint : p.keepHint}</p>
+
+        {!state ? (
+          <div className="skeleton mt-4 h-40 rounded-[24px]" />
+        ) : (
+          <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {wallpapers.map((wallpaper) => {
+              const selected = !rotating && shownId === wallpaper.id;
+              return (
+                <li key={wallpaper.id} className="relative">
+                  <button
+                    type="button"
+                    disabled={rotating || busy}
+                    onClick={() => saveSettings({ active: wallpaper.id }, p.keptSaved)}
+                    aria-pressed={selected}
+                    className={`block w-full overflow-hidden rounded-[22px] text-left ring-2 transition-all ${selected ? 'ring-magenta shadow-lg' : 'ring-ink/10'} ${rotating ? 'cursor-default' : 'hover:ring-magenta/50'}`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={wallpaper.src} alt="" className="aspect-[4/5] w-full object-cover" />
+                    {selected && (
+                      <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-magenta px-2.5 py-1 text-[11px] font-bold text-white shadow">
+                        <CircleCheck className="h-3.5 w-3.5" />
+                        {p.showing}
+                      </span>
+                    )}
+                  </button>
+                  {wallpapers.length > 1 && (
+                    <button
+                      type="button"
+                      disabled={busy}
+                      onClick={() => remove(wallpaper)}
+                      aria-label={p.remove}
+                      title={p.remove}
+                      className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-red-600 shadow transition-colors hover:bg-red-600 hover:text-white disabled:opacity-60"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </div>
+
+      {/* Add a wallpaper */}
+      <div className="flex flex-col gap-3 md:max-w-md">
+        {preview && (
+          <div>
+            <p className="mb-2 text-xs font-semibold text-slate-500">{p.newPicture}</p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={preview} alt="" className="aspect-[4/5] w-40 rounded-[22px] object-cover shadow-md ring-1 ring-ink/10" />
+          </div>
+        )}
+
+        {preview ? (
+          <div className="flex gap-2">
+            <button type="button" onClick={add} disabled={busy} className={`${primaryButtonClass} flex-1`}>
+              {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CircleCheck className="h-4 w-4" />}
+              {busy ? p.saving : p.add}
+            </button>
+            <button type="button" onClick={() => setPreview(null)} disabled={busy} className="rounded-full border border-ink/15 px-5 py-3 text-sm font-semibold text-ink/70 hover:bg-sand/60">
+              {p.cancel}
+            </button>
+          </div>
+        ) : (
+          <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 px-5 py-3 text-sm font-semibold text-ink transition-colors hover:bg-sand/60">
+            <Upload className="h-4 w-4" />
+            {p.choose}
+            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={choose} disabled={busy || !state} className="sr-only" />
+          </label>
+        )}
+        <p className="text-xs text-slate-500">{p.hint}</p>
+
+        {changedFromOriginal && !preview && (
+          <button type="button" onClick={reset} disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-red-600 ring-1 ring-red-200 transition-colors hover:bg-red-50 disabled:opacity-60">
+            <RotateCcw className="h-4 w-4" />
+            {p.reset}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -439,7 +1058,7 @@ export default function AdminDashboard() {
   const hydrated = useHydrated();
   const isAdmin = session?.user?.role === 'SUPER_ADMIN';
 
-  const [tab, setTab] = useState('sellers');
+  const [tab, setTab] = useState('overview'); // 'overview' | 'sellers' | 'products' | 'complaints' | 'appearance' | 'admins'
   const [stats, setStats] = useState(null);
   const [statsKey, setStatsKey] = useState(0);
   const [notice, setNotice] = useState(null); // { text, error }
@@ -487,90 +1106,87 @@ export default function AdminDashboard() {
     );
   }
 
-  const tabs = [
-    { value: 'sellers', label: a.tabSellers, icon: Users },
+  const menu = [
+    { value: 'overview', label: a.tabOverview, icon: LayoutDashboard },
+    { value: 'sellers', label: a.tabSellers, icon: Users, badge: stats?.sellers.PENDING },
     { value: 'products', label: a.tabProducts, icon: Package },
+    { value: 'complaints', label: t.complaints.admin.tab, icon: Flag, badge: stats?.complaints.OPEN },
+    { value: 'appearance', label: t.sitePicture.tab, icon: ImageIcon },
+    { value: 'admins', label: a.tabAdmins, icon: UserPlus },
   ];
 
   return (
     <main className="relative isolate flex-1 px-4 py-8 sm:py-10">
       <PageArt />
-      <div className="mx-auto max-w-6xl space-y-6">
-        <section className="flex flex-col gap-2 rounded-2xl bg-slate-800 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h1 className="flex items-center gap-2 text-2xl font-extrabold">
-              <ShieldCheck className="h-6 w-6 text-brand-300" />
-              {a.title}
-            </h1>
-            <p className="mt-1 text-sm text-slate-300">{a.subtitle}</p>
-          </div>
-          <p className="text-xs text-slate-400">
-            {fill(a.loggedInAs, {
-              email: session.user?.profile?.fullName ? `${session.user.profile.fullName} (${session.user.email})` : session.user?.email || '',
-            })}
-          </p>
-        </section>
+      <DashboardSidebar
+        items={menu}
+        active={tab}
+        onSelect={setTab}
+        name={session.user?.profile?.fullName || a.title}
+        subtitle={session.user?.email}
+        onLogout={loginExpired}
+        menuLabel={a.menuTitle}
+        card={{ icon: ShieldCheck, title: a.title, text: stats ? fill(a.statProductsSub, { count: stats.products.total }) : a.subtitle, label: a.tabSellers, onClick: () => setTab('sellers') }}
+      >
+          <section className="flex flex-col gap-2 rounded-[28px] bg-slate-800 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="flex items-center gap-2 text-2xl font-extrabold">
+                <ShieldCheck className="h-6 w-6 text-brand-300" />
+                {a.title}
+              </h1>
+              <p className="mt-1 text-sm text-slate-300">{a.subtitle}</p>
+            </div>
+            <p className="text-xs text-slate-400">
+              {fill(a.loggedInAs, {
+                email: session.user?.profile?.fullName ? `${session.user.profile.fullName} (${session.user.email})` : session.user?.email || '',
+              })}
+            </p>
+          </section>
 
-        {notice && (
-          <div
-            role="status"
-            className={`flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-medium ring-1 ${
-              notice.error ? 'bg-red-50 text-red-800 ring-red-200' : 'bg-brand-50 text-brand-800 ring-brand-200'
-            }`}
-          >
-            {notice.error ? <CircleAlert className="h-5 w-5 shrink-0 text-red-600" /> : <CircleCheck className="h-5 w-5 shrink-0 text-brand-600" />}
-            {notice.text}
-          </div>
-        )}
-
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard icon={Hourglass} label={a.statPending} value={stats?.sellers.PENDING} highlight={stats?.sellers.PENDING > 0} />
-          <StatCard
-            icon={BadgeCheck}
-            label={a.statApproved}
-            value={stats?.sellers.APPROVED}
-            sub={stats && fill(a.statRejectedSub, { count: stats.sellers.REJECTED })}
-          />
-          <StatCard
-            icon={Package}
-            label={a.statProducts}
-            value={stats?.products.onSite}
-            sub={stats && fill(a.statProductsSub, { count: stats.products.total })}
-          />
-          <StatCard
-            icon={MessageCircle}
-            label={a.statClicks}
-            value={stats?.clicks.total}
-            sub={stats && fill(a.statClicksSub, { count: stats.clicks.thisWeek })}
-          />
-        </section>
-
-        <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
-          <div role="tablist" className="flex border-b border-slate-200">
-            {tabs.map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                aria-selected={tab === value}
-                onClick={() => setTab(value)}
-                className={`flex flex-1 items-center justify-center gap-2 border-b-2 px-4 py-3.5 text-sm font-bold transition-colors sm:flex-none sm:px-6 ${
-                  tab === value ? 'border-brand-600 text-brand-700' : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
-                <Icon className="h-4 w-4" />
-                {label}
-              </button>
-            ))}
-          </div>
-
-          {tab === 'sellers' ? (
-            <SellersPanel stats={stats} onChanged={changed} onAuthError={loginExpired} />
-          ) : (
-            <ProductsPanel onChanged={changed} onAuthError={loginExpired} />
+          {notice && (
+            <div
+              role="status"
+              className={`flex items-center gap-2.5 rounded-xl px-4 py-3 text-sm font-medium ring-1 ${
+                notice.error ? 'bg-red-50 text-red-800 ring-red-200' : 'bg-brand-50 text-brand-800 ring-brand-200'
+              }`}
+            >
+              {notice.error ? <CircleAlert className="h-5 w-5 shrink-0 text-red-600" /> : <CircleCheck className="h-5 w-5 shrink-0 text-brand-600" />}
+              {notice.text}
+            </div>
           )}
-        </section>
-      </div>
+
+          {tab === 'overview' && <AdminOverview stats={stats} onNavigate={setTab} onAuthError={loginExpired} />}
+
+          {tab === 'sellers' && (
+            <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
+              <SellersPanel stats={stats} onChanged={changed} onAuthError={loginExpired} />
+            </section>
+          )}
+
+          {tab === 'products' && (
+            <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
+              <ProductsPanel onChanged={changed} onAuthError={loginExpired} />
+            </section>
+          )}
+
+          {tab === 'complaints' && (
+            <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
+              <ComplaintsPanel stats={stats} onChanged={changed} onAuthError={loginExpired} />
+            </section>
+          )}
+
+          {tab === 'appearance' && (
+            <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
+              <WallpaperPanel onChanged={changed} onAuthError={loginExpired} />
+            </section>
+          )}
+
+          {tab === 'admins' && (
+            <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
+              <CreateAdminPanel onCreated={changed} onAuthError={loginExpired} />
+            </section>
+          )}
+      </DashboardSidebar>
     </main>
   );
 }

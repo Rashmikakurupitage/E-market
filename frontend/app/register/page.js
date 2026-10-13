@@ -10,11 +10,11 @@ import { saveSession, safeNextPath } from '../../src/lib/auth';
 import AuthPanel from '../../src/components/AuthPanel';
 import AccountTypeTabs, { useAccountType } from '../../src/components/AccountTypeTabs';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
+import PasswordInput from '../../src/components/PasswordInput';
 import { PageArt } from '../../src/components/Art';
-import { DISTRICTS } from '../../src/lib/catalog';
+import { DISTRICTS, isStrongPassword } from '../../src/lib/catalog';
 
 // Same rules as the backend (authController.js)
-const NIC_PATTERN = /^(\d{9}[VvXx]|\d{12})$/;
 const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 
 const cleanPhone = (value) => value.replace(/[\s-]/g, '');
@@ -33,14 +33,18 @@ function SellerRegisterForm({ onRegistered }) {
   const r = t.register;
 
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
-    nic: '',
+    password: '',
+    confirmPassword: '',
     businessName: '',
     district: 'Colombo',
     description: '',
     phone: '',
     whatsappNo: '',
+    messengerUrl: '',
+    facebookUrl: '',
   });
   const [whatsappSameAsPhone, setWhatsappSameAsPhone] = useState(true);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -55,7 +59,9 @@ function SellerRegisterForm({ onRegistered }) {
 
   const validate = () => {
     const errors = {};
-    if (!NIC_PATTERN.test(formData.nic.trim())) errors.nic = r.nicInvalid;
+    if (!/^(\d{9}[VX]|\d{12})$/.test(formData.nicNumber.trim().toUpperCase())) errors.nic = r.nicInvalid;
+    if (!isStrongPassword(formData.password)) errors.password = r.passwordRule;
+    if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match.';
     if (!PHONE_PATTERN.test(cleanPhone(formData.phone))) errors.phone = r.phoneInvalid;
     if (!whatsappSameAsPhone && !PHONE_PATTERN.test(cleanPhone(formData.whatsappNo))) {
       errors.whatsappNo = r.phoneInvalid;
@@ -79,14 +85,18 @@ function SellerRegisterForm({ onRegistered }) {
     try {
       const res = await API.post('/auth/register', {
         role: 'SELLER',
-        fullName: formData.name.trim(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         email: formData.email.trim(),
-        nicNumber: formData.nic.trim().toUpperCase(),
+        password: formData.password,
+        nicNumber: formData.nicNumber.trim().toUpperCase(),
         businessName: formData.businessName.trim(),
         district: formData.district,
         description: formData.description.trim(),
         phone,
         whatsappNo: whatsappSameAsPhone ? phone : cleanPhone(formData.whatsappNo),
+        messengerUrl: formData.messengerUrl.trim(),
+        facebookUrl: formData.facebookUrl.trim(),
       });
 
       // Log the new seller straight in
@@ -116,14 +126,23 @@ function SellerRegisterForm({ onRegistered }) {
       <fieldset className="space-y-4">
         <SectionTitle number={1}>{r.sectionPersonal}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="name" label={r.fullName} required>
-            <input id="name" name="name" type="text" required autoComplete="name" value={formData.name} onChange={handleChange} className={inputClass(false)} />
+          <Field id="firstName" label={r.firstName} required>
+            <input id="firstName" name="firstName" type="text" required autoComplete="given-name" value={formData.firstName} onChange={handleChange} className={inputClass(false)} />
+          </Field>
+          <Field id="lastName" label={r.lastName} required>
+            <input id="lastName" name="lastName" type="text" required autoComplete="family-name" value={formData.lastName} onChange={handleChange} className={inputClass(false)} />
           </Field>
           <Field id="email" label={r.email} required>
             <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
           </Field>
-          <Field id="nic" label={r.nic} required hint={r.nicHint} error={fieldErrors.nic} className="sm:col-span-2">
-            <input id="nic" name="nic" type="text" required value={formData.nic} onChange={handleChange} aria-invalid={!!fieldErrors.nic} className={`${inputClass(fieldErrors.nic)} uppercase`} />
+          <Field id="nicNumber" label={r.nic} required hint={r.nicHint} error={fieldErrors.nic}>
+            <input id="nicNumber" name="nicNumber" type="text" required autoComplete="off" maxLength={12} value={formData.nicNumber} onChange={handleChange} className={inputClass(!!fieldErrors.nic)} aria-invalid={!!fieldErrors.nic} />
+          </Field>
+          <Field id="password" label={r.password || 'Password'} required hint={r.passwordRule} error={fieldErrors.password}>
+            <PasswordInput id="password" name="password" autoComplete="new-password" value={formData.password} onChange={handleChange} hasError={!!fieldErrors.password} placeholder="" showLabel={r.showPassword} hideLabel={r.hidePassword} />
+          </Field>
+          <Field id="confirmPassword" label={r.confirmPassword || 'Confirm password'} required error={fieldErrors.confirmPassword}>
+            <PasswordInput id="confirmPassword" name="confirmPassword" autoComplete="new-password" value={formData.confirmPassword} onChange={handleChange} hasError={!!fieldErrors.confirmPassword} placeholder="Repeat your password" showLabel={r.showPassword} hideLabel={r.hidePassword} />
           </Field>
         </div>
         <p className="flex items-start gap-2.5 rounded-xl bg-brand-50 p-3.5 text-sm text-slate-700 ring-1 ring-brand-100">
@@ -187,6 +206,12 @@ function SellerRegisterForm({ onRegistered }) {
               {r.sameAsPhone}
             </label>
           </Field>
+          <Field id="messengerUrl" label={r.messengerUrl || 'Facebook Messenger URL'} className="sm:col-span-2">
+            <input id="messengerUrl" name="messengerUrl" type="url" value={formData.messengerUrl} onChange={handleChange} className={inputClass(false)} placeholder="https://m.me/your-page" />
+          </Field>
+          <Field id="facebookUrl" label={r.facebookUrl || 'Facebook profile URL'} className="sm:col-span-2">
+            <input id="facebookUrl" name="facebookUrl" type="url" value={formData.facebookUrl} onChange={handleChange} className={inputClass(false)} placeholder="https://facebook.com/your-page" />
+          </Field>
         </div>
       </fieldset>
 
@@ -210,8 +235,10 @@ function CustomerRegisterForm({ onRegistered }) {
   const { t } = useLanguage();
   const r = t.register;
   const c = t.customer;
+  // Keep the page the customer came from (e.g. a product) when they choose to log in instead
+  const next = safeNextPath(useSearchParams().get('next'));
 
-  const [formData, setFormData] = useState({ name: '', email: '', nic: '', phone: '' });
+  const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', password: '', confirmPassword: '', phone: '' });
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -227,7 +254,8 @@ function CustomerRegisterForm({ onRegistered }) {
     setError('');
 
     const errors = {};
-    if (!NIC_PATTERN.test(formData.nic.trim())) errors.nic = r.nicInvalid;
+    if (!isStrongPassword(formData.password)) errors.password = r.passwordRule;
+    if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match.';
     if (!PHONE_PATTERN.test(cleanPhone(formData.phone))) errors.phone = r.phoneInvalid;
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -239,9 +267,11 @@ function CustomerRegisterForm({ onRegistered }) {
     try {
       const res = await API.post('/auth/register', {
         role: 'CUSTOMER',
-        fullName: formData.name.trim(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         email: formData.email.trim(),
-        nicNumber: formData.nic.trim().toUpperCase(),
+        password: formData.password,
+        nicNumber: '',
         phone: cleanPhone(formData.phone),
       });
 
@@ -271,16 +301,24 @@ function CustomerRegisterForm({ onRegistered }) {
       <fieldset className="space-y-4">
         <SectionTitle number={1}>{r.sectionPersonal}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="name" label={r.fullName} required>
-            <input id="name" name="name" type="text" required autoComplete="name" value={formData.name} onChange={handleChange} className={inputClass(false)} />
+          <Field id="firstName" label={r.firstName} required>
+            <input id="firstName" name="firstName" type="text" required autoComplete="given-name" value={formData.firstName} onChange={handleChange} className={inputClass(false)} />
           </Field>
-          <Field id="email" label={r.email} required>
-            <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
+          <Field id="lastName" label={r.lastName} required>
+            <input id="lastName" name="lastName" type="text" required autoComplete="family-name" value={formData.lastName} onChange={handleChange} className={inputClass(false)} />
           </Field>
-          <Field id="nic" label={r.nic} required hint={r.nicHint} error={fieldErrors.nic}>
-            <input id="nic" name="nic" type="text" required value={formData.nic} onChange={handleChange} aria-invalid={!!fieldErrors.nic} className={`${inputClass(fieldErrors.nic)} uppercase`} />
+          <div className="sm:col-span-2">
+            <Field id="email" label={r.email} required>
+              <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
+            </Field>
+          </div>
+          <Field id="password" label={r.password || 'Password'} required hint={r.passwordRule} error={fieldErrors.password}>
+            <PasswordInput id="password" name="password" autoComplete="new-password" value={formData.password} onChange={handleChange} hasError={!!fieldErrors.password} placeholder="" showLabel={r.showPassword} hideLabel={r.hidePassword} />
           </Field>
-          <Field id="phone" label={r.phone} required error={fieldErrors.phone}>
+          <Field id="confirmPassword" label={r.confirmPassword || 'Confirm password'} required error={fieldErrors.confirmPassword}>
+            <PasswordInput id="confirmPassword" name="confirmPassword" autoComplete="new-password" value={formData.confirmPassword} onChange={handleChange} hasError={!!fieldErrors.confirmPassword} placeholder="Repeat your password" showLabel={r.showPassword} hideLabel={r.hidePassword} />
+          </Field>
+          <Field id="phone" label={r.phone} required error={fieldErrors.phone} className="sm:col-span-2">
             <input id="phone" name="phone" type="tel" inputMode="tel" required autoComplete="tel" value={formData.phone} onChange={handleChange} aria-invalid={!!fieldErrors.phone} className={inputClass(fieldErrors.phone)} />
           </Field>
         </div>
@@ -297,7 +335,7 @@ function CustomerRegisterForm({ onRegistered }) {
         </button>
         <p className="text-center text-sm text-slate-500">
           {r.haveAccount}{' '}
-          <Link href="/login?as=customer" className="font-semibold text-brand-700 hover:underline">
+          <Link href={`/login?as=customer${next ? `&next=${encodeURIComponent(next)}` : ''}`} className="font-semibold text-brand-700 hover:underline">
             {r.loginLink}
           </Link>
         </p>

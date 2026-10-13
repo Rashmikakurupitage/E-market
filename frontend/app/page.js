@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import {
   Search, ArrowRight, Megaphone, HandCoins, Laptop, PackageSearch, ChevronDown, ShieldCheck, HandHeart, MapPin,
@@ -11,6 +10,9 @@ import API from '../src/lib/api';
 import { useLanguage } from '../src/lib/i18n';
 import { CATEGORIES, SAMPLE_PRODUCTS, getSeller } from '../src/lib/catalog';
 import ProductCard from '../src/components/ProductCard';
+import { useWallpapers } from '../src/lib/siteImage';
+import HeroSlideshow from '../src/components/HeroSlideshow';
+import HomeImpact from '../src/components/HomeImpact';
 import WhatsAppIcon from '../src/components/WhatsAppIcon';
 import Reveal from '../src/components/Reveal';
 import { Lotus, Sparkle, DotGrid, Squiggle } from '../src/components/Art';
@@ -93,6 +95,7 @@ function HeroTitle() {
 
 export default function Home() {
   const { t } = useLanguage();
+  const wallpapers = useWallpapers();
   const h = t.home;
   const [products, setProducts] = useState(SAMPLE_PRODUCTS);
   const [loading, setLoading] = useState(true);
@@ -236,17 +239,7 @@ export default function Home() {
             <div aria-hidden="true" className="absolute -bottom-10 right-4 -z-10 h-28 w-28 animate-spin-slow rounded-full border-2 border-dashed border-saffron/60" />
             <Sparkle className="absolute -right-4 top-8 h-8 w-8 animate-twinkle text-turmeric [animation-delay:-0.6s] sm:-right-8" />
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[48px_160px_48px_160px] shadow-2xl shadow-magenta/20 ring-8 ring-white/60 sm:rounded-[48px_200px_48px_200px]">
-              <Image
-                src="/hero_main.jpg"
-                alt=""
-                fill
-                preload
-                sizes="(min-width: 1024px) 40vw, 90vw"
-                className="object-cover object-[50%_40%]"
-              />
-            </div>
-            <div className="absolute -bottom-8 -left-2 h-28 w-28 animate-bob overflow-hidden rounded-full border-[6px] border-cream shadow-xl sm:-left-12 sm:h-40 sm:w-40">
-              <Image src="/artisan_carver.jpg" alt="" fill sizes="160px" className="scale-125 object-cover object-[56%_38%]" />
+              <HeroSlideshow {...wallpapers} />
             </div>
           </div>
         </div>
@@ -275,6 +268,9 @@ export default function Home() {
           })}
         </ul>
       </section>
+
+      {/* Community in numbers and seller spotlight */}
+      <HomeImpact />
 
       {/* Categories */}
       <section className="relative isolate mx-auto w-full max-w-7xl px-4 pb-20 pt-16 sm:px-6">
@@ -354,13 +350,13 @@ export default function Home() {
           </div>
 
           {loading ? (
-            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
               {Array.from({ length: 8 }, (_, i) => (
                 <ProductCardSkeleton key={i} />
               ))}
             </div>
           ) : visibleProducts.length > 0 ? (
-            <div className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
               {visibleProducts.map((product, index) => (
                 <Reveal key={product.id} delay={(index % 4) * 80} className="grid">
                   <ProductCard product={product} />

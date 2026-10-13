@@ -31,6 +31,15 @@ model User {
   sellerProfile SellerProfile?
   customerProfile CustomerProfile?
   adminProfile  AdminProfile?
+  profilePhoto  ProfilePhoto?
+}
+
+// A customer's profile photo (a small square picture stored as a data URL)
+model ProfilePhoto {
+  userId    String   @id
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  data      String   @db.Text
+  updatedAt DateTime @updatedAt
 }
 
 // Ministry staff who use the admin dashboard (they log in with email + NIC + emailed code)
@@ -50,7 +59,13 @@ model SellerProfile {
   businessName   String
   description    String?
   district       String
+  firstName      String?
+  lastName       String?
+  // Old plain-text column: now only holds a placeholder. The real NIC is kept encrypted (see utils/nicVault.js).
   nicNumber      String            @unique
+  nicHash        String?           @unique // lets the site spot a NIC that is already registered without storing it
+  nicEncrypted   String?
+  nicLast5       String?           // the only part an admin can see
   status         ApplicationStatus @default(PENDING)
 
   // Direct Social Media Redirection Links
@@ -58,9 +73,14 @@ model SellerProfile {
   facebookUrl    String?
   messengerUrl   String?
 
+  // Set when an admin removes the seller. The account is closed but its orders and complaints are kept.
+  removedAt      DateTime?
+  removalNote    String?
+
   products       Product[]
   analytics      ClickAnalytics[]
   orders         Order[]
+  complaints     Complaint[]
 
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
@@ -74,6 +94,18 @@ model CustomerProfile {
   // Customers log in with email + NIC + emailed code. Empty only for accounts made before that.
   nicNumber String?  @unique
   orders    Order[]
+  complaints Complaint[]
+}
+
+// A photo a seller uploaded for a product (kept in the database; the product's images list holds its address)
+model ProductImage {
+  id        String   @id
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  data      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([productId])
 }
 
 model Product {
@@ -84,7 +116,10 @@ model Product {
   description String
   category    String
   images      String[]
+  productImages ProductImage[]
   price       Decimal?
+  // Facebook Messenger chat link for this product (m.me/... or a Facebook page link)
+  messengerUrl String?
   isPublished Boolean  @default(true)
 
   analytics   ClickAnalytics[]
@@ -128,6 +163,7 @@ model Order {
   deliveryDistrict String
   note             String?
   items            OrderItem[]
+  complaints       Complaint[]
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
 
@@ -147,4 +183,43 @@ model OrderItem {
   image     String?
   price     Decimal
   quantity  Int
+}
+
+enum ComplaintStatus {
+  OPEN
+  IN_REVIEW
+  RESOLVED
+  DISMISSED
+}
+
+// A customer's complaint about a seller, made from one of their orders and handled by the admins
+// Small site-wide settings an admin can change, e.g. the home page picture (key "heroImage")
+model SiteSetting {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+model Complaint {
+  id         String          @id @default(uuid())
+  reference  String
+  customerId String
+  customer   CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  sellerId   String
+  seller     SellerProfile   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  orderId    String?
+  order      Order?          @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  reason     String
+  message    String
+  status     ComplaintStatus @default(OPEN)
+  // The admin's reply, shown to the customer
+  adminNote  String?
+  resolvedAt DateTime?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@index([customerId])
+  @@index([sellerId])
+  @@index([orderId])
+  @@index([status])
 }
