@@ -1,11 +1,11 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { CircleAlert, CircleCheck, KeyRound, LoaderCircle, Mail } from 'lucide-react';
+import { CircleAlert, CircleCheck, KeyRound, LoaderCircle, Mail, Terminal } from 'lucide-react';
 import API from '../../src/lib/api';
-import { useLanguage } from '../../src/lib/i18n';
+import { fill, useLanguage } from '../../src/lib/i18n';
 import { isStrongPassword } from '../../src/lib/catalog';
 import AuthPanel from '../../src/components/AuthPanel';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
@@ -26,11 +26,21 @@ function ForgotPassword() {
   const [confirm, setConfirm] = useState('');
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
+  const [sentTo, setSentTo] = useState('');
+  const [emailed, setEmailed] = useState(true);
+  const [resendIn, setResendIn] = useState(0);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const timer = setTimeout(() => setResendIn((seconds) => seconds - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendIn]);
 
   const fail = (err) => {
     const data = err.response?.data;
-    setError(!err.response ? f.errors.network : f.errors[data?.code] || f.errors.generic);
+    const template = f.errors[data?.code];
+    setError(!err.response ? f.errors.network : template ? fill(template, { seconds: data.retryAfter ?? '' }) : f.errors.generic);
   };
 
   const sendCode = async (event) => {
@@ -38,10 +48,17 @@ function ForgotPassword() {
     setError('');
     setLoading(true);
     try {
-      await API.post('/auth/forgot-password', { email: email.trim() });
+      const response = await API.post('/auth/forgot-password', { email: email.trim() });
+      setSentTo(response.data.sentTo || '');
+      setEmailed(response.data.emailed !== false);
+      setResendIn(response.data.resendAfterSeconds || 60);
       setStep('reset');
     } catch (err) {
       fail(err);
+      if (err.response?.data?.code === 'RESEND_TOO_SOON') {
+        setResendIn(err.response.data.retryAfter);
+        setStep('reset');
+      }
     } finally {
       setLoading(false);
     }
@@ -119,6 +136,20 @@ function ForgotPassword() {
 
               {step === 'reset' && (
                 <>
+                  {emailed ? (
+                    <div role="status" className="flex items-start gap-3 rounded-xl bg-brand-50 p-4 ring-1 ring-brand-100">
+                      <Mail className="mt-0.5 h-5 w-5 shrink-0 text-brand-700" />
+                      <p className="text-sm text-slate-700">
+                        {sentTo ? <>{f.codeSentTo} <strong className="text-slate-900">{sentTo}</strong></> : f.sentText}
+                        <span className="mt-1 block text-xs text-slate-500">{f.checkSpam}</span>
+                      </p>
+                    </div>
+                  ) : (
+                    <div role="status" className="flex items-start gap-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
+                      <Terminal className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
+                      <p>{f.notEmailed}</p>
+                    </div>
+                  )}
                   <Field id="code" label={f.code} required hint={f.codeHint} error={errors.code}>
                     <input
                       id="code"
@@ -146,8 +177,8 @@ function ForgotPassword() {
               </button>
 
               {step === 'reset' && (
-                <button type="button" onClick={sendCode} disabled={loading} className="w-full text-center text-sm font-semibold text-brand-700 hover:underline disabled:opacity-60">
-                  {f.resend}
+                <button type="button" onClick={sendCode} disabled={loading || resendIn > 0} className="w-full text-center text-sm font-semibold text-brand-700 hover:underline disabled:opacity-60">
+                  {resendIn > 0 ? fill(f.resendIn, { seconds: resendIn }) : f.resend}
                 </button>
               )}
 
