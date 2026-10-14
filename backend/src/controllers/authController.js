@@ -368,21 +368,36 @@ exports.requestPasswordReset = async (req, res) => {
     const user = await findResettableUser(email);
     if (user) {
       const issued = otpStore.issue(resetKey(user.id));
-      if (!issued.error) {
-        try {
-          await sendLoginCode({
-            to: user.email,
-            businessName: user.sellerProfile?.businessName || user.customerProfile?.fullName,
-            code: issued.code,
-            minutes: issued.expiresInMinutes,
-            purpose: 'password-reset'
-          });
-        } catch (mailError) {
-          otpStore.discard(resetKey(user.id));
-          console.error('PASSWORD_RESET_EMAIL_ERROR:', mailError.message);
-          console.error('HINT:', explainMailError(mailError));
-        }
+      if (issued.error === 'RESEND_TOO_SOON') {
+        return res.status(429).json({ code: issued.error, retryAfter: issued.retryAfter });
       }
+      if (issued.error === 'TOO_MANY_CODES') {
+        return res.status(429).json({ code: issued.error });
+      }
+
+      let delivery;
+      try {
+        delivery = await sendLoginCode({
+          to: user.email,
+          businessName: user.sellerProfile?.businessName || user.customerProfile?.fullName,
+          code: issued.code,
+          minutes: issued.expiresInMinutes,
+          purpose: 'password-reset'
+        });
+      } catch (mailError) {
+        otpStore.discard(resetKey(user.id));
+        console.error('PASSWORD_RESET_EMAIL_ERROR:', mailError.message);
+        console.error('HINT:', explainMailError(mailError));
+        return res.status(502).json({ code: 'EMAIL_FAILED', message: 'Could not send the password reset email.' });
+      }
+
+      return res.json({
+        message: 'If this email is registered, a code has been sent to it.',
+        sentTo: delivery.emailed ? maskEmail(user.email) : null,
+        emailed: delivery.emailed,
+        expiresInMinutes: issued.expiresInMinutes,
+        resendAfterSeconds: issued.resendAfterSeconds
+      });
     }
 
     res.json({ message: 'If this email is registered, a code has been sent to it.', expiresInMinutes: 10, resendAfterSeconds: 60 });
