@@ -18,6 +18,7 @@ import { DISTRICTS, isStrongPassword } from '../../src/lib/catalog';
 const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 
 const cleanPhone = (value) => value.replace(/[\s-]/g, '');
+const capitalizeInitial = (value) => value.replace(/^(\s*)(\p{L})/u, (_, spaces, letter) => `${spaces}${letter.toLocaleUpperCase()}`);
 
 function SectionTitle({ number, children }) {
   return (
@@ -53,7 +54,8 @@ function SellerRegisterForm({ onRegistered }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const formattedValue = ['firstName', 'lastName'].includes(name) ? capitalizeInitial(value) : value;
+    setFormData({ ...formData, [name]: formattedValue });
     if (fieldErrors[name]) setFieldErrors({ ...fieldErrors, [name]: undefined });
   };
 
@@ -245,7 +247,8 @@ function CustomerRegisterForm({ onRegistered }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const formattedValue = ['firstName', 'lastName'].includes(name) ? capitalizeInitial(value) : value;
+    setFormData({ ...formData, [name]: formattedValue });
     if (fieldErrors[name]) setFieldErrors({ ...fieldErrors, [name]: undefined });
   };
 
