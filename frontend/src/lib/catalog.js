@@ -13,13 +13,14 @@ const unsplash = (id) =>
 // Women artisans at work (public/hero_main.jpg)
 export const HERO_IMAGE = '/hero_main.jpg';
 
-// Shown on the home page until the API returns real products
+// Shown on the home page and store until the API returns real products
 export const SAMPLE_PRODUCTS = [
   {
     id: 'sample-1',
     title: 'Handwoven Wicker Basket',
     description: '100% eco-friendly traditional Sri Lankan cane basket, woven by hand.',
     price: 3500,
+    discount: { percent: 20, endsAt: null, salePrice: 2800 },
     category: 'Handicrafts',
     images: [unsplash('1569356600296-427289cac2b9')],
     seller: { businessName: 'Lanka Eco Creations', district: 'Kalutara', whatsappNo: '94771234567' },
@@ -42,52 +43,14 @@ export const SAMPLE_PRODUCTS = [
     images: [unsplash('1610030469983-98e550d6193c')],
     seller: { businessName: "Menaka's Crafts", district: 'Kurunegala', whatsappNo: '94771234567' },
   },
-  {
-    id: 'sample-4',
-    title: 'Coconut Shell Crafts Set',
-    description: 'Polished kitchenware handcrafted from organic coconut shells.',
-    price: 2200,
-    category: 'Handicrafts',
-    images: [unsplash('1634082982564-a818875c7cb5')],
-    seller: { businessName: 'Aadhya Handicrafts', district: 'Galle', whatsappNo: '94771234567' },
-  },
-  {
-    id: 'sample-5',
-    title: 'Pure Ceylon Cinnamon',
-    description: 'Hand-peeled true cinnamon quills from home gardens in Matale.',
-    price: 1500,
-    category: 'Food & Spices',
-    images: [unsplash('1622798337764-259682f03741')],
-    seller: { businessName: "Soma's Spice Hub", district: 'Matale', whatsappNo: '94771234567' },
-  },
-  {
-    id: 'sample-6',
-    title: 'Handmade Clay Pottery Set',
-    description: 'Traditional terracotta pots shaped and fired by village potters.',
-    price: 4800,
-    category: 'Handicrafts',
-    images: [unsplash('1749518295706-dc15ca3b5fd5')],
-    seller: { businessName: 'Kumari Clay Works', district: 'Kegalle', whatsappNo: '94771234567' },
-  },
-  {
-    id: 'sample-7',
-    title: 'Batik Wall Hanging',
-    description: 'Hand-waxed and dyed batik art piece with traditional motifs.',
-    price: 6500,
-    category: 'Textiles',
-    images: [unsplash('1761515315375-1315503bb3ce')],
-    seller: { businessName: 'Nilmini Batiks', district: 'Kandy', whatsappNo: '94771234567' },
-  },
-  {
-    id: 'sample-8',
-    title: 'Traditional Spice Collection',
-    description: 'Chilli, turmeric, curry powder and more, freshly ground in small batches.',
-    price: 2900,
-    category: 'Food & Spices',
-    images: [unsplash('1635355995448-77b02d33621d')],
-    seller: { businessName: "Soma's Spice Hub", district: 'Matale', whatsappNo: '94771234567' },
-  },
 ];
+
+export function withSampleProducts(products) {
+  if (!Array.isArray(products) || products.length === 0) return SAMPLE_PRODUCTS;
+
+  const productIds = new Set(products.map((product) => String(product.id)));
+  return [...products, ...SAMPLE_PRODUCTS.filter((product) => !productIds.has(String(product.id)))];
+}
 
 // "Soma's Spice Hub" -> "SS"
 export function initials(name = '') {
@@ -125,6 +88,11 @@ export function formatPhone(number) {
     return `+94 ${number.slice(2, 4)} ${number.slice(4, 7)} ${number.slice(7)}`;
   }
   return `+${number}`;
+}
+
+// What a customer pays: the sale price while the seller's discount is running, otherwise the normal price
+export function effectivePrice(product) {
+  return product?.discount ? product.discount.salePrice : product?.price;
 }
 
 export function formatPrice(price) {

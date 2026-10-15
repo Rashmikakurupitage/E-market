@@ -346,6 +346,173 @@ body {
   }
 }
 
+/* ---------- Discounts: starburst sale seal and animated price ---------- */
+@keyframes discount-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.25) rotate(-35deg);
+  }
+  68% {
+    opacity: 1;
+    transform: scale(1.12) rotate(8deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(-5deg);
+  }
+}
+@keyframes discount-pulse {
+  0%,
+  100% {
+    filter: drop-shadow(0 4px 6px rgb(190 18 60 / 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 7px 9px rgb(190 18 60 / 0.42));
+  }
+}
+@keyframes discount-chip-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes discount-glow {
+  0%, 100% {
+    box-shadow: 0 2px 8px rgb(225 29 72 / 0.18);
+  }
+  50% {
+    box-shadow: 0 3px 12px rgb(225 29 72 / 0.34);
+  }
+}
+@keyframes discount-shine {
+  from {
+    transform: translateX(-130%) skewX(-20deg);
+  }
+  to {
+    transform: translateX(230%) skewX(-20deg);
+  }
+}
+@keyframes discount-wiggle {
+  0%,
+  70%,
+  100% {
+    transform: rotate(0);
+  }
+  75% {
+    transform: rotate(-16deg);
+  }
+  85% {
+    transform: rotate(14deg);
+  }
+  95% {
+    transform: rotate(-8deg);
+  }
+}
+@keyframes price-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(1.12);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.discount-badge {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  clip-path: polygon(
+    50% 0%, 58% 9%, 69% 3%, 75% 14%, 88% 11%, 89% 25%,
+    100% 33%, 92% 44%, 100% 54%, 90% 62%, 93% 76%, 79% 79%,
+    72% 93%, 60% 87%, 50% 100%, 41% 89%, 29% 97%, 24% 84%,
+    10% 87%, 11% 72%, 0% 64%, 8% 53%, 0% 43%, 11% 35%,
+    8% 21%, 23% 20%, 29% 6%, 41% 13%
+  );
+  animation: discount-pop 0.7s cubic-bezier(0.2, 0.9, 0.25, 1.2) both, discount-pulse 2.8s ease-in-out 0.8s infinite;
+}
+.discount-badge::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 32%, rgb(255 255 255 / 0.45) 50%, transparent 68%);
+  animation: discount-shine 4s ease-in-out 1s infinite;
+  pointer-events: none;
+}
+.discount-percent {
+  position: relative;
+  overflow: hidden;
+  animation: discount-chip-in 0.45s cubic-bezier(0.2, 0.8, 0.25, 1.2) both, discount-glow 3s ease-in-out 0.5s infinite;
+  transition: transform 180ms ease, filter 180ms ease;
+}
+.discount-percent::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 25%, rgb(255 255 255 / 0.55) 50%, transparent 75%);
+  animation: discount-shine 3.8s ease-in-out 0.8s infinite;
+  pointer-events: none;
+}
+.group:hover .discount-percent {
+  transform: translateY(-1px) scale(1.06);
+  filter: saturate(1.12);
+}
+.discount-tag {
+  animation: discount-wiggle 3s ease-in-out infinite;
+  transform-origin: 30% 30%;
+}
+.price-drop {
+  animation: price-drop 0.6s ease-out 0.15s both;
+}
+@keyframes offer-orbit {
+  from { transform: rotate(-7deg) scale(0.98); }
+  to { transform: rotate(7deg) scale(1.02); }
+}
+@keyframes offer-product-float {
+  0%, 100% { transform: translateY(0) rotate(-2deg); }
+  50% { transform: translateY(-7px) rotate(2deg); }
+}
+@keyframes offer-sparkle {
+  0%, 100% { opacity: 0.2; transform: scale(0.6) rotate(0); }
+  50% { opacity: 1; transform: scale(1.2) rotate(35deg); }
+}
+.offer-orbit {
+  animation: offer-orbit 5s ease-in-out infinite alternate;
+}
+.offer-product-image {
+  animation: offer-product-float 4s ease-in-out infinite;
+}
+.offer-spark {
+  position: absolute;
+  z-index: -1;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #ffe5a1;
+  box-shadow: 0 0 12px 3px rgb(255 210 115 / 0.6);
+  animation: offer-sparkle 2s ease-in-out infinite;
+}
+.offer-spark-one { top: 30%; left: 12%; }
+.offer-spark-two { top: 44%; right: 12%; animation-delay: 700ms; }
+.offer-spark-three { top: 20%; right: 30%; animation-delay: 1.2s; }
+@media (prefers-reduced-motion: reduce) {
+  .discount-badge,
+  .discount-badge::after,
+  .discount-percent,
+  .discount-percent::after,
+  .discount-tag,
+  .price-drop,
+  .offer-orbit,
+  .offer-product-image,
+  .offer-spark {
+    animation: none;
+  }
+}
+
 /* ---------- Mobile app feel ---------- */
 /* Phones: everything sized in rem is about 22% smaller, so more fits on the screen */
 @media (max-width: 639px) {

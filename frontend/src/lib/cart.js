@@ -82,7 +82,7 @@ export function addToCart(product, quantity = 1) {
     {
       id: product.id,
       title: product.title,
-      price: Number(product.price),
+      price: Number(effectivePrice(product)),
       image: product.images?.[0] || null,
       category: product.category,
       sellerId: product.sellerId,

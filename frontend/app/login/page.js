@@ -22,10 +22,13 @@ function PasswordLogin({ redirectTo, footer }) {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [unverified, setUnverified] = useState(false); // the account exists but its email was never verified
+  const asParam = useSearchParams().get('as') === 'customer' ? 'customer' : 'seller';
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
+    setUnverified(false);
     setLoading(true);
 
     try {
@@ -34,6 +37,7 @@ function PasswordLogin({ redirectTo, footer }) {
       router.push(redirectTo);
     } catch (err) {
       const responseError = err.response?.data;
+      if (responseError?.code === 'EMAIL_NOT_VERIFIED') setUnverified(true);
       const message =
         l.errors?.[responseError?.code] ||
         responseError?.message ||
@@ -50,7 +54,17 @@ function PasswordLogin({ redirectTo, footer }) {
       {error && (
         <div role="alert" className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" />
-          <span>{error}</span>
+          <span>
+            {error}
+            {unverified && (
+              <>
+                {' '}
+                <Link href={`/verify-email?email=${encodeURIComponent(email.trim())}&as=${asParam}&resend=1`} className="font-semibold underline">
+                  {l.verifyNow}
+                </Link>
+              </>
+            )}
+          </span>
         </div>
       )}
 

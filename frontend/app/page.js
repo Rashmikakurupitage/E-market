@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import API from '../src/lib/api';
 import { useLanguage } from '../src/lib/i18n';
-import { CATEGORIES, SAMPLE_PRODUCTS, getSeller } from '../src/lib/catalog';
+import { CATEGORIES, SAMPLE_PRODUCTS, getSeller, withSampleProducts } from '../src/lib/catalog';
 import ProductCard from '../src/components/ProductCard';
 import { useWallpapers } from '../src/lib/siteImage';
 import HeroSlideshow from '../src/components/HeroSlideshow';
@@ -108,8 +108,8 @@ export default function Home() {
     API.get('/products', { timeout: 8000 })
       .then((res) => {
         const fetched = res.data?.products || res.data;
-        if (!ignore && Array.isArray(fetched) && fetched.length > 0) {
-          setProducts(fetched);
+        if (!ignore && Array.isArray(fetched)) {
+          setProducts(withSampleProducts(fetched));
         }
       })
       .catch(() => console.log('Using sample products'))
