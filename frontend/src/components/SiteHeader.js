@@ -75,10 +75,6 @@ export default function SiteHeader() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [menuOpen]);
 
-  useEffect(() => {
-    if (menuOpen) setHidden(false);
-  }, [menuOpen]);
-
   const links = [
     { href: '/', label: t.navHome, active: pathname === '/' },
     { href: '/store', label: t.navStore, active: pathname.startsWith('/store') },
@@ -167,7 +163,10 @@ export default function SiteHeader() {
             {/* Menu toggle for smaller screens */}
             <button
               type="button"
-              onClick={() => setMenuOpen((open) => !open)}
+              onClick={() => {
+                setHidden(false);
+                setMenuOpen((open) => !open);
+              }}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               aria-label={t.menu}

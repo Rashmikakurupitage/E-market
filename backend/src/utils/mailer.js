@@ -120,6 +120,14 @@ const CODE_EMAILS = {
     ta: 'உங்கள் கடவுச்சொல்லை மீட்டமைக்கும் குறியீடு:',
     ignore: "If you didn't ask to reset your password, you can ignore this email. Your password will not change.",
   },
+  'verify-email': {
+    devLabel: 'Email verification code',
+    subject: (code) => `${code} is your Lanka Women E-Market verification code`,
+    intro: 'Welcome! To finish creating your account, enter this code:',
+    si: 'ඔබේ ගිණුම තහවුරු කිරීමේ කේතය:',
+    ta: 'உங்கள் கணக்கை உறுதிப்படுத்தும் குறியீடு:',
+    ignore: "If you didn't create an account, you can ignore this email.",
+  },
   'email-change': {
     devLabel: 'New-email code',
     subject: (code) => `${code} is your code to confirm your new email`,

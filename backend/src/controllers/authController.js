@@ -1,10 +1,38 @@
 const crypto = require('crypto');
+const dns = require('dns').promises;
 const prisma = require('../config/db');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const otpStore = require('../utils/otpStore');
 const nicVault = require('../utils/nicVault');
 const { sendLoginCode, explainMailError, isEmailConfigured } = require('../utils/mailer');
+
+// Catch a wrong email before anything is sent: bad shape, a likely typo of a popular domain, or a domain that cannot receive mail
+const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const DOMAIN_TYPOS = {
+  'gmial.com': 'gmail.com', 'gmai.com': 'gmail.com', 'gmaill.com': 'gmail.com', 'gamil.com': 'gmail.com', 'gmail.co': 'gmail.com', 'gmail.con': 'gmail.com', 'gnail.com': 'gmail.com',
+  'yahooo.com': 'yahoo.com', 'yaho.com': 'yahoo.com', 'yahoo.co': 'yahoo.com', 'yahoo.con': 'yahoo.com',
+  'hotmial.com': 'hotmail.com', 'hotmail.con': 'hotmail.com', 'hotmai.com': 'hotmail.com',
+  'outlok.com': 'outlook.com', 'outlook.con': 'outlook.com'
+};
+const checkEmailAddress = async (email) => {
+  if (!EMAIL_SHAPE.test(email) || email.length > 254) return { code: 'EMAIL_INVALID' };
+  const domain = email.split('@')[1].toLowerCase();
+  if (DOMAIN_TYPOS[domain]) return { code: 'EMAIL_TYPO', suggestion: email.split('@')[0] + '@' + DOMAIN_TYPOS[domain] };
+  if ((process.env.EMAIL_PROVIDER || '').toLowerCase() === 'dev') return null; // local testing has no real mail domains
+  try {
+    const mx = await dns.resolveMx(domain);
+    if (mx.length > 0) return null;
+  } catch (error) {
+    if (!['ENOTFOUND', 'ENODATA'].includes(error.code)) return null; // lookup trouble: do not block the person
+  }
+  try {
+    await dns.resolve4(domain); // no MX record: mail falls back to the domain's own address
+    return null;
+  } catch (error) {
+    return ['ENOTFOUND', 'ENODATA'].includes(error.code) ? { code: 'EMAIL_INVALID' } : null;
+  }
+};
 
 // Admin accounts must never be created through public sign-up
 const SELF_SERVICE_ROLES = ['CUSTOMER', 'SELLER'];
@@ -81,6 +109,11 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'අවලංගු ගිණුම් වර්ගයකි.' });
     }
 
+    const emailProblem = await checkEmailAddress(email);
+    if (emailProblem) {
+      return res.status(400).json({ ...emailProblem, message: 'The email address looks incorrect.' });
+    }
+
     if (!isStrongPassword(password)) {
       return res.status(400).json({
         code: 'WEAK_PASSWORD',
@@ -100,19 +133,32 @@ exports.register = async (req, res) => {
     const sellerMessengerUrl = normalizeOptionalUrl(messengerUrl);
     const sellerFacebookUrl = normalizeOptionalUrl(facebookUrl);
 
-    const existingUser = await prisma.user.findFirst({
-      where: {
-        OR: [{ email: { equals: email, mode: 'insensitive' } }, { phone }]
-      }
-    });
+    // The code has to be emailed, so sign-up needs working email
+    if (!isEmailConfigured()) {
+      return res.status(503).json({ code: 'SMTP_NOT_CONFIGURED', message: 'Email delivery is not configured on the server.' });
+    }
 
-    if (existingUser) {
+    // A sign-up that was never verified (abandoned, or a mistyped email) must not block the same email, phone or NIC.
+    // Very old unverified accounts are cleared out as well.
+    await prisma.user.deleteMany({ where: { emailVerifiedAt: null, role: { in: SELF_SERVICE_ROLES }, createdAt: { lt: new Date(Date.now() - 48 * 60 * 60 * 1000) } } });
+    const existingUsers = await prisma.user.findMany({
+      where: { OR: [{ email: { equals: email, mode: 'insensitive' } }, { phone }] },
+      select: { id: true, emailVerifiedAt: true }
+    });
+    if (existingUsers.some((existing) => existing.emailVerifiedAt)) {
       return res.status(400).json({ message: 'Email හෝ Phone අංකය දැනටමත් ලියාපදිංචි වී ඇත.' });
+    }
+    if (existingUsers.length > 0) {
+      await prisma.user.deleteMany({ where: { id: { in: existingUsers.map((existing) => existing.id) } } });
     }
 
     const nicData = role === 'SELLER' ? nicVault.protect(nicNumberInput) : null;
-    if (nicData && (await prisma.sellerProfile.findUnique({ where: { nicHash: nicData.nicHash }, select: { id: true } }))) {
-      return res.status(409).json({ code: 'NIC_TAKEN', message: 'This NIC number is already registered.' });
+    if (nicData) {
+      const holder = await prisma.sellerProfile.findUnique({ where: { nicHash: nicData.nicHash }, select: { user: { select: { id: true, emailVerifiedAt: true } } } });
+      if (holder?.user.emailVerifiedAt) {
+        return res.status(409).json({ code: 'NIC_TAKEN', message: 'This NIC number is already registered.' });
+      }
+      if (holder) await prisma.user.delete({ where: { id: holder.user.id } }); // an unverified sign-up that used this NIC
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -146,10 +192,34 @@ exports.register = async (req, res) => {
       include: { sellerProfile: true, customerProfile: true }
     });
 
+    // Email the 6-digit code. If it cannot be sent, undo the sign-up so the person can simply try again.
+    const issued = otpStore.issue(verifyKey(user.id));
+    try {
+      await sendLoginCode({
+        to: user.email,
+        businessName: user.sellerProfile ? [profileFirstName, profileLastName].filter(Boolean).join(' ') || user.sellerProfile.businessName : customerFullName,
+        code: issued.code,
+        minutes: issued.expiresInMinutes,
+        purpose: 'verify-email'
+      });
+    } catch (mailError) {
+      otpStore.discard(verifyKey(user.id));
+      await prisma.user.delete({ where: { id: user.id } });
+      console.error('VERIFY_EMAIL_SEND_ERROR:', mailError.message);
+      console.error('HINT:', explainMailError(mailError));
+      // The mail server itself refused this recipient: the address does not exist
+      if (mailError.rejected?.length || [550, 551, 553].includes(mailError.responseCode)) {
+        return res.status(400).json({ code: 'EMAIL_INVALID', message: 'The email address looks incorrect.' });
+      }
+      return res.status(502).json({ code: 'EMAIL_FAILED', message: 'The verification email could not be sent. Please try again later.' });
+    }
+
     res.status(201).json({
-      message: 'User සාර්ථකව ලියාපදිංචි විය!',
-      token: signToken(user),
-      user: toPublicUser(user)
+      verificationRequired: true,
+      email: user.email,
+      sentTo: maskEmail(user.email),
+      expiresInMinutes: issued.expiresInMinutes,
+      resendAfterSeconds: issued.resendAfterSeconds
     });
   } catch (error) {
     if (error.code === 'P2002') {
@@ -182,6 +252,10 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
       return res.status(400).json({ code: 'INVALID_CREDENTIALS', message: 'Email හෝ Password වැරදියි.' });
+    }
+
+    if (!user.emailVerifiedAt) {
+      return res.status(403).json({ code: 'EMAIL_NOT_VERIFIED', email: user.email, message: 'Please verify your email first.' });
     }
 
     if (user.sellerProfile?.removedAt) {
@@ -340,6 +414,86 @@ const verifyLoginCode = (type) => async (req, res) => {
   }
 };
 
+// --- Email verification: the code emailed at sign-up proves the email address is the person's own ---
+
+const verifyKey = (userId) => `verify:${userId}`;
+
+const findUnverifiedUser = (email) =>
+  prisma.user.findFirst({
+    where: { email: { equals: email, mode: 'insensitive' }, role: { in: SELF_SERVICE_ROLES }, emailVerifiedAt: null },
+    include: { sellerProfile: true, customerProfile: true }
+  });
+
+// Check the code, mark the email as verified and log the new user in
+exports.verifyEmail = async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim();
+    const code = String(req.body?.code || '').trim();
+    if (!email || !/^\d{6}$/.test(code)) {
+      return res.status(400).json({ code: 'WRONG_CODE', message: 'Enter the 6-digit code.' });
+    }
+
+    const user = await findUnverifiedUser(email);
+    if (!user) {
+      const alreadyVerified = await prisma.user.findFirst({ where: { email: { equals: email, mode: 'insensitive' }, emailVerifiedAt: { not: null } }, select: { id: true } });
+      return res.status(alreadyVerified ? 409 : 400).json({ code: alreadyVerified ? 'ALREADY_VERIFIED' : 'WRONG_CODE', message: alreadyVerified ? 'This email is already verified. Please log in.' : 'The code is not valid.' });
+    }
+
+    const result = otpStore.verify(verifyKey(user.id), code);
+    if (result !== 'OK') {
+      return res.status(400).json({ code: result, message: 'The code is not valid. Please ask for a new one.' });
+    }
+
+    const verified = await prisma.user.update({
+      where: { id: user.id },
+      data: { emailVerifiedAt: new Date() },
+      include: { sellerProfile: true, customerProfile: true, profilePhoto: { select: { updatedAt: true } } }
+    });
+    res.json({ message: 'Your email is verified.', token: signToken(verified), user: toPublicUser(verified) });
+  } catch (error) {
+    console.error('VERIFY_EMAIL_ERROR:', error);
+    res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+// Send the code again (the same answer whether or not a waiting account exists)
+exports.resendVerification = async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim();
+    if (!email) {
+      return res.status(400).json({ code: 'MISSING_DETAILS', message: 'Enter your email.' });
+    }
+    if (!isEmailConfigured()) {
+      return res.status(503).json({ code: 'SMTP_NOT_CONFIGURED', message: 'Email delivery is not configured on the server.' });
+    }
+
+    const user = await findUnverifiedUser(email);
+    if (user) {
+      const issued = otpStore.issue(verifyKey(user.id));
+      if (!issued.error) {
+        try {
+          await sendLoginCode({
+            to: user.email,
+            businessName: user.customerProfile?.fullName || [user.sellerProfile?.firstName, user.sellerProfile?.lastName].filter(Boolean).join(' ') || user.sellerProfile?.businessName,
+            code: issued.code,
+            minutes: issued.expiresInMinutes,
+            purpose: 'verify-email'
+          });
+        } catch (mailError) {
+          otpStore.discard(verifyKey(user.id));
+          console.error('VERIFY_EMAIL_RESEND_ERROR:', mailError.message);
+          console.error('HINT:', explainMailError(mailError));
+        }
+      }
+    }
+
+    res.json({ message: 'If this email is waiting to be verified, a new code has been sent.', expiresInMinutes: 10, resendAfterSeconds: 60 });
+  } catch (error) {
+    console.error('RESEND_VERIFICATION_ERROR:', error);
+    res.status(500).json({ message: 'Server error.' });
+  }
+};
+
 // --- Forgot password: an emailed code lets a customer or seller choose a new password ---
 
 // Reset codes are kept apart from login codes
@@ -427,7 +581,7 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ code: result, message: 'The code is not valid. Please ask for a new one.' });
     }
 
-    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(newPassword, 10) } });
+    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(newPassword, 10), emailVerifiedAt: user.emailVerifiedAt || new Date() } });
     res.json({ message: 'Your password was changed. You can log in now.' });
   } catch (error) {
     console.error('PASSWORD_RESET_ERROR:', error);

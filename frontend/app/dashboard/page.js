@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  Plus, Package, MessageCircle, TrendingUp, MapPin, LoaderCircle, CircleAlert, X,
+  Plus, Package, MessageCircle, TrendingUp, MapPin, LoaderCircle, CircleAlert, X, Tag,
   Hourglass, CircleX, RefreshCw, Trash2, CircleCheck, LayoutDashboard, ClipboardList, Settings,
 } from 'lucide-react';
 import API from '../../src/lib/api';
@@ -12,6 +12,9 @@ import { useSession, useHydrated, clearSession, updateSessionUser, homePathFor }
 import { CATEGORIES, formatPrice, initials } from '../../src/lib/catalog';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
 import ProductThumb from '../../src/components/ProductThumb';
+import PriceTag from '../../src/components/DiscountBadge';
+import SellerDiscountDialog from '../../src/components/SellerDiscountDialog';
+import DiscountOptions from '../../src/components/DiscountOptions';
 import SellerStatusBadge from '../../src/components/SellerStatusBadge';
 import ConfirmDialog from '../../src/components/ConfirmDialog';
 import ProductPhotosField from '../../src/components/ProductPhotosField';
@@ -29,7 +32,13 @@ const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
 // Seller account + their products with WhatsApp click counts
 async function fetchDashboard() {
-  const [me, products] = await Promise.all([API.get('/auth/me'), API.get('/products/my-products')]);
+  const [me, products] = await Promise.all([
+    API.get('/auth/me', { timeout: 15000 }),
+    API.get('/products/my-products', { timeout: 15000 }),
+  ]);
+  if (!me.data?.user || !Array.isArray(products.data)) {
+    throw new Error('Invalid seller dashboard response');
+  }
   return { user: me.data.user, products: products.data };
 }
 
@@ -63,7 +72,7 @@ function StatCard({ icon: Icon, label, value, sub, tone = 'green', delay = 0 }) 
 function AddProductModal({ onClose, onAdded }) {
   const { t } = useLanguage();
   const f = t.dash.form;
-  const [form, setForm] = useState({ title: '', price: '', category: CATEGORIES[0], messengerUrl: '', description: '' });
+  const [form, setForm] = useState({ title: '', price: '', category: CATEGORIES[0], discountPercent: '', discountEndsAt: '', messengerUrl: '', description: '' });
   const [photos, setPhotos] = useState([]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -97,13 +106,15 @@ function AddProductModal({ onClose, onAdded }) {
         description: form.description.trim(),
         category: form.category,
         price: form.price === '' ? null : Number(form.price),
+        discountPercent: form.discountPercent === '' ? null : Number(form.discountPercent),
+        discountEndsAt: form.discountEndsAt || null,
         images: photos,
         messengerUrl: form.messengerUrl.trim(),
       });
       onAdded();
     } catch (err) {
       const code = err.response?.data?.code;
-      setError(code === 'TOO_MANY_IMAGES' || code === 'INVALID_IMAGE' ? t.productPhotos.errors[code] : err.response?.status === 413 ? t.productPhotos.errors.big : f.error);
+      setError(code === 'TOO_MANY_IMAGES' || code === 'INVALID_IMAGE' ? t.productPhotos.errors[code] : t.discount.errors[code] || (err.response?.status === 413 ? t.productPhotos.errors.big : f.error));
       setSaving(false);
     }
   };
@@ -149,6 +160,48 @@ function AddProductModal({ onClose, onAdded }) {
               </select>
             </Field>
           </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field id="discount-percent" label={t.discount.percent} hint={t.discount.percentHint}>
+              <input
+                id="discount-percent"
+                name="discountPercent"
+                type="number"
+                min="1"
+                max="90"
+                step="1"
+                inputMode="numeric"
+                value={form.discountPercent}
+                onChange={update}
+                className={inputClass(false)}
+                placeholder="20"
+                disabled={!form.price}
+              />
+            </Field>
+            <Field id="discount-end" label={t.discount.endDate} hint={t.discount.endHint}>
+              <input
+                id="discount-end"
+                name="discountEndsAt"
+                type="date"
+                min={new Date().toISOString().slice(0, 10)}
+                value={form.discountEndsAt}
+                onChange={update}
+                className={inputClass(false)}
+                disabled={!form.discountPercent || !form.price}
+              />
+            </Field>
+          </div>
+          <DiscountOptions
+            percent={form.discountPercent}
+            endsAt={form.discountEndsAt}
+            disabled={!form.price}
+            onSelect={({ percent, endsAt }) => setForm((current) => ({ ...current, discountPercent: String(percent), discountEndsAt: endsAt }))}
+          />
+          {form.discountPercent && form.price && Number(form.discountPercent) >= 1 && Number(form.discountPercent) <= 90 && Number.isInteger(Number(form.discountPercent)) && (
+            <div className="rounded-xl bg-red-50 px-4 py-3 text-sm ring-1 ring-red-200">
+              <span className="text-slate-500">{t.discount.newPrice}: </span>
+              <strong className="font-bold text-red-600">{formatPrice(Math.round(Number(form.price) * (100 - Number(form.discountPercent))) / 100)}</strong>
+            </div>
+          )}
           <ProductPhotosField value={photos} onChange={setPhotos} />
           <Field id="messengerUrl" label={f.messenger} hint={f.messengerHint} error={messengerError}>
             <input id="messengerUrl" name="messengerUrl" type="text" inputMode="url" value={form.messengerUrl} onChange={update} aria-invalid={!!messengerError} className={inputClass(messengerError)} placeholder="m.me/yourshop" />
@@ -189,8 +242,19 @@ export default function Dashboard() {
   const [reloadKey, setReloadKey] = useState(0);
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [productToRemove, setProductToRemove] = useState(null);
+  const [productToDiscount, setProductToDiscount] = useState(null);
   const [notice, setNotice] = useState('');
   const [section, setSection] = useState('overview'); // 'overview' | 'products' | 'orders' | 'settings'
+
+  const contactUpdated = useCallback((updatedUser) => {
+    setUser(updatedUser);
+    updateSessionUser(updatedUser);
+  }, []);
+
+  const loggedOut = useCallback(() => {
+    clearSession();
+    router.replace('/login');
+  }, [router]);
 
   // Hide the "removed" message after a few seconds
   useEffect(() => {
@@ -242,7 +306,12 @@ export default function Dashboard() {
 
   const productAdded = () => {
     setShowAddProduct(false);
+    setSection('products');
     setReloadKey((key) => key + 1);
+  };
+
+  const discountSaved = (updatedProduct) => {
+    setProducts((current) => current.map((product) => product.id === updatedProduct.id ? updatedProduct : product));
   };
 
   // Called by the confirm box; throwing keeps the box open with an error message
@@ -293,18 +362,9 @@ export default function Dashboard() {
   const totalClicks = products.reduce((sum, p) => sum + (p.clickCount || 0), 0);
   const weekClicks = products.reduce((sum, p) => sum + (p.clicksThisWeek || 0), 0);
   const profile = user?.profile;
+  // The seller's own first and last name (the business name is shown in the shop's pages)
+  const ownerName = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') || profile?.businessName || '';
   const sellerStatus = profile?.status || 'PENDING';
-
-  // Keep the page and the saved login (used by the header) in step with the new email/phone
-  const contactUpdated = (updatedUser) => {
-    setUser(updatedUser);
-    updateSessionUser(updatedUser);
-  };
-
-  const loggedOut = () => {
-    clearSession();
-    router.replace('/login');
-  };
 
   const menu = [
     { value: 'overview', label: t.admin.tabOverview, icon: LayoutDashboard },
@@ -320,7 +380,7 @@ export default function Dashboard() {
         items={menu}
         active={section}
         onSelect={setSection}
-        name={profile?.businessName || ''}
+        name={ownerName}
         subtitle={user?.email}
         onLogout={loggedOut}
         menuLabel={d.title}
@@ -344,12 +404,12 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-4">
             <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-xl font-extrabold text-brand-700 shadow-lg ring-4 ring-white/25">
-              {initials(profile?.businessName) || '?'}
+              {initials(ownerName) || '?'}
             </span>
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wider text-turmeric">{d.title}</p>
               <h1 className="break-words text-xl font-extrabold sm:text-3xl">
-                {fill(d.welcome, { name: profile?.businessName || '' })}
+                {fill(d.welcome, { name: ownerName })}
               </h1>
               <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-white/80">
                 <span className="inline-flex items-center gap-1">
@@ -422,7 +482,7 @@ export default function Dashboard() {
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-slate-900">{product.title}</p>
                     <p className="truncate text-xs text-slate-500">
-                      {t.categories[product.category] || product.category} · {formatPrice(product.price) || t.priceOnRequest}
+                      {t.categories[product.category] || product.category} · <PriceTag product={product} />
                     </p>
                   </div>
                   <span className="hidden rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 sm:inline">
@@ -432,6 +492,16 @@ export default function Dashboard() {
                     <p className="text-lg font-extrabold text-slate-900">{product.clickCount || 0}</p>
                     <p className="text-[11px] text-slate-500">{d.enquiries}</p>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setProductToDiscount(product)}
+                    aria-label={`${product.discountPercent ? t.discount.edit : t.discount.set}: ${product.title}`}
+                    title={product.discountPercent ? t.discount.edit : t.discount.set}
+                    className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-transparent p-2 text-sm font-semibold text-red-600 transition-colors hover:border-red-200 hover:bg-red-50 sm:px-3"
+                  >
+                    <Tag className="h-4 w-4" />
+                    <span className="hidden md:inline">{product.discountPercent ? t.discount.edit : t.discount.set}</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => setProductToRemove(product)}
@@ -456,6 +526,14 @@ export default function Dashboard() {
       </DashboardSidebar>
 
       {showAddProduct && <AddProductModal onClose={() => setShowAddProduct(false)} onAdded={productAdded} />}
+      {productToDiscount && (
+        <SellerDiscountDialog
+          product={productToDiscount}
+          onClose={() => setProductToDiscount(null)}
+          onSaved={discountSaved}
+          onAuthError={loggedOut}
+        />
+      )}
       {productToRemove && (
         <ConfirmDialog
           title={d.removeTitle}

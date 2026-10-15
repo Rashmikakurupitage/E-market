@@ -70,6 +70,7 @@ exports.createAdmin = async (req, res) => {
         phone,
         role: 'SUPER_ADMIN',
         passwordHash,
+        emailVerifiedAt: new Date(),
         adminProfile: { create: { fullName, nicNumber } }
       },
       select: {

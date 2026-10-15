@@ -20,18 +20,20 @@ enum ApplicationStatus {
 }
 
 model User {
-  id            String          @id @default(uuid())
-  email         String          @unique
-  phone         String          @unique
-  passwordHash  String
-  role          Role            @default(CUSTOMER)
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
+  id           String   @id @default(uuid())
+  email        String   @unique
+  phone        String   @unique
+  passwordHash String
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  // Set when the owner enters the code we email at sign-up. Accounts without it cannot log in.
+  emailVerifiedAt DateTime?
 
-  sellerProfile SellerProfile?
+  sellerProfile   SellerProfile?
   customerProfile CustomerProfile?
-  adminProfile  AdminProfile?
-  profilePhoto  ProfilePhoto?
+  adminProfile    AdminProfile?
+  profilePhoto    ProfilePhoto?
 }
 
 // A customer's profile photo (a small square picture stored as a data URL)
@@ -53,48 +55,49 @@ model AdminProfile {
 }
 
 model SellerProfile {
-  id             String            @id @default(uuid())
-  userId         String            @unique
-  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  businessName   String
-  description    String?
-  district       String
-  firstName      String?
-  lastName       String?
+  id           String            @id @default(uuid())
+  userId       String            @unique
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName String
+  description  String?
+  district     String
+  firstName    String?
+  lastName     String?
   // Old plain-text column: now only holds a placeholder. The real NIC is kept encrypted (see utils/nicVault.js).
-  nicNumber      String            @unique
-  nicHash        String?           @unique // lets the site spot a NIC that is already registered without storing it
-  nicEncrypted   String?
-  nicLast5       String?           // the only part an admin can see
-  status         ApplicationStatus @default(PENDING)
+  nicNumber    String            @unique
+  nicHash      String?           @unique // lets the site spot a NIC that is already registered without storing it
+  nicEncrypted String?
+  nicLast5     String? // the only part an admin can see
+  status       ApplicationStatus @default(PENDING)
 
   // Direct Social Media Redirection Links
-  whatsappNo     String?
-  facebookUrl    String?
-  messengerUrl   String?
+  whatsappNo   String?
+  facebookUrl  String?
+  messengerUrl String?
 
   // Set when an admin removes the seller. The account is closed but its orders and complaints are kept.
-  removedAt      DateTime?
-  removalNote    String?
+  removedAt   DateTime?
+  removalNote String?
 
-  products       Product[]
-  analytics      ClickAnalytics[]
-  orders         Order[]
-  complaints     Complaint[]
+  products   Product[]
+  analytics  ClickAnalytics[]
+  orders     Order[]
+  complaints Complaint[]
 
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model CustomerProfile {
-  id        String   @id @default(uuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fullName  String
+  id         String          @id @default(uuid())
+  userId     String          @unique
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName   String
   // Customers log in with email + NIC + emailed code. Empty only for accounts made before that.
-  nicNumber String?  @unique
-  orders    Order[]
+  nicNumber  String?         @unique
+  orders     Order[]
   complaints Complaint[]
+  reviews    ProductReview[]
 }
 
 // A photo a seller uploaded for a product (kept in the database; the product's images list holds its address)
@@ -109,33 +112,52 @@ model ProductImage {
 }
 
 model Product {
-  id          String   @id @default(uuid())
-  sellerId    String
-  seller      SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  title       String
-  description String
-  category    String
-  images      String[]
-  productImages ProductImage[]
-  price       Decimal?
+  id              String         @id @default(uuid())
+  sellerId        String
+  seller          SellerProfile  @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  title           String
+  description     String
+  category        String
+  images          String[]
+  productImages   ProductImage[]
+  price           Decimal?
+  // A seller's discount: percent off the price, optionally until the end of a day
+  discountPercent Int?
+  discountEndsAt  DateTime?
   // Facebook Messenger chat link for this product (m.me/... or a Facebook page link)
-  messengerUrl String?
-  isPublished Boolean  @default(true)
+  messengerUrl    String?
+  isPublished     Boolean        @default(true)
 
-  analytics   ClickAnalytics[]
-  orderItems  OrderItem[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  analytics  ClickAnalytics[]
+  orderItems OrderItem[]
+  reviews    ProductReview[]
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+}
+
+model ProductReview {
+  id         String          @id @default(uuid())
+  productId  String
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customerId String
+  customer   CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  rating     Int
+  comment    String          @db.VarChar(1000)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@unique([productId, customerId])
+  @@index([productId, createdAt])
 }
 
 model ClickAnalytics {
-  id             String   @id @default(uuid())
+  id             String        @id @default(uuid())
   sellerId       String
   seller         SellerProfile @relation(fields: [sellerId], references: [id])
   productId      String?
-  product        Product? @relation(fields: [productId], references: [id])
-  targetPlatform String   // "WHATSAPP", "MESSENGER"
-  timestamp      DateTime @default(now())
+  product        Product?      @relation(fields: [productId], references: [id])
+  targetPlatform String // "WHATSAPP", "MESSENGER"
+  timestamp      DateTime      @default(now())
 }
 
 enum OrderStatus {
