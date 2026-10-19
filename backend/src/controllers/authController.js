@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const otpStore = require('../utils/otpStore');
 const nicVault = require('../utils/nicVault');
+const { parseNic } = require('../utils/nicInfo');
 const { sendLoginCode, explainMailError, isEmailConfigured } = require('../utils/mailer');
 
 // Catch a wrong email before anything is sent: bad shape, a likely typo of a popular domain, or a domain that cannot receive mail
@@ -129,6 +130,14 @@ exports.register = async (req, res) => {
     if (role === 'SELLER' && !nicVault.isValidNic(nicNumberInput)) {
       return res.status(400).json({ code: 'INVALID_NIC', message: 'Enter a valid NIC number: 12 digits, or 9 digits followed by V or X.' });
     }
+    // Only women can sell here: the NIC number shows the gender and the birth date
+    const nicInfo = role === 'SELLER' ? parseNic(nicNumberInput) : null;
+    if (role === 'SELLER' && !nicInfo.valid) {
+      return res.status(400).json({ code: 'INVALID_NIC', message: 'This NIC number is not valid. Please check it.' });
+    }
+    if (nicInfo?.gender === 'male') {
+      return res.status(403).json({ code: 'WOMEN_ONLY', message: 'Only women can register as sellers.' });
+    }
     const normalizedNicNumber = makeSelfServiceNic(role);
     const sellerMessengerUrl = normalizeOptionalUrl(messengerUrl);
     const sellerFacebookUrl = normalizeOptionalUrl(facebookUrl);
@@ -172,6 +181,7 @@ exports.register = async (req, res) => {
                 district: district || 'Colombo',
                 nicNumber: normalizedNicNumber,
                 ...nicData,
+                dateOfBirth: nicInfo ? new Date(`${nicInfo.birthDate}T00:00:00.000Z`) : null,
                 firstName: profileFirstName || null,
                 lastName: profileLastName || null,
                 whatsappNo: whatsappNo || phone,
@@ -261,6 +271,9 @@ exports.login = async (req, res) => {
     if (user.sellerProfile?.removedAt) {
       return res.status(403).json({ code: 'ACCOUNT_REMOVED', message: 'This seller account has been removed.' });
     }
+    if (user.removedAt) {
+      return res.status(403).json({ code: 'ACCOUNT_REMOVED', message: 'This account has been removed.' });
+    }
 
     res.json({
       message: 'සාර්ථකව Log විය!',
@@ -288,6 +301,7 @@ const findByEmailAndNic = (role, profile) => (email, nicNumber) =>
   prisma.user.findFirst({
     where: {
       role,
+      removedAt: null,
       email: { equals: email, mode: 'insensitive' },
       [profile]: { is: { nicNumber: { equals: nicNumber, mode: 'insensitive' } } }
     },
@@ -420,7 +434,7 @@ const verifyKey = (userId) => `verify:${userId}`;
 
 const findUnverifiedUser = (email) =>
   prisma.user.findFirst({
-    where: { email: { equals: email, mode: 'insensitive' }, role: { in: SELF_SERVICE_ROLES }, emailVerifiedAt: null },
+    where: { email: { equals: email, mode: 'insensitive' }, role: { in: SELF_SERVICE_ROLES }, emailVerifiedAt: null, removedAt: null },
     include: { sellerProfile: true, customerProfile: true }
   });
 
@@ -499,10 +513,10 @@ exports.resendVerification = async (req, res) => {
 // Reset codes are kept apart from login codes
 const resetKey = (userId) => `reset:${userId}`;
 
-// Customers and sellers only (admins use their own login). A seller an admin has removed cannot reset.
+// Customers and sellers only (admins use their own login). Removed accounts cannot reset.
 const findResettableUser = async (email) => {
   const user = await prisma.user.findFirst({
-    where: { email: { equals: email, mode: 'insensitive' }, role: { in: ['CUSTOMER', 'SELLER'] } },
+    where: { email: { equals: email, mode: 'insensitive' }, role: { in: ['CUSTOMER', 'SELLER'] }, removedAt: null },
     include: { sellerProfile: true, customerProfile: true }
   });
   return user && !user.sellerProfile?.removedAt ? user : null;

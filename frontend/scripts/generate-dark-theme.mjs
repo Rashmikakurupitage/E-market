@@ -22,7 +22,7 @@ const SLATE_TEXT = { 950: '#f8fafc', 900: '#f1f5f9', 800: '#e2e8f0', 700: '#cbd5
 const SLATE_BG = { 50: '#1b1826', 100: '#221e2f', 200: '#2c2739', 300: '#3a3449', 800: '#2b2640', 900: '#241f35', 950: '#1c1829' };
 const SLATE_LINE = { 100: 0.08, 200: 0.12, 300: 0.18, 400: 0.25 };
 const TINT = { red: [239, 68, 68], amber: [245, 158, 11], rose: [244, 63, 94], brand: [200, 51, 111] };
-const TINT_TEXT = { red: '#fca5a5', amber: '#fcd34d', rose: '#fda4af', brand: '#f6b9d3' };
+const TINT_TEXT = { red: '#fca5a5', amber: '#fcd34d', rose: '#fda4af', brand: 'var(--color-brand-100)' };
 
 function darkValue(prefix, color, shade, alpha) {
   const a = alpha === undefined ? 1 : alpha / 100;
@@ -69,9 +69,9 @@ function darkValue(prefix, color, shade, alpha) {
     if (isStop) return n <= 100 ? rgba(TINT[color], 0.14) : null;
   }
   if (isText && alpha === undefined) {
-    if (color === 'magenta') return '#f0679f';
-    if (color === 'magenta-dark') return '#f48fb9';
-    if (color === 'saffron') return '#f7a15e';
+    if (color === 'magenta') return 'color-mix(in srgb, var(--color-magenta) 62%, white)';
+    if (color === 'magenta-dark') return 'color-mix(in srgb, var(--color-magenta) 48%, white)';
+    if (color === 'saffron') return 'color-mix(in srgb, var(--color-saffron) 62%, white)';
     if (color === 'leaf') return '#86cf89';
   }
   return null;
@@ -166,10 +166,13 @@ const base = `
 [data-theme='dark'] .bg-mesh {
   background-color: #0e0c12;
   background-image:
-    radial-gradient(at 8% 12%, rgb(238 125 43 / 0.11) 0, transparent 42%),
-    radial-gradient(at 92% 6%, rgb(200 51 111 / 0.16) 0, transparent 44%),
+    radial-gradient(at 8% 12%, rgb(var(--accent2-rgb) / 0.11) 0, transparent 42%),
+    radial-gradient(at 92% 6%, rgb(var(--accent-rgb) / 0.16) 0, transparent 44%),
     radial-gradient(at 62% 92%, rgb(244 185 62 / 0.06) 0, transparent 48%),
     radial-gradient(at 4% 88%, rgb(79 154 82 / 0.07) 0, transparent 42%);
+}
+[data-theme='dark'] .admin-surface {
+  background-image: radial-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1.4px);
 }
 [data-theme='dark'] .glass {
   background: rgb(24 21 32 / 0.76);
@@ -181,7 +184,7 @@ const base = `
   background-size: 200% 100%;
 }
 [data-theme='dark'] ::selection {
-  background: rgb(200 51 111 / 0.5);
+  background: rgb(var(--accent-rgb) / 0.5);
 }
 /* Forms: dark fields with a soft border */
 [data-theme='dark'] input:not([type='checkbox']):not([type='radio']):not([type='file']),

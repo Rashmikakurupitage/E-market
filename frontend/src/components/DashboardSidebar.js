@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { LogOut, Menu, Home, X, ArrowRight } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
+import AppearanceMenu from './AppearanceMenu';
 import Logo from './Logo';
 import { useLanguage } from '../lib/i18n';
 import { initials } from '../lib/catalog';
@@ -190,6 +191,7 @@ export default function DashboardSidebar({
 
             {/* Light / dark for the whole website */}
             <ThemeToggle variant="segmented" iconOnly={rail} className="mt-4" />
+            {!rail && <AppearanceMenu inline className="mt-4" />}
           </div>
         </nav>
       </aside>

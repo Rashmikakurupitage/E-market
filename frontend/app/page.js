@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   Search, ArrowRight, Megaphone, HandCoins, Laptop, PackageSearch, ChevronDown, ShieldCheck, HandHeart, MapPin,
-  Scissors, Shirt, Sprout, Soup, Sparkles, PackageCheck, Store, BookOpen, Tag,
+  Scissors, Shirt, Sprout, Soup, Sparkles, PackageCheck, Store, BookOpen, Tag, Plus, CircleHelp,
 } from 'lucide-react';
 import API from '../src/lib/api';
 import { useLanguage } from '../src/lib/i18n';
@@ -39,6 +39,50 @@ const STEP_LOOK = [
   { icon: WhatsAppIcon, tile: 'bg-leaf text-white shadow-leaf/30' },
   { icon: PackageCheck, tile: 'bg-saffron text-white shadow-saffron/30' },
 ];
+
+// Questions people ask before they buy or sell. Opens one at a time.
+function HomeFaq({ h }) {
+  const [openIndex, setOpenIndex] = useState(0);
+  return (
+    <section className="mx-auto w-full max-w-4xl px-4 pb-20 sm:px-6">
+      <SectionTitle title={h.hxFaqTitle} sub={h.hxFaqSub} />
+      <ul className="mt-8 space-y-3">
+        {h.hxFaq.map((item, index) => {
+          const open = openIndex === index;
+          return (
+            <li key={item.q} className="glass overflow-hidden rounded-[24px]">
+              <h3>
+                <button
+                  type="button"
+                  aria-expanded={open}
+                  onClick={() => setOpenIndex(open ? -1 : index)}
+                  className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left text-sm font-bold text-ink sm:text-base"
+                >
+                  <span className="flex items-center gap-3">
+                    <CircleHelp className="h-5 w-5 shrink-0 text-magenta" />
+                    {item.q}
+                  </span>
+                  <Plus className={`h-5 w-5 shrink-0 text-ink/50 transition-transform duration-300 ${open ? 'rotate-45' : ''}`} />
+                </button>
+              </h3>
+              <div className={`grid transition-all duration-300 ${open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'}`}>
+                <p className="overflow-hidden px-5 text-sm leading-relaxed text-ink/70 sm:pl-13">
+                  <span className={`block ${open ? 'pb-5' : ''}`}>{item.a}</span>
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="mt-6 text-center">
+        <Link href="/faq" className="inline-flex items-center gap-2 text-sm font-bold text-magenta hover:underline">
+          {h.hxFaqMore}
+          <ArrowRight className="h-4 w-4" />
+        </Link>
+      </p>
+    </section>
+  );
+}
 
 function ProductCardSkeleton() {
   return (
@@ -454,6 +498,8 @@ export default function Home() {
             </div>
           </Reveal>
         </section>
+
+        <HomeFaq h={h} />
 
         {/* E-Learning banner */}
         <section className="mx-auto w-full max-w-7xl px-4 pb-20 pt-8 sm:px-6">

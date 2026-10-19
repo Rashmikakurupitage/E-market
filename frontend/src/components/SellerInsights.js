@@ -18,7 +18,7 @@ function Ring({ percent }) {
         <circle cx="50" cy="50" r={R} fill="none" stroke="url(#ring-grad)" strokeWidth="10" strokeLinecap="round" strokeDasharray={`${(percent / 100) * C} ${C}`} className="transition-all duration-700" />
         <defs>
           <linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#a3205f" />
+            <stop offset="0%" style={{ stopColor: 'var(--color-brand-700)' }} />
             <stop offset="100%" stopColor="#f59e0b" />
           </linearGradient>
         </defs>

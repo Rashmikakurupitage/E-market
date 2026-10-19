@@ -29,6 +29,8 @@ model User {
   updatedAt    DateTime @updatedAt
   // Set when the owner enters the code we email at sign-up. Accounts without it cannot log in.
   emailVerifiedAt DateTime?
+  // Set by an administrator to deactivate an account while retaining its history.
+  removedAt    DateTime?
 
   sellerProfile   SellerProfile?
   customerProfile CustomerProfile?
@@ -51,6 +53,8 @@ model AdminProfile {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   fullName  String
   nicNumber String   @unique
+  // The primary admin (the first one) is the only admin who can remove other admins
+  isPrimary Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 
@@ -62,6 +66,7 @@ model SellerProfile {
   description  String?
   district     String
   firstName    String?
+  dateOfBirth  DateTime?         @db.Date // worked out from the NIC number at sign-up
   lastName     String?
   // Old plain-text column: now only holds a placeholder. The real NIC is kept encrypted (see utils/nicVault.js).
   nicNumber    String            @unique

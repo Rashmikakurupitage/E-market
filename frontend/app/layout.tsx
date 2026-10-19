@@ -60,7 +60,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <head>
         {/* Light or dark: applied before the first paint so the page never flashes the wrong colours */}
-        <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('lw-theme')==='dark')document.documentElement.setAttribute('data-theme','dark')}catch(e){}" }} />
+        <script dangerouslySetInnerHTML={{ __html: "try{var d=document.documentElement,l=localStorage;if(l.getItem('lw-theme')==='dark')d.setAttribute('data-theme','dark');var a=l.getItem('lw-accent'),p=l.getItem('lw-pattern');if(/^(ocean|forest|royal|slate)$/.test(a))d.setAttribute('data-accent',a);if(/^(dots|lattice|waves)$/.test(p))d.setAttribute('data-pattern',p)}catch(e){}" }} />
       </head>
       {/* Browser extensions (e.g. converters, translators) add attributes to <body>; don't treat that as a hydration error */}
       <body className="bg-mesh flex min-h-full flex-col text-ink" suppressHydrationWarning>
