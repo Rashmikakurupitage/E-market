@@ -4,8 +4,12 @@ const authMiddleware = require('../middlewares/authmiddleware');
 const requireAdmin = require('../middlewares/requireAdmin');
 const {
   createAdmin,
+  listAdmins,
+  removeAdmin,
   getStats,
   getOverview,
+  listCustomers,
+  removeCustomer,
   listSellers,
   getSellerProducts,
   setSellerStatus,
@@ -22,7 +26,12 @@ router.use(authMiddleware, requireAdmin);
 
 router.get('/stats', getStats);
 router.get('/overview', getOverview);
+router.get('/admins', listAdmins);
 router.post('/admins', createAdmin);
+router.delete('/admins/:id', removeAdmin);
+
+router.get('/customers', listCustomers);
+router.delete('/customers/:id', removeCustomer);
 
 router.get('/sellers', listSellers);
 router.get('/sellers/:id/products', getSellerProducts);

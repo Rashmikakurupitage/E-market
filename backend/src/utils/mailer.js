@@ -36,6 +36,9 @@ function getTransporter() {
       port,
       secure: port === 465, // 465 = SSL from the start, 587 = upgrades with STARTTLS
       auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER.trim(), pass } : undefined,
+      // Local development only: some antivirus programs (Avast Mail Shield) re-sign mail connections with a certificate
+      // Node does not trust. SMTP_ALLOW_UNTRUSTED_CERT=true skips the certificate check, and is ignored in production.
+      tls: process.env.SMTP_ALLOW_UNTRUSTED_CERT === 'true' && process.env.NODE_ENV !== 'production' ? { rejectUnauthorized: false } : undefined,
     });
   }
   return transporter;
