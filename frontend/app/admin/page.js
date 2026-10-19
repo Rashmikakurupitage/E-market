@@ -732,20 +732,10 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                         type="button"
                         disabled={busy}
                         onClick={() => changeStatus(seller, 'APPROVED')}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-60"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-60"
                       >
                         {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
                         {a.approve}
-                      </button>
-                    )}
-                    {seller.status !== 'REJECTED' && (
-                      <button
-                        type="button"
-                        disabled={busy}
-                        onClick={() => changeStatus(seller, 'REJECTED')}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
-                      >
-                        {a.reject}
                       </button>
                     )}
                     <button
