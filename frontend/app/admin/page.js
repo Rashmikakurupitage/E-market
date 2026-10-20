@@ -640,7 +640,6 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
     }
   };
 
-  // Called by the confirm box; throwing keeps the box open with the reason
   const removeSeller = async () => {
     const seller = toRemove;
     const sr = t.sellerRemoval;
@@ -738,18 +737,31 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                         {a.approve}
                       </button>
                     )}
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        setRemoveError('');
-                        setToRemove(seller);
-                      }}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-red-50 hover:text-red-700 disabled:opacity-60"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      {t.sellerRemoval.remove}
-                    </button>
+                    {seller.status === 'PENDING' && (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => changeStatus(seller, 'REJECTED')}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
+                      >
+                        {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CircleAlert className="h-4 w-4" />}
+                        {a.reject}
+                      </button>
+                    )}
+                    {seller.status === 'APPROVED' && (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          setRemoveError('');
+                          setToRemove(seller);
+                        }}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 hover:text-red-700 disabled:opacity-60"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {t.sellerRemoval.remove}
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -763,7 +775,6 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
           })}
         </ul>
       )}
-
       {toRemove && (
         <ConfirmDialog
           title={fill(t.sellerRemoval.title, { name: toRemove.businessName })}

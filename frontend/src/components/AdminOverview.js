@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import {
-  AlertTriangle, ArrowRight, BadgeCheck, CalendarDays, CircleCheck, Flag, Hourglass, MessageCircle, Package, RefreshCw, ShoppingBag, Store, TrendingUp, UserRound, Users, Wallet,
+  AlertTriangle, ArrowRight, BadgeCheck, CalendarDays, CircleCheck, FileText, Flag, Hourglass, MessageCircle, Package, RefreshCw, ShoppingBag, Store, TrendingUp, UserRound, Users, Wallet,
 } from 'lucide-react';
 import API from '../lib/api';
 import { fill, useLanguage } from '../lib/i18n';
@@ -13,6 +13,14 @@ import { ComplaintStatusBadge } from './Complaints';
 
 export const ORDER_COLORS = { PENDING: '#f59e0b', CONFIRMED: '#3b82f6', SHIPPED: '#8b5cf6', DELIVERED: '#16a34a', CANCELLED: '#94a3b8' };
 const SELLER_COLORS = { PENDING: '#f59e0b', APPROVED: '#16a34a', REJECTED: '#94a3b8' };
+
+const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}[character]));
 
 export function Kpi({ icon: Icon, label, value, sub, tone, delay, onClick }) {
   const tones = {
@@ -248,6 +256,7 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [days, setDays] = useState(14);
+  const [reportError, setReportError] = useState(false);
 
   useEffect(() => {
     let ignore = false;
@@ -293,6 +302,123 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
   const totalEnquiries = data ? data.clicksByDay.reduce((sum, day) => sum + day.count, 0) : 0;
   const orderTotal = data?.orders.total || 0;
   const needsAttention = (stats?.sellers.PENDING || 0) + (stats?.complaints.OPEN || 0);
+
+  const generateRegistrationReport = () => {
+    const reportDays = data?.registrations?.byDay;
+    if (!reportDays?.length) return;
+
+    const reportWindow = window.open('', '_blank');
+    if (!reportWindow) {
+      setReportError(true);
+      return;
+    }
+    reportWindow.opener = null;
+    setReportError(false);
+
+    const locale = lang === 'en' ? 'en-GB' : lang === 'si' ? 'si-LK' : 'ta-LK';
+    const formatDate = (value, options) => new Date(`${value}T00:00:00`).toLocaleDateString(locale, options);
+    const reportTotals = reportDays.reduce(
+      (sum, day) => ({ customers: sum.customers + day.customers, sellers: sum.sellers + day.sellers }),
+      { customers: 0, sellers: 0 }
+    );
+    const peak = reportDays.reduce((best, day) =>
+      day.customers + day.sellers > best.customers + best.sellers ? day : best
+    );
+    const reportLabels = {
+      title: o.reportTitle || 'Registration report',
+      period: o.reportPeriod || 'Reporting period',
+      generated: o.reportGenerated || 'Generated',
+      breakdown: o.reportDaily || 'Daily breakdown',
+      date: o.reportDate || 'Date',
+      customers: o.customers || 'Customers',
+      sellers: o.sellers || 'Sellers',
+      total: o.regTotal || 'Total',
+      peak: o.regPeak || 'Busiest day',
+      print: o.printReport || 'Print report',
+      close: o.closeReport || 'Close',
+    };
+    const rows = reportDays.map((day) => `
+      <tr>
+        <td>${escapeHtml(formatDate(day.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }))}</td>
+        <td class="number">${escapeHtml(day.customers)}</td>
+        <td class="number">${escapeHtml(day.sellers)}</td>
+        <td class="number">${escapeHtml(day.customers + day.sellers)}</td>
+      </tr>
+    `).join('');
+
+    reportWindow.document.open();
+    reportWindow.document.write(`<!doctype html>
+      <html lang="${escapeHtml(lang)}">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>${escapeHtml(reportLabels.title)} - Lanka Women E-Market</title>
+          <style>
+            :root { color-scheme: light; font-family: Arial, sans-serif; color: #172033; }
+            * { box-sizing: border-box; }
+            body { margin: 0; padding: 32px; background: #f4f6f8; }
+            main { max-width: 960px; margin: 0 auto; padding: 36px; background: white; border: 1px solid #dfe4ea; border-radius: 12px; }
+            header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 24px; border-bottom: 2px solid #172033; }
+            h1 { margin: 0; font-size: 25px; }
+            .brand { margin: 0 0 8px; color: #526079; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+            .meta { margin: 8px 0 0; color: #526079; font-size: 13px; }
+            .actions { display: flex; gap: 8px; }
+            button { border: 0; border-radius: 7px; padding: 10px 14px; background: #172033; color: white; font-weight: 700; cursor: pointer; }
+            button.secondary { background: #eef1f5; color: #172033; }
+            .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+            .metric { padding: 16px; border: 1px solid #dfe4ea; border-radius: 8px; }
+            .metric span { display: block; color: #526079; font-size: 12px; }
+            .metric strong { display: block; margin-top: 6px; font-size: 24px; }
+            .peak { margin: 0 0 20px; color: #526079; font-size: 13px; }
+            h2 { margin: 28px 0 12px; font-size: 16px; }
+            table { width: 100%; border-collapse: collapse; font-size: 13px; }
+            th, td { padding: 10px 12px; border-bottom: 1px solid #dfe4ea; text-align: left; }
+            th { background: #f4f6f8; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+            .number { text-align: right; font-variant-numeric: tabular-nums; }
+            @media (max-width: 600px) {
+              body { padding: 12px; }
+              main { padding: 20px; }
+              header { flex-direction: column; }
+            }
+            @media print {
+              @page { size: A4; margin: 16mm; }
+              body { padding: 0; background: white; }
+              main { max-width: none; padding: 0; border: 0; }
+              .actions { display: none; }
+              tr { break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <main>
+            <header>
+              <div>
+                <p class="brand">Lanka Women E-Market</p>
+                <h1>${escapeHtml(reportLabels.title)}</h1>
+                <p class="meta">${escapeHtml(reportLabels.period)}: ${escapeHtml(formatDate(reportDays[0].date))} – ${escapeHtml(formatDate(reportDays[reportDays.length - 1].date))}</p>
+                <p class="meta">${escapeHtml(reportLabels.generated)}: ${escapeHtml(new Date().toLocaleString(locale))}</p>
+              </div>
+              <div class="actions">
+                <button type="button" onclick="window.print()">${escapeHtml(reportLabels.print)}</button>
+                <button type="button" class="secondary" onclick="window.close()">${escapeHtml(reportLabels.close)}</button>
+              </div>
+            </header>
+            <section class="summary" aria-label="${escapeHtml(reportLabels.title)}">
+              <div class="metric"><span>${escapeHtml(reportLabels.total)}</span><strong>${escapeHtml(reportTotals.customers + reportTotals.sellers)}</strong></div>
+              <div class="metric"><span>${escapeHtml(reportLabels.customers)}</span><strong>${escapeHtml(reportTotals.customers)}</strong></div>
+              <div class="metric"><span>${escapeHtml(reportLabels.sellers)}</span><strong>${escapeHtml(reportTotals.sellers)}</strong></div>
+            </section>
+            ${peak.customers + peak.sellers > 0 ? `<p class="peak"><strong>${escapeHtml(reportLabels.peak)}:</strong> ${escapeHtml(formatDate(peak.date))} · ${escapeHtml(peak.customers + peak.sellers)}</p>` : ''}
+            <h2>${escapeHtml(reportLabels.breakdown)}</h2>
+            <table>
+              <thead><tr><th>${escapeHtml(reportLabels.date)}</th><th class="number">${escapeHtml(reportLabels.customers)}</th><th class="number">${escapeHtml(reportLabels.sellers)}</th><th class="number">${escapeHtml(reportLabels.total)}</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </main>
+        </body>
+      </html>`);
+    reportWindow.document.close();
+  };
 
   return (
     <div className="space-y-6">
@@ -342,18 +468,30 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
       <Card
         title={`${o.regShort} · ${fill(o.lastDays, { days })}`}
         action={
-          <button
-            type="button"
-            onClick={() => setReloadKey((key) => key + 1)}
-            aria-label={o.refreshRegistrations}
-            title={o.refreshRegistrations}
-            className="inline-flex items-center gap-1.5 rounded-full bg-sand/70 px-3 py-1.5 text-xs font-semibold text-ink/70 transition-colors hover:bg-sand"
-          >
-            <RefreshCw className="h-3.5 w-3.5" />
-            {o.refreshRegistrations}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={generateRegistrationReport}
+              disabled={!data?.registrations?.byDay?.length}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              {o.generateReport}
+            </button>
+            <button
+              type="button"
+              onClick={() => setReloadKey((key) => key + 1)}
+              aria-label={o.refreshRegistrations}
+              title={o.refreshRegistrations}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-sand/70 px-3 py-2 text-xs font-semibold text-ink/70 transition-colors hover:bg-sand"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              {o.refreshRegistrations}
+            </button>
+          </div>
         }
       >
+        {reportError && <p role="alert" className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{o.reportPopupBlocked}</p>}
         {data?.registrations?.byDay?.length ? (
           <RegistrationChart
             days={data.registrations.byDay}

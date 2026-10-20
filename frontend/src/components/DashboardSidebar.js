@@ -3,16 +3,14 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { LogOut, Menu, Home, X, ArrowRight } from 'lucide-react';
-import ThemeToggle from './ThemeToggle';
-import AppearanceMenu from './AppearanceMenu';
 import Logo from './Logo';
 import { useLanguage } from '../lib/i18n';
 import { initials } from '../lib/catalog';
 
 const TEXT = {
-  en: { hi: 'Hi,', collapse: 'Collapse menu', expand: 'Expand menu', open: 'Open menu', close: 'Close menu', dark: 'Dark', light: 'Light', home: 'Home page', mode: 'Menu colour' },
-  si: { hi: 'ආයුබෝවන්,', collapse: 'මෙනුව හකුළන්න', expand: 'මෙනුව දිගහරින්න', open: 'මෙනුව විවෘත කරන්න', close: 'මෙනුව වසන්න', dark: 'අඳුරු', light: 'ලා', home: 'මුල් පිටුව', mode: 'මෙනුවේ වර්ණය' },
-  ta: { hi: 'வணக்கம்,', collapse: 'பட்டியலைச் சுருக்கு', expand: 'பட்டியலை விரி', open: 'பட்டியலைத் திற', close: 'பட்டியலை மூடு', dark: 'இருண்ட', light: 'வெளிர்', home: 'முகப்பு', mode: 'பட்டியல் நிறம்' },
+  en: { hi: 'Hi,', collapse: 'Collapse menu', expand: 'Expand menu', open: 'Open menu', close: 'Close menu', home: 'Home page' },
+  si: { hi: 'ආයුබෝවන්,', collapse: 'මෙනුව හකුළන්න', expand: 'මෙනුව දිගහරින්න', open: 'මෙනුව විවෘත කරන්න', close: 'මෙනුව වසන්න', home: 'මුල් පිටුව' },
+  ta: { hi: 'வணக்கம்,', collapse: 'பட்டியலைச் சுருக்கு', expand: 'பட்டியலை விரி', open: 'பட்டியலைத் திற', close: 'பட்டியலை மூடு', home: 'முகப்பு' },
 };
 
 const STORE_KEY = 'dashboard-sidebar';
@@ -188,10 +186,6 @@ export default function DashboardSidebar({
                 )}
               </div>
             )}
-
-            {/* Light / dark for the whole website */}
-            <ThemeToggle variant="segmented" iconOnly={rail} className="mt-4" />
-            {!rail && <AppearanceMenu inline className="mt-4" />}
           </div>
         </nav>
       </aside>
