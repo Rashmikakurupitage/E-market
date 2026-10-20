@@ -16,6 +16,12 @@ const {
 } = require('../controllers/adminController');
 const { listComplaints, updateComplaint } = require('../controllers/complaintController');
 const { addWallpaper, removeWallpaper, saveWallpaperSettings, resetWallpapers } = require('../controllers/siteController');
+const {
+  listAdminCourses,
+  createCourse,
+  updateCourse,
+  setCoursePublished,
+} = require('../controllers/learningCourseController');
 
 // Every admin route needs a logged-in admin
 router.use(authMiddleware, requireAdmin);
@@ -40,5 +46,10 @@ router.post('/site/wallpapers', addWallpaper);
 router.delete('/site/wallpapers/:id', removeWallpaper);
 router.put('/site/wallpaper-settings', saveWallpaperSettings);
 router.delete('/site/wallpapers', resetWallpapers);
+
+router.get('/learning-courses', listAdminCourses);
+router.post('/learning-courses', createCourse);
+router.put('/learning-courses/:courseId', updateCourse);
+router.patch('/learning-courses/:courseId/published', setCoursePublished);
 
 module.exports = router;

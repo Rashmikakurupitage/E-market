@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   BadgeCheck, Package, Search, MapPin, Mail, Phone, IdCard,
   ChevronDown, ChevronUp, Eye, EyeOff, Trash2, CircleCheck, CircleAlert, LoaderCircle,
-  Users, CalendarDays, ShieldCheck, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw,
+  Users, CalendarDays, ShieldCheck, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw, BookOpen,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -21,6 +21,7 @@ import DashboardSidebar from '../../src/components/DashboardSidebar';
 import AdminOverview from '../../src/components/AdminOverview';
 import { allWallpapers, shownWallpapers, BUILTIN_WALLPAPERS } from '../../src/lib/siteImage';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
+import AdminLearningCourses from '../../src/components/AdminLearningCourses';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -1058,7 +1059,7 @@ export default function AdminDashboard() {
   const hydrated = useHydrated();
   const isAdmin = session?.user?.role === 'SUPER_ADMIN';
 
-  const [tab, setTab] = useState('overview'); // 'overview' | 'sellers' | 'products' | 'complaints' | 'appearance' | 'admins'
+  const [tab, setTab] = useState('overview');
   const [stats, setStats] = useState(null);
   const [statsKey, setStatsKey] = useState(0);
   const [notice, setNotice] = useState(null); // { text, error }
@@ -1110,6 +1111,7 @@ export default function AdminDashboard() {
     { value: 'overview', label: a.tabOverview, icon: LayoutDashboard },
     { value: 'sellers', label: a.tabSellers, icon: Users, badge: stats?.sellers.PENDING },
     { value: 'products', label: a.tabProducts, icon: Package },
+    { value: 'courses', label: a.tabCourses, icon: BookOpen },
     { value: 'complaints', label: t.complaints.admin.tab, icon: Flag, badge: stats?.complaints.OPEN },
     { value: 'appearance', label: t.sitePicture.tab, icon: ImageIcon },
     { value: 'admins', label: a.tabAdmins, icon: UserPlus },
@@ -1166,6 +1168,12 @@ export default function AdminDashboard() {
           {tab === 'products' && (
             <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
               <ProductsPanel onChanged={changed} onAuthError={loginExpired} />
+            </section>
+          )}
+
+          {tab === 'courses' && (
+            <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
+              <AdminLearningCourses onChanged={changed} onAuthError={loginExpired} />
             </section>
           )}
 

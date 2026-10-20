@@ -9,6 +9,7 @@ const orderRoutes = require('./routes/orderRoutes');
 const complaintRoutes = require('./routes/complaintRoutes');
 const siteRoutes = require('./routes/siteRoutes');
 const profileRoutes = require('./routes/profileRoutes');
+const learningRoutes = require('./routes/learningRoutes');
 const { getEmailProvider, isEmailConfigured } = require('./utils/mailer');
 
 const app = express();
@@ -26,6 +27,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/complaints', complaintRoutes);
 app.use('/api/site', siteRoutes);
 app.use('/api/profile', profileRoutes);
+app.use('/api/learning', learningRoutes);
 
 app.get('/', (req, res) => {
   res.json({ message: 'Lanka Women E-Market API is Running Smoothly!' });
