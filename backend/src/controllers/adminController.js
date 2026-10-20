@@ -450,9 +450,12 @@ exports.getSellerProducts = async (req, res) => {
 exports.removeSeller = async (req, res) => {
   try {
     const id = String(req.params.id);
-    const seller = await prisma.sellerProfile.findUnique({ where: { id }, select: { id: true, removedAt: true } });
+    const seller = await prisma.sellerProfile.findUnique({ where: { id }, select: { id: true, status: true, removedAt: true } });
     if (!seller || seller.removedAt) {
       return res.status(404).json({ code: 'NOT_FOUND', message: 'Seller not found.' });
+    }
+    if (seller.status !== 'APPROVED') {
+      return res.status(409).json({ code: 'SELLER_NOT_APPROVED', message: 'Only approved sellers can be removed.' });
     }
 
     const [activeOrders, openComplaints] = await Promise.all([
