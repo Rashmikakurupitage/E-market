@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
-  BadgeCheck, Package, Search, MapPin, Mail, Phone, IdCard,
+  BadgeCheck, Package, Search, MapPin, Mail, Phone, IdCard, ArrowLeft,
   ChevronDown, ChevronUp, Eye, EyeOff, Trash2, CircleCheck, CircleAlert, LoaderCircle,
-  Users, CalendarDays, ShieldCheck, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw, BookOpen,
+  Users, UserRound, CalendarDays, ShieldCheck, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw, BookOpen,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -100,7 +100,7 @@ function ComplaintsPanel({ stats, onChanged, onAuthError }) {
   const query = useDebounced(search.trim());
   const [complaints, setComplaints] = useState(null);
   const [failed, setFailed] = useState(false);
-  const [hiddenIds, setHiddenIds] = useState([]); // complaints are shown in full; the admin can fold one away
+  const [openIds, setOpenIds] = useState([]); // complaints start folded to one line; the admin opens the one to handle
 
   useEffect(() => {
     let ignore = false;
@@ -150,15 +150,19 @@ function ComplaintsPanel({ stats, onChanged, onAuthError }) {
       ) : (
         <ul className="divide-y divide-slate-100">
           {complaints.map((complaint) => {
-            const open = !hiddenIds.includes(complaint.id);
+            const open = openIds.includes(complaint.id);
+            const ageDays = Math.max(0, Math.floor((Date.now() - new Date(complaint.createdAt).getTime()) / 86400000));
+            const overdue = complaint.status === 'OPEN' && ageDays >= 3;
+            const accent = overdue ? 'border-l-rose-500' : { OPEN: 'border-l-rose-300', IN_REVIEW: 'border-l-blue-400', RESOLVED: 'border-l-emerald-400', DISMISSED: 'border-l-slate-300' }[complaint.status] || 'border-l-slate-200';
             return (
-              <li key={complaint.id} className="px-5 py-4">
+              <li key={complaint.id} className={`border-l-4 px-5 py-4 ${accent} ${open ? 'bg-slate-50/60' : ''}`}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-mono text-sm font-bold tracking-wider text-slate-900">{complaint.reference}</span>
                       <ComplaintStatusBadge status={complaint.status} />
                       <span className="rounded-full bg-sand/70 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">{c.reasons[complaint.reason] || complaint.reason}</span>
+                      {overdue && <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 ring-1 ring-rose-200"><CircleAlert className="h-3 w-3" />{ca.overdue}</span>}
                     </div>
                     <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-slate-700">
                       <span className="font-semibold">{complaint.customer?.fullName}</span>
@@ -167,18 +171,15 @@ function ComplaintsPanel({ stats, onChanged, onAuthError }) {
                       {complaint.seller?.district && <span className="text-xs text-slate-500">({complaint.seller.district})</span>}
                     </p>
                     <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
-                      {complaint.customer?.user?.email && <span className="inline-flex items-center gap-1"><Mail className="h-3.5 w-3.5" />{complaint.customer.user.email}</span>}
-                      {complaint.customer?.user?.phone && <span className="inline-flex items-center gap-1"><Phone className="h-3.5 w-3.5" />{complaint.customer.user.phone}</span>}
-                    </p>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs text-slate-500">
                       <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{fill(ca.received, { date: formatDate(complaint.createdAt) })}</span>
+                      <span className={`font-semibold ${overdue ? 'text-rose-700' : ''}`}>{ageDays === 0 ? t.overview.cmpToday : fill(t.overview.cmpDaysAgo, { count: ageDays })}</span>
                       {complaint.order?.reference && <span>{ca.order} {complaint.order.reference}</span>}
                     </p>
-                    {!open && <p className="mt-2 line-clamp-2 text-sm text-slate-600">{complaint.message}</p>}
+                    {!open && <p className="mt-2 line-clamp-1 text-sm text-slate-600">{complaint.message}</p>}
                   </div>
                   <button
                     type="button"
-                    onClick={() => setHiddenIds((ids) => (open ? [...ids, complaint.id] : ids.filter((id) => id !== complaint.id)))}
+                    onClick={() => setOpenIds((ids) => (open ? ids.filter((id) => id !== complaint.id) : [...ids, complaint.id]))}
                     aria-expanded={open}
                     className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-cream"
                   >
@@ -225,12 +226,7 @@ function ComplaintDetails({ complaint, onSaved, onChanged, onAuthError }) {
   const sellerWhatsapp = toWhatsAppNumber(seller?.whatsappNo);
 
   return (
-    <div className="mt-4 space-y-4 rounded-2xl bg-cream p-4 ring-1 ring-slate-200">
-      <div className="flex flex-wrap items-center gap-2 text-xs">
-        <span className="font-mono text-sm font-bold tracking-wider text-slate-900">{complaint.reference}</span>
-        <ComplaintStatusBadge status={complaint.status} />
-        <span className="rounded-full bg-white px-2.5 py-0.5 font-semibold text-slate-600 ring-1 ring-slate-200">{c.reasons[complaint.reason] || complaint.reason}</span>
-      </div>
+    <div className="mt-4 space-y-4 rounded-2xl bg-white p-4 ring-1 ring-slate-200">
       <p className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
         <span>{fill(ca.received, { date: formatDate(complaint.createdAt) })}</span>
         {complaint.updatedAt && complaint.updatedAt !== complaint.createdAt && <span>{fill(ca.lastUpdated, { date: formatDate(complaint.updatedAt) })}</span>}
@@ -292,15 +288,23 @@ function ComplaintDetails({ complaint, onSaved, onChanged, onAuthError }) {
       </dl>
 
       <form onSubmit={save} className="grid gap-3 sm:grid-cols-[200px_1fr]">
-        <Field id={`status-${complaint.id}`} label={ca.status}>
-          <select id={`status-${complaint.id}`} value={status} onChange={(e) => setStatus(e.target.value)} className={inputClass(false)}>
+        <div>
+          <p className="mb-1.5 text-sm font-semibold text-slate-700">{ca.status}</p>
+          <div role="radiogroup" aria-label={ca.status} className="flex flex-col gap-1.5">
             {COMPLAINT_STATUSES.map((value) => (
-              <option key={value} value={value}>
+              <button
+                key={value}
+                type="button"
+                role="radio"
+                aria-checked={status === value}
+                onClick={() => setStatus(value)}
+                className={`rounded-xl px-3 py-2 text-left text-sm font-semibold ring-1 transition-colors ${status === value ? 'bg-slate-900 text-white ring-slate-900' : 'bg-white text-slate-700 ring-slate-200 hover:bg-cream'}`}
+              >
                 {c.status[value]}
-              </option>
+              </button>
             ))}
-          </select>
-        </Field>
+          </div>
+        </div>
         <Field id={`note-${complaint.id}`} label={ca.note}>
           <textarea
             id={`note-${complaint.id}`}
@@ -434,6 +438,117 @@ function CreateAdminPanel({ onCreated, onAuthError }) {
   );
 }
 
+function AdminsPanel({ onChanged, onAuthError }) {
+  const { t } = useLanguage();
+  const a = t.admin;
+  const [admins, setAdmins] = useState(null);
+  const [viewerIsPrimary, setViewerIsPrimary] = useState(false);
+  const [toRemove, setToRemove] = useState(null);
+  const [removeError, setRemoveError] = useState('');
+  const [failed, setFailed] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  useEffect(() => {
+    let ignore = false;
+    API.get('/admin/admins')
+      .then((res) => {
+        if (ignore) return;
+        setAdmins(res.data.admins);
+        setViewerIsPrimary(!!res.data.viewerIsPrimary);
+        setFailed(false);
+      })
+      .catch((err) => {
+        if (ignore) return;
+        if (isAuthError(err)) onAuthError();
+        else setFailed(true);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [refreshKey, onAuthError]);
+
+  // Called by the confirm box; throwing keeps it open with the reason
+  const removeAdmin = async () => {
+    const admin = toRemove;
+    setRemoveError('');
+    try {
+      await API.delete(`/admin/admins/${admin.id}`);
+    } catch (err) {
+      if (isAuthError(err)) {
+        onAuthError();
+        return;
+      }
+      setRemoveError(a.adminRemovalErrors[err.response?.data?.code] || a.adminRemovalErrors.generic);
+      throw err;
+    }
+    setToRemove(null);
+    setRefreshKey((key) => key + 1);
+    onChanged(fill(a.adminRemovalDone, { name: admin.fullName || admin.email }));
+  };
+
+  return (
+    <div className="divide-y divide-slate-100">
+      <CreateAdminPanel
+        onCreated={(message) => {
+          setRefreshKey((key) => key + 1);
+          onChanged(message);
+        }}
+        onAuthError={onAuthError}
+      />
+      <section className="p-5 sm:p-7">
+        <h2 className="text-lg font-bold text-slate-900">{a.registeredAdminsTitle}</h2>
+        <p className="mt-1 text-sm text-slate-500">{a.registeredAdminsDescription}</p>
+        {failed ? (
+          <p role="alert" className="py-8 text-center text-sm text-red-700">{a.adminsLoadError}</p>
+        ) : !admins ? (
+          <ListMessage loading>{a.loading}</ListMessage>
+        ) : admins.length === 0 ? (
+          <ListMessage>{a.noAdmins}</ListMessage>
+        ) : (
+          <ul className="mt-5 divide-y divide-slate-100 rounded-2xl ring-1 ring-slate-200">
+            {admins.map((admin) => (
+              <li key={admin.id} className="flex flex-col gap-2 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="flex flex-wrap items-center gap-2 font-semibold text-slate-900">
+                    {admin.fullName || admin.email}
+                    {admin.isPrimary && <span className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700"><ShieldCheck className="h-3.5 w-3.5" />{a.primaryAdmin}</span>}
+                  </p>
+                  <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-600">
+                    <span className="inline-flex items-center gap-1.5"><Mail className="h-4 w-4 text-slate-400" />{admin.email}</span>
+                    <span className="inline-flex items-center gap-1.5"><Phone className="h-4 w-4 text-slate-400" />{admin.phone}</span>
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <p className="text-xs text-slate-500">{fill(a.registered, { date: formatDate(admin.createdAt) })}</p>
+                  {viewerIsPrimary && !admin.isPrimary && (
+                    <button type="button" onClick={() => { setRemoveError(''); setToRemove(admin); }} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200 hover:bg-red-50">
+                      <Trash2 className="h-3.5 w-3.5" />
+                      {a.removeAdmin}
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {toRemove && (
+        <ConfirmDialog
+          title={fill(a.adminRemovalTitle, { name: toRemove.fullName || toRemove.email })}
+          text={a.adminRemovalText}
+          confirmLabel={a.adminRemovalConfirm}
+          busyLabel={a.adminRemovalBusy}
+          cancelLabel={a.adminRemovalCancel}
+          errorText={removeError || a.adminRemovalErrors.generic}
+          onConfirm={removeAdmin}
+          onClose={() => setToRemove(null)}
+        />
+      )}
+    </div>
+  );
+}
+
 function SellerProducts({ sellerId, onAuthError }) {
   const { t } = useLanguage();
   const a = t.admin;
@@ -526,7 +641,6 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
     }
   };
 
-  // Called by the confirm box; throwing keeps the box open with the reason
   const removeSeller = async () => {
     const seller = toRemove;
     const sr = t.sellerRemoval;
@@ -618,34 +732,37 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                         type="button"
                         disabled={busy}
                         onClick={() => changeStatus(seller, 'APPROVED')}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand-600 px-4 py-2 text-sm font-bold text-white hover:bg-brand-700 disabled:opacity-60"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-60"
                       >
                         {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
                         {a.approve}
                       </button>
                     )}
-                    {seller.status !== 'REJECTED' && (
+                    {seller.status === 'PENDING' && (
                       <button
                         type="button"
                         disabled={busy}
                         onClick={() => changeStatus(seller, 'REJECTED')}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-lg border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
                       >
+                        {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CircleAlert className="h-4 w-4" />}
                         {a.reject}
                       </button>
                     )}
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        setRemoveError('');
-                        setToRemove(seller);
-                      }}
-                      className="inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-red-50 hover:text-red-700 disabled:opacity-60"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                      {t.sellerRemoval.remove}
-                    </button>
+                    {seller.status === 'APPROVED' && (
+                      <button
+                        type="button"
+                        disabled={busy}
+                        onClick={() => {
+                          setRemoveError('');
+                          setToRemove(seller);
+                        }}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 hover:text-red-700 disabled:opacity-60"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {t.sellerRemoval.remove}
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -659,7 +776,6 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
           })}
         </ul>
       )}
-
       {toRemove && (
         <ConfirmDialog
           title={fill(t.sellerRemoval.title, { name: toRemove.businessName })}
@@ -669,6 +785,122 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
           cancelLabel={t.sellerRemoval.cancel}
           errorText={removeError || t.sellerRemoval.errors.generic}
           onConfirm={removeSeller}
+          onClose={() => setToRemove(null)}
+        />
+      )}
+    </>
+  );
+}
+
+function CustomersPanel({ onChanged, onAuthError, onBack }) {
+  const { t } = useLanguage();
+  const a = t.admin;
+  const removal = a.customerRemoval;
+  const [search, setSearch] = useState('');
+  const query = useDebounced(search.trim());
+  const [customers, setCustomers] = useState(null);
+  const [failed, setFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [toRemove, setToRemove] = useState(null);
+  const [removeError, setRemoveError] = useState('');
+
+  useEffect(() => {
+    let ignore = false;
+    API.get('/admin/customers', { params: { search: query || undefined }, timeout: 15000 })
+      .then((res) => {
+        if (ignore) return;
+        setCustomers(res.data);
+        setFailed(false);
+      })
+      .catch((err) => {
+        if (ignore) return;
+        if (isAuthError(err)) onAuthError();
+        else setFailed(true);
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [query, reloadKey, onAuthError]);
+
+  const removeCustomer = async () => {
+    const customer = toRemove;
+    setRemoveError('');
+    try {
+      await API.delete(`/admin/customers/${customer.userId}`);
+    } catch (err) {
+      if (isAuthError(err)) {
+        onAuthError();
+        return;
+      }
+      setRemoveError(removal.errors.generic);
+      throw err;
+    }
+    setToRemove(null);
+    onChanged(fill(removal.done, { name: customer.fullName }));
+    setReloadKey((key) => key + 1);
+  };
+
+  return (
+    <>
+      <div className="border-b border-slate-100 px-4 pt-4">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-sand/60 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-magenta"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          {a.backToOverview}
+        </button>
+      </div>
+      <Toolbar filters={[]} active="" onFilter={() => {}} search={search} onSearch={setSearch} placeholder={a.searchCustomers} />
+      {failed ? (
+        <ListMessage>{a.actionError}</ListMessage>
+      ) : !customers ? (
+        <ListMessage loading>{a.loading}</ListMessage>
+      ) : customers.length === 0 ? (
+        <ListMessage>{a.noCustomers}</ListMessage>
+      ) : (
+        <ul className="divide-y divide-slate-100">
+          {customers.map((customer) => (
+            <li key={customer.id} className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex min-w-0 gap-4">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-50 font-bold text-blue-700">
+                  {initials(customer.fullName) || '?'}
+                </span>
+                <div className="min-w-0">
+                  <p className="font-bold text-slate-900">{customer.fullName}</p>
+                  <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
+                    <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" />{customer.email}</span>
+                    <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" />{customer.phone}</span>
+                    <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />{fill(a.registered, { date: formatDate(customer.createdAt) })}</span>
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setRemoveError('');
+                  setToRemove(customer);
+                }}
+                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-red-50 hover:text-red-700"
+              >
+                <Trash2 className="h-4 w-4" />
+                {removal.remove}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {toRemove && (
+        <ConfirmDialog
+          title={fill(removal.title, { name: toRemove.fullName })}
+          text={removal.text}
+          confirmLabel={removal.confirm}
+          busyLabel={removal.busy}
+          cancelLabel={removal.cancel}
+          errorText={removeError || removal.errors.generic}
+          onConfirm={removeCustomer}
           onClose={() => setToRemove(null)}
         />
       )}
@@ -1051,6 +1283,8 @@ function WallpaperPanel({ onChanged, onAuthError }) {
   );
 }
 
+const ADMIN_TABS = ['overview', 'customers', 'sellers', 'products', 'complaints', 'appearance', 'admins'];
+
 export default function AdminDashboard() {
   const router = useRouter();
   const { t } = useLanguage();
@@ -1059,7 +1293,24 @@ export default function AdminDashboard() {
   const hydrated = useHydrated();
   const isAdmin = session?.user?.role === 'SUPER_ADMIN';
 
-  const [tab, setTab] = useState('overview');
+  const [tab, setTabState] = useState('overview'); // 'overview' | 'customers' | 'sellers' | 'products' | 'complaints' | 'appearance' | 'admins'
+
+  // The open tab lives in the address (#customers), so refreshing or using the browser's back button returns to it, not to the overview
+  const setTab = useCallback((next) => {
+    setTabState(next);
+    if (typeof window !== 'undefined' && window.location.hash !== `#${next}`) {
+      window.history.pushState(null, '', next === 'overview' ? window.location.pathname : `#${next}`);
+    }
+  }, []);
+  useEffect(() => {
+    const fromHash = () => {
+      const name = window.location.hash.slice(1);
+      setTabState(ADMIN_TABS.includes(name) ? name : 'overview');
+    };
+    fromHash();
+    window.addEventListener('popstate', fromHash);
+    return () => window.removeEventListener('popstate', fromHash);
+  }, []);
   const [stats, setStats] = useState(null);
   const [statsKey, setStatsKey] = useState(0);
   const [notice, setNotice] = useState(null); // { text, error }
@@ -1109,6 +1360,7 @@ export default function AdminDashboard() {
 
   const menu = [
     { value: 'overview', label: a.tabOverview, icon: LayoutDashboard },
+    { value: 'customers', label: a.tabCustomers, icon: UserRound },
     { value: 'sellers', label: a.tabSellers, icon: Users, badge: stats?.sellers.PENDING },
     { value: 'products', label: a.tabProducts, icon: Package },
     { value: 'courses', label: a.tabCourses, icon: BookOpen },
@@ -1165,6 +1417,12 @@ export default function AdminDashboard() {
             </section>
           )}
 
+          {tab === 'customers' && (
+            <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
+              <CustomersPanel onChanged={changed} onAuthError={loginExpired} onBack={() => setTab('overview')} />
+            </section>
+          )}
+
           {tab === 'products' && (
             <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
               <ProductsPanel onChanged={changed} onAuthError={loginExpired} />
@@ -1191,7 +1449,7 @@ export default function AdminDashboard() {
 
           {tab === 'admins' && (
             <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
-              <CreateAdminPanel onCreated={changed} onAuthError={loginExpired} />
+              <AdminsPanel onChanged={changed} onAuthError={loginExpired} />
             </section>
           )}
       </DashboardSidebar>

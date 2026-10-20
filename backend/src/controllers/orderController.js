@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const { Prisma } = require('@prisma/client');
 const prisma = require('../config/db');
+const { discountOf } = require('../utils/discount');
 
 // Errors carry a `code` so the website can show the message in Sinhala, Tamil or English.
 
@@ -68,7 +69,7 @@ exports.placeOrder = async (req, res) => {
     // Only products that are on the website now, with a price, can be ordered
     const products = await prisma.product.findMany({
       where: { id: { in: [...quantities.keys()] }, isPublished: true, seller: { status: 'APPROVED' } },
-      select: { id: true, title: true, images: true, price: true, sellerId: true }
+      select: { id: true, title: true, images: true, price: true, discountPercent: true, discountEndsAt: true, sellerId: true }
     });
 
     const available = new Set(products.filter((p) => p.price !== null).map((p) => p.id));
@@ -94,7 +95,8 @@ exports.placeOrder = async (req, res) => {
           productId: product.id,
           title: product.title,
           image: product.images[0] || null,
-          price: product.price,
+          // The customer pays the discounted price while the seller's discount is running
+          price: discountOf(product) ? new Prisma.Decimal(discountOf(product).salePrice) : product.price,
           quantity: quantities.get(product.id)
         }));
         const total = lines.reduce((sum, line) => sum.add(line.price.mul(line.quantity)), new Prisma.Decimal(0));

@@ -6,25 +6,49 @@ import { fill, useLanguage } from '../lib/i18n';
 import { inputClass } from './form';
 
 export const MAX_PHOTOS = 5;
+const MAX_UPLOAD_BYTES = 550 * 1024;
 
-// Shrinks a chosen picture to at most 1200px (JPEG) so five of them upload quickly
+// Keeps each JPEG below the backend's 600 KB per-photo limit.
 function shrink(file, max = 1200) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new window.Image();
     img.onload = () => {
-      const scale = Math.min(1, max / Math.max(img.width, img.height));
+      let scale = Math.min(1, max / Math.max(img.width, img.height));
       const canvas = document.createElement('canvas');
-      canvas.width = Math.round(img.width * scale);
-      canvas.height = Math.round(img.height * scale);
-      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/jpeg', 0.8));
+      const encode = (quality) => new Promise((done, fail) => {
+        canvas.toBlob((blob) => blob ? done(blob) : fail(new Error('type')), 'image/jpeg', quality);
+      });
+      const readDataUrl = (blob) => new Promise((done, fail) => {
+        const reader = new FileReader();
+        reader.onload = () => done(reader.result);
+        reader.onerror = () => fail(new Error('type'));
+        reader.readAsDataURL(blob);
+      });
+
+      const compress = async () => {
+        for (let attempt = 0; attempt < 8; attempt += 1) {
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          const context = canvas.getContext('2d');
+          if (!context) throw new Error('type');
+          context.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          for (const quality of [0.82, 0.72, 0.62, 0.52]) {
+            const blob = await encode(quality);
+            if (blob.size <= MAX_UPLOAD_BYTES) return readDataUrl(blob);
+          }
+          scale *= 0.8;
+          if (Math.max(canvas.width, canvas.height) < 320) break;
+        }
+        throw new Error('size');
+      };
+
+      compress()
+        .then(resolve, reject)
+        .finally(() => URL.revokeObjectURL(url));
     };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('type'));
-    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('type')); };
     img.src = url;
   });
 }
@@ -56,8 +80,8 @@ export default function ProductPhotosField({ value, onChange }) {
       }
       try {
         added.push(await shrink(file));
-      } catch {
-        setError(p.errors.type);
+      } catch (error) {
+        setError(error.message === 'size' ? p.errors.big : p.errors.type);
       }
     }
     setBusy(false);

@@ -70,6 +70,7 @@ exports.createAdmin = async (req, res) => {
         phone,
         role: 'SUPER_ADMIN',
         passwordHash,
+        emailVerifiedAt: new Date(),
         adminProfile: { create: { fullName, nicNumber } }
       },
       select: {
@@ -95,6 +96,62 @@ exports.createAdmin = async (req, res) => {
       return res.status(409).json({ code, message: 'An account with these details already exists.' });
     }
     serverError(res, 'ADMIN_CREATE_ADMIN_ERROR:', error);
+  }
+};
+
+exports.listAdmins = async (req, res) => {
+  try {
+    const admins = await prisma.user.findMany({
+      where: { role: 'SUPER_ADMIN' },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        email: true,
+        phone: true,
+        createdAt: true,
+        adminProfile: { select: { fullName: true, isPrimary: true } }
+      }
+    });
+
+    const viewer = admins.find((admin) => admin.id === req.user.userId);
+    res.json({
+      viewerIsPrimary: !!viewer?.adminProfile?.isPrimary,
+      admins: admins.map(({ adminProfile, ...user }) => ({
+        ...user,
+        fullName: adminProfile?.fullName || '',
+        isPrimary: !!adminProfile?.isPrimary
+      }))
+    });
+  } catch (error) {
+    serverError(res, 'ADMIN_LIST_ADMINS_ERROR:', error);
+  }
+};
+
+// Only the super admin can remove another admin (never themselves, never the super admin)
+exports.removeAdmin = async (req, res) => {
+  try {
+    const id = String(req.params.id);
+    const viewer = await prisma.adminProfile.findUnique({ where: { userId: req.user.userId }, select: { isPrimary: true } });
+    if (!viewer?.isPrimary) {
+      return res.status(403).json({ code: 'NOT_PRIMARY_ADMIN', message: 'Only the super admin can remove admins.' });
+    }
+    if (id === req.user.userId) {
+      return res.status(400).json({ code: 'CANNOT_REMOVE_SELF', message: 'You cannot remove your own account.' });
+    }
+    const target = await prisma.user.findFirst({ where: { id, role: 'SUPER_ADMIN' }, select: { id: true, adminProfile: { select: { isPrimary: true } } } });
+    if (!target) {
+      return res.status(404).json({ code: 'NOT_FOUND', message: 'Admin not found.' });
+    }
+    if (target.adminProfile?.isPrimary) {
+      return res.status(400).json({ code: 'CANNOT_REMOVE_PRIMARY', message: 'The super admin cannot be removed.' });
+    }
+    await prisma.user.delete({ where: { id } });
+    res.json({ removed: true });
+  } catch (error) {
+    if (error.code === 'P2003') {
+      return res.status(409).json({ code: 'ADMIN_IN_USE', message: 'This admin has records that must be kept.' });
+    }
+    serverError(res, 'ADMIN_REMOVE_ADMIN_ERROR:', error);
   }
 };
 
@@ -131,7 +188,7 @@ exports.getStats = async (req, res) => {
   }
 };
 
-// Everything the overview page needs in one call: totals, a 14-day enquiry chart, and what needs attention
+// Everything the overview page needs in one call: totals, 14-day charts, and what needs attention
 const dayKey = (date) => {
   const d = new Date(date);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -139,13 +196,19 @@ const dayKey = (date) => {
 
 exports.getOverview = async (req, res) => {
   try {
-    const DAYS = 14;
+    const requestedDays = Number(req.query.days);
+    const DAYS = [7, 14, 30, 90].includes(requestedDays) ? requestedDays : 14;
     const start = new Date();
     start.setHours(0, 0, 0, 0);
     start.setDate(start.getDate() - (DAYS - 1));
 
-    const [customers, orders, ordersByStatus, delivered, clicks, topRaw, pendingSellers, recentComplaints] = await Promise.all([
-      prisma.customerProfile.count(),
+    const [customers, sellers, newRegistrations, orders, ordersByStatus, delivered, clicks, topRaw, pendingSellers, recentComplaints] = await Promise.all([
+      prisma.user.count({ where: { role: 'CUSTOMER', removedAt: null, emailVerifiedAt: { not: null } } }),
+      prisma.user.count({ where: { role: 'SELLER', removedAt: null, sellerProfile: { is: { removedAt: null } } } }),
+      prisma.user.findMany({
+        where: { role: { in: ['CUSTOMER', 'SELLER'] }, emailVerifiedAt: { not: null }, createdAt: { gte: start } },
+        select: { role: true, createdAt: true }
+      }),
       prisma.order.count(),
       prisma.order.groupBy({ by: ['status'], _count: { _all: true } }),
       prisma.order.aggregate({ where: { status: 'DELIVERED' }, _sum: { total: true } }),
@@ -165,10 +228,31 @@ exports.getOverview = async (req, res) => {
           id: true,
           reference: true,
           reason: true,
+          message: true,
           status: true,
           createdAt: true,
           customer: { select: { fullName: true } },
           seller: { select: { businessName: true } }
+        }
+      })
+    ]);
+
+    // The same number of days just before this period, so the dashboard can show whether things are up or down
+    const previousStart = new Date(start);
+    previousStart.setDate(previousStart.getDate() - DAYS);
+    const [previousRegistrations, previousClicks, recentSignups] = await Promise.all([
+      prisma.user.count({ where: { role: { in: ['CUSTOMER', 'SELLER'] }, createdAt: { gte: previousStart, lt: start } } }),
+      prisma.clickAnalytics.count({ where: { timestamp: { gte: previousStart, lt: start } } }),
+      prisma.user.findMany({
+        where: { role: { in: ['CUSTOMER', 'SELLER'] }, removedAt: null, emailVerifiedAt: { not: null } },
+        orderBy: { createdAt: 'desc' },
+        take: 6,
+        select: {
+          id: true,
+          role: true,
+          createdAt: true,
+          customerProfile: { select: { fullName: true } },
+          sellerProfile: { select: { businessName: true, firstName: true, lastName: true, district: true } }
         }
       })
     ]);
@@ -180,6 +264,22 @@ exports.getOverview = async (req, res) => {
       const day = new Date(start);
       day.setDate(start.getDate() + index);
       return { date: dayKey(day), count: perDay.get(dayKey(day)) || 0 };
+    });
+
+    const registrationsPerDay = new Map();
+    newRegistrations.forEach((user) => {
+      const key = dayKey(user.createdAt);
+      const counts = registrationsPerDay.get(key) || { customers: 0, sellers: 0 };
+      counts[user.role === 'CUSTOMER' ? 'customers' : 'sellers'] += 1;
+      registrationsPerDay.set(key, counts);
+    });
+    const registrationsByDay = Array.from({ length: DAYS }, (_, index) => {
+      const day = new Date(start);
+      day.setDate(start.getDate() + index);
+      return {
+        date: dayKey(day),
+        ...(registrationsPerDay.get(dayKey(day)) || { customers: 0, sellers: 0 })
+      };
     });
 
     const names = await prisma.sellerProfile.findMany({
@@ -200,7 +300,20 @@ exports.getOverview = async (req, res) => {
     });
 
     res.json({
+      days: DAYS,
+      previous: { registrations: previousRegistrations, clicks: previousClicks },
+      recentSignups: recentSignups.map((user) => ({
+        id: user.id,
+        role: user.role,
+        createdAt: user.createdAt,
+        name:
+          user.role === 'SELLER'
+            ? [user.sellerProfile?.firstName, user.sellerProfile?.lastName].filter(Boolean).join(' ') || user.sellerProfile?.businessName || ''
+            : user.customerProfile?.fullName || '',
+        detail: user.role === 'SELLER' ? [user.sellerProfile?.businessName, user.sellerProfile?.district].filter(Boolean).join(' · ') : ''
+      })),
       customers,
+      registrations: { customers, sellers, byDay: registrationsByDay },
       orders: { total: orders, byStatus: orderStatus, deliveredValue: Number(delivered._sum.total || 0) },
       clicksByDay,
       topSellers,
@@ -209,6 +322,60 @@ exports.getOverview = async (req, res) => {
     });
   } catch (error) {
     serverError(res, 'ADMIN_OVERVIEW_ERROR:', error);
+  }
+};
+
+// 2. Active customer accounts, searchable without exposing NIC numbers
+exports.listCustomers = async (req, res) => {
+  try {
+    const search = String(req.query.search || '').trim();
+    const contains = { contains: search, mode: 'insensitive' };
+    const customers = await prisma.customerProfile.findMany({
+      where: {
+        user: { is: { role: 'CUSTOMER', removedAt: null } },
+        ...(search && {
+          OR: [
+            { fullName: contains },
+            { user: { is: { email: contains } } },
+            { user: { is: { phone: { contains: search } } } }
+          ]
+        })
+      },
+      select: {
+        id: true,
+        fullName: true,
+        user: { select: { id: true, email: true, phone: true, createdAt: true } }
+      },
+      orderBy: { user: { createdAt: 'desc' } },
+      take: 200
+    });
+
+    res.json(customers.map(({ user, ...profile }) => ({
+      ...profile,
+      userId: user.id,
+      email: user.email,
+      phone: user.phone,
+      createdAt: user.createdAt
+    })));
+  } catch (error) {
+    serverError(res, 'ADMIN_CUSTOMERS_ERROR:', error);
+  }
+};
+
+// Deactivate customer access without deleting orders, reviews, or complaints.
+exports.removeCustomer = async (req, res) => {
+  try {
+    const id = String(req.params.id);
+    const result = await prisma.user.updateMany({
+      where: { id, role: 'CUSTOMER', removedAt: null },
+      data: { removedAt: new Date() }
+    });
+    if (!result.count) {
+      return res.status(404).json({ code: 'NOT_FOUND', message: 'Customer not found.' });
+    }
+    res.json({ removed: true });
+  } catch (error) {
+    serverError(res, 'ADMIN_REMOVE_CUSTOMER_ERROR:', error);
   }
 };
 
@@ -283,9 +450,12 @@ exports.getSellerProducts = async (req, res) => {
 exports.removeSeller = async (req, res) => {
   try {
     const id = String(req.params.id);
-    const seller = await prisma.sellerProfile.findUnique({ where: { id }, select: { id: true, removedAt: true } });
+    const seller = await prisma.sellerProfile.findUnique({ where: { id }, select: { id: true, status: true, removedAt: true } });
     if (!seller || seller.removedAt) {
       return res.status(404).json({ code: 'NOT_FOUND', message: 'Seller not found.' });
+    }
+    if (seller.status !== 'APPROVED') {
+      return res.status(409).json({ code: 'SELLER_NOT_APPROVED', message: 'Only approved sellers can be removed.' });
     }
 
     const [activeOrders, openComplaints] = await Promise.all([

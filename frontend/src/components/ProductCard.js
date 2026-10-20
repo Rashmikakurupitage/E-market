@@ -6,10 +6,12 @@ import { BadgeCheck, MapPin, Package } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import MessengerIcon from './MessengerIcon';
 import { useCanContact } from './ContactGate';
+import PriceTag, { DiscountBurst } from './DiscountBadge';
+import SellerStatusBadge from './SellerStatusBadge';
 import API from '../lib/api';
 import { useLanguage } from '../lib/i18n';
 import { useHydrated, useSession } from '../lib/auth';
-import { getSeller, messengerLink, toWhatsAppNumber, formatPhone, formatPrice, initials } from '../lib/catalog';
+import { getSeller, messengerLink, toWhatsAppNumber, formatPhone, initials } from '../lib/catalog';
 
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
 
@@ -42,11 +44,11 @@ export default function ProductCard({ product }) {
   };
 
   const seller = getSeller(product);
+  const example = !product.sellerId;
   const image = product.images?.[0];
-  const price = formatPrice(product.price);
-  const whatsapp = toWhatsAppNumber(seller.whatsappNo);
-  const messenger = messengerLink(product);
-  const whatsappLink = whatsapp
+  const whatsapp = example ? '' : toWhatsAppNumber(seller.whatsappNo);
+  const messenger = example ? null : messengerLink(product);
+  const whatsappLink = !example && whatsapp
     ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(
         `Hello! I'm interested in "${product.title}" on Lanka Women E-Market.`
       )}`
@@ -75,10 +77,26 @@ export default function ProductCard({ product }) {
             <Package className="h-12 w-12" />
           </div>
         )}
-        <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-magenta px-3 py-1 text-[11px] font-semibold text-white shadow-md">
-          <BadgeCheck className="h-3.5 w-3.5" />
-          {t.verifiedSeller}
-        </span>
+        {example ? (
+          <span className="absolute left-3 top-3 rounded-full bg-ink/75 px-3 py-1.5 text-[10px] font-bold text-white shadow-sm ring-1 ring-white/35 backdrop-blur-md">
+            {t.store.exampleBadge}
+          </span>
+        ) : product.seller?.status === 'APPROVED' ? (
+          <span className="absolute right-3 top-3 inline-flex items-center gap-1 rounded-full bg-magenta px-3 py-1 text-[11px] font-semibold text-white shadow-md">
+            <BadgeCheck className="h-3.5 w-3.5" />
+            {t.verifiedSeller}
+          </span>
+        ) : (
+          <span className="absolute right-2 top-2">
+            <SellerStatusBadge status={product.seller?.status} />
+          </span>
+        )}
+        {product.discount && (
+          <DiscountBurst
+            percent={product.discount.percent}
+            className={`absolute top-3 ${example ? 'right-3' : 'left-3'}`}
+          />
+        )}
       </div>
 
       {/* Details */}
@@ -89,9 +107,7 @@ export default function ProductCard({ product }) {
         </p>
 
         <div className="mt-3 flex items-center justify-between gap-2">
-          <span className="text-lg font-bold tabular-nums text-ink">
-            {price || <span className="text-sm font-semibold text-ink/50">{t.priceOnRequest}</span>}
-          </span>
+          <PriceTag product={product} />
           {product.category && (
             <span className="truncate rounded-full bg-sand/70 px-3 py-1 text-[11px] font-semibold text-ink/80">
               {t.categories[product.category] || product.category}

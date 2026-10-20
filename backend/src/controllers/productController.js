@@ -2,6 +2,7 @@ const prisma = require('../config/db');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { cleanMessengerUrl } = require('../utils/messengerUrl');
+const { withDiscount, readDiscount } = require('../utils/discount');
 
 // Up to 5 photos per product. Each one is a web link (https://...) or an uploaded picture sent as a data URL.
 // Uploaded pictures are saved in the database and replaced by the address they are served from.
@@ -59,6 +60,15 @@ exports.createProduct = async (req, res) => {
       return res.status(400).json(photos.error);
     }
 
+    // Optional discount (a seller can also add or change it later)
+    const discount = readDiscount(req.body.discountPercent, req.body.discountEndsAt);
+    if (discount.error) {
+      return res.status(400).json(discount.error);
+    }
+    if (discount.percent && !price) {
+      return res.status(400).json({ code: 'DISCOUNT_NEEDS_PRICE', message: 'Set a price before giving a discount.' });
+    }
+
     // Request එක එවන Seller ගේ SellerProfile ID එක සොයාගැනීම
     const sellerProfile = await prisma.sellerProfile.findUnique({
       where: { userId: req.user.userId }
@@ -77,12 +87,14 @@ exports.createProduct = async (req, res) => {
         images: photos.urls,
         productImages: { create: photos.uploads },
         price: price ? parseFloat(price) : null,
-        messengerUrl: messengerUrl || null
+        messengerUrl: messengerUrl || null,
+        discountPercent: discount.percent,
+        discountEndsAt: discount.endsAt
       }
     });
 
     const { productImages, ...saved } = product;
-    res.status(201).json({ message: 'භාණ්ඩය සාර්ථකව එකතු කරන ලදී!', product: saved });
+    res.status(201).json({ message: 'භාණ්ඩය සාර්ථකව එකතු කරන ලදී!', product: withDiscount(saved) });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });
@@ -125,8 +137,7 @@ exports.getAllProducts = async (req, res) => {
     const products = await prisma.product.findMany({
       where: {
         isPublished: true,
-        // Only sellers approved by an admin appear on the website
-        seller: { status: 'APPROVED' },
+        seller: { status: { not: 'REJECTED' }, removedAt: null },
         ...(category && { category }),
         ...(search && {
           OR: [
@@ -140,6 +151,7 @@ exports.getAllProducts = async (req, res) => {
           select: {
             businessName: true,
             district: true,
+            status: true,
             whatsappNo: true,
             facebookUrl: true,
             messengerUrl: true
@@ -152,15 +164,17 @@ exports.getAllProducts = async (req, res) => {
     // Contact options are for registered customers only, so nobody else ever receives them
     if (!isCustomer(req)) {
       return res.json(
-        products.map((product) => ({
-          ...product,
-          messengerUrl: null,
-          seller: product.seller && { ...product.seller, whatsappNo: null, facebookUrl: null, messengerUrl: null }
-        }))
+        products.map((product) =>
+          withDiscount({
+            ...product,
+            messengerUrl: null,
+            seller: product.seller && { ...product.seller, whatsappNo: null, facebookUrl: null, messengerUrl: null }
+          })
+        )
       );
     }
 
-    res.json(products);
+    res.json(products.map(withDiscount));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });
@@ -259,15 +273,49 @@ exports.getMyProducts = async (req, res) => {
 
     // Dashboard එක clickCount (මුළු) සහ clicksThisWeek (පසුගිය දින 7) පෙන්වයි
     res.json(
-      products.map(({ _count, ...product }) => ({
-        ...product,
-        clickCount: _count.analytics,
-        clicksThisWeek: weekCounts.get(product.id) || 0
-      }))
+      products.map(({ _count, ...product }) =>
+        withDiscount({
+          ...product,
+          clickCount: _count.analytics,
+          clicksThisWeek: weekCounts.get(product.id) || 0
+        })
+      )
     );
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });
+  }
+};
+
+// A seller sets, changes or removes the discount on one of their own products ({ percent: null } removes it)
+exports.setDiscount = async (req, res) => {
+  try {
+    const sellerProfile = await prisma.sellerProfile.findUnique({ where: { userId: req.user.userId } });
+    if (!sellerProfile) {
+      return res.status(403).json({ message: 'Only seller accounts can set a discount.' });
+    }
+
+    const product = await prisma.product.findFirst({ where: { id: String(req.params.id), sellerId: sellerProfile.id } });
+    if (!product) {
+      return res.status(404).json({ code: 'NOT_FOUND', message: 'Product not found.' });
+    }
+
+    const discount = readDiscount(req.body?.percent, req.body?.endsAt);
+    if (discount.error) {
+      return res.status(400).json(discount.error);
+    }
+    if (discount.percent && product.price === null) {
+      return res.status(400).json({ code: 'DISCOUNT_NEEDS_PRICE', message: 'Set a price before giving a discount.' });
+    }
+
+    const saved = await prisma.product.update({
+      where: { id: product.id },
+      data: { discountPercent: discount.percent, discountEndsAt: discount.endsAt }
+    });
+    res.json({ product: withDiscount(saved) });
+  } catch (error) {
+    console.error('SET_DISCOUNT_ERROR:', error);
+    res.status(500).json({ message: 'Server error.' });
   }
 };
 

@@ -130,7 +130,7 @@ function useOrders(path, onAuthError) {
 
   useEffect(() => {
     let ignore = false;
-    API.get(path)
+    API.get(path, { timeout: 15000 })
       .then((res) => {
         if (ignore) return;
         setOrders(res.data);

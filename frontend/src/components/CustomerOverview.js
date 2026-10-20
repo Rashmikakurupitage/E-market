@@ -15,18 +15,50 @@ export default function CustomerOverview({ onNavigate, onAuthError }) {
   const o = t.overview;
   const [orders, setOrders] = useState(null);
   const [complaints, setComplaints] = useState(null);
+  const [loadError, setLoadError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let ignore = false;
     const fail = (err) => {
       if (!ignore && [401, 403].includes(err.response?.status)) onAuthError();
+      if (!ignore) setLoadError(true);
     };
-    API.get('/orders/mine').then((res) => !ignore && setOrders(res.data)).catch((err) => { fail(err); if (!ignore) setOrders([]); });
-    API.get('/complaints/mine').then((res) => !ignore && setComplaints(res.data)).catch((err) => { fail(err); if (!ignore) setComplaints([]); });
+    API.get('/orders/mine', { timeout: 15000 })
+      .then((res) => {
+        if (!ignore && Array.isArray(res.data)) setOrders(res.data);
+        else if (!ignore) {
+          setOrders([]);
+          fail(new Error('Invalid orders response'));
+        }
+      })
+      .catch((err) => {
+        if (!ignore) setOrders([]);
+        fail(err);
+      });
+    API.get('/complaints/mine', { timeout: 15000 })
+      .then((res) => {
+        if (!ignore && Array.isArray(res.data)) setComplaints(res.data);
+        else if (!ignore) {
+          setComplaints([]);
+          fail(new Error('Invalid complaints response'));
+        }
+      })
+      .catch((err) => {
+        if (!ignore) setComplaints([]);
+        fail(err);
+      });
     return () => {
       ignore = true;
     };
-  }, [onAuthError]);
+  }, [onAuthError, reloadKey]);
+
+  const retry = () => {
+    setLoadError(false);
+    setOrders(null);
+    setComplaints(null);
+    setReloadKey((key) => key + 1);
+  };
 
   const count = (status) => (orders ? orders.filter((order) => order.status === status).length : undefined);
   const inProgress = orders ? orders.filter((order) => ['PENDING', 'CONFIRMED', 'SHIPPED'].includes(order.status)).length : undefined;
@@ -40,6 +72,15 @@ export default function CustomerOverview({ onNavigate, onAuthError }) {
         <Kpi icon={PackageCheck} label={o.orderStatus.DELIVERED} value={count('DELIVERED')} tone="leaf" delay={120} />
         <Kpi icon={Flag} label={d.myComplaints} value={openComplaints} sub={d.openOnes} tone="rose" delay={180} />
       </div>
+
+      {loadError && (
+        <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
+          <span>{d.loadError}</span>
+          <button type="button" onClick={retry} className="rounded-full bg-white px-4 py-2 font-semibold ring-1 ring-red-200 hover:bg-red-100">
+            {t.dash.retry}
+          </button>
+        </div>
+      )}
 
       <section className="grid gap-4 sm:grid-cols-3">
         {[

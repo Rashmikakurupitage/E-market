@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LoaderCircle, CircleAlert, CircleCheck, ArrowRight, KeyRound } from 'lucide-react';
 import API from '../../src/lib/api';
-import { useLanguage } from '../../src/lib/i18n';
+import { fill, useLanguage } from '../../src/lib/i18n';
 import { saveSession, safeNextPath } from '../../src/lib/auth';
 import AuthPanel from '../../src/components/AuthPanel';
 import AccountTypeTabs, { useAccountType } from '../../src/components/AccountTypeTabs';
@@ -13,9 +13,19 @@ import { Field, inputClass, primaryButtonClass } from '../../src/components/form
 import PasswordInput from '../../src/components/PasswordInput';
 import { PageArt } from '../../src/components/Art';
 import { DISTRICTS, isStrongPassword } from '../../src/lib/catalog';
+import { parseNic } from '../../src/lib/nicInfo';
 
 // Same rules as the backend (authController.js)
 const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
+
+// A clear message when the server says the email address is wrong
+const emailErrorText = (data, r) => {
+  if (data?.code === 'WOMEN_ONLY') return r.nicWomenOnly;
+  if (data?.code === 'INVALID_NIC') return r.nicIncorrect;
+  if (data?.code === 'EMAIL_TYPO') return fill(r.emailTypo, { suggestion: data.suggestion });
+  if (data?.code === 'EMAIL_INVALID') return r.emailInvalid;
+  return '';
+};
 
 const cleanPhone = (value) => value.replace(/[\s-]/g, '');
 
@@ -28,7 +38,7 @@ function SectionTitle({ number, children }) {
   );
 }
 
-function SellerRegisterForm({ onRegistered }) {
+function SellerRegisterForm({ onRegistered, onVerify }) {
   const { t } = useLanguage();
   const r = t.register;
 
@@ -36,6 +46,7 @@ function SellerRegisterForm({ onRegistered }) {
     firstName: '',
     lastName: '',
     email: '',
+    nicNumber: '',
     password: '',
     confirmPassword: '',
     businessName: '',
@@ -47,6 +58,7 @@ function SellerRegisterForm({ onRegistered }) {
     facebookUrl: '',
   });
   const [whatsappSameAsPhone, setWhatsappSameAsPhone] = useState(true);
+  const [nicTouched, setNicTouched] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -57,9 +69,18 @@ function SellerRegisterForm({ onRegistered }) {
     if (fieldErrors[name]) setFieldErrors({ ...fieldErrors, [name]: undefined });
   };
 
+  // The NIC number gives the gender and birth date: women only, and the birth date fills in by itself
+  const nicInfo = parseNic(formData.nicNumber);
+  const nicText = formData.nicNumber.trim();
+  // Say so as soon as the NIC is clearly wrong: too many digits, wrong letters, or (once the person leaves the box) too few
+  const nicLooksWrong = nicText.length > 0 && !nicInfo.valid && (nicText.length > 12 || !/^\d{0,12}[VvXx]?$/.test(nicText) || /^\d{9}[VvXx]$|^\d{12}$/.test(nicText) || nicTouched);
+  const nicProblem = nicLooksWrong ? r.nicIncorrect : nicInfo.valid && nicInfo.gender === 'male' ? r.nicWomenOnly : '';
+  const birthDate = nicInfo.valid && nicInfo.gender === 'female' ? nicInfo.birthDate : '';
+
   const validate = () => {
     const errors = {};
-    if (!/^(\d{9}[VX]|\d{12})$/.test(formData.nicNumber.trim().toUpperCase())) errors.nic = r.nicInvalid;
+    if (!nicInfo.valid) errors.nic = r.nicIncorrect;
+    else if (nicInfo.gender === 'male') errors.nic = r.nicWomenOnly;
     if (!isStrongPassword(formData.password)) errors.password = r.passwordRule;
     if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match.';
     if (!PHONE_PATTERN.test(cleanPhone(formData.phone))) errors.phone = r.phoneInvalid;
@@ -100,13 +121,18 @@ function SellerRegisterForm({ onRegistered }) {
       });
 
       // Log the new seller straight in
+      // The account is not active until the emailed code is entered
+      if (res.data.verificationRequired) {
+        onVerify(res.data.email);
+        return;
+      }
       saveSession(res.data.token, res.data.user);
       onRegistered();
     } catch (err) {
       if (!err.response) {
         setError(r.networkError);
       } else {
-        setError(err.response.data?.message || r.genericError);
+        setError(emailErrorText(err.response.data, r) || err.response.data?.message || r.genericError);
       }
     } finally {
       setLoading(false);
@@ -135,9 +161,12 @@ function SellerRegisterForm({ onRegistered }) {
           <Field id="email" label={r.email} required>
             <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
           </Field>
-          <Field id="nicNumber" label={r.nic} required hint={r.nicHint} error={fieldErrors.nic}>
-            <input id="nicNumber" name="nicNumber" type="text" required autoComplete="off" maxLength={12} value={formData.nicNumber} onChange={handleChange} className={inputClass(!!fieldErrors.nic)} aria-invalid={!!fieldErrors.nic} />
+          <Field id="nicNumber" label={r.nic} required hint={r.nicHint} error={fieldErrors.nic || nicProblem}>
+            <input id="nicNumber" name="nicNumber" type="text" required autoComplete="off" maxLength={14} value={formData.nicNumber} onChange={(e) => { setNicTouched(false); handleChange(e); }} onBlur={() => setNicTouched(true)} className={inputClass(!!(fieldErrors.nic || nicProblem))} aria-invalid={!!(fieldErrors.nic || nicProblem)} />
           </Field>
+          <div className="sm:col-span-2"><Field id="dateOfBirth" label={r.dateOfBirth} hint={r.dateOfBirthHint}>
+            <input id="dateOfBirth" name="dateOfBirth" type="text" readOnly tabIndex={-1} placeholder="dd/mm/yyyy" value={birthDate ? birthDate.split("-").reverse().join("/") : ""} className={`${inputClass(false)} cursor-not-allowed bg-slate-50`} />
+          </Field></div>
           <Field id="password" label={r.password || 'Password'} required hint={r.passwordRule} error={fieldErrors.password}>
             <PasswordInput id="password" name="password" autoComplete="new-password" value={formData.password} onChange={handleChange} hasError={!!fieldErrors.password} placeholder="" showLabel={r.showPassword} hideLabel={r.hidePassword} />
           </Field>
@@ -231,7 +260,7 @@ function SellerRegisterForm({ onRegistered }) {
   );
 }
 
-function CustomerRegisterForm({ onRegistered }) {
+function CustomerRegisterForm({ onRegistered, onVerify }) {
   const { t } = useLanguage();
   const r = t.register;
   const c = t.customer;
@@ -276,13 +305,18 @@ function CustomerRegisterForm({ onRegistered }) {
       });
 
       // Log the new customer straight in
+      // The account is not active until the emailed code is entered
+      if (res.data.verificationRequired) {
+        onVerify(res.data.email);
+        return;
+      }
       saveSession(res.data.token, res.data.user);
       onRegistered();
     } catch (err) {
       if (!err.response) {
         setError(r.networkError);
       } else {
-        setError(err.response.data?.message || r.genericError);
+        setError(emailErrorText(err.response.data, r) || err.response.data?.message || r.genericError);
       }
     } finally {
       setLoading(false);
@@ -356,6 +390,10 @@ function Register() {
   const next = safeNextPath(useSearchParams().get('next'));
   const nextPage = registered === 'customer' ? next || '/account' : '/dashboard';
 
+  // After sign-up, a code is emailed and the person enters it on the verification page
+  const goVerify = (email) =>
+    router.push(`/verify-email?email=${encodeURIComponent(email)}&as=${type}${next ? `&next=${encodeURIComponent(next)}` : ''}`);
+
   // After a successful sign-up, move on to the dashboard (sellers) or account page (customers)
   useEffect(() => {
     if (!registered) return;
@@ -397,9 +435,9 @@ function Register() {
                 <AccountTypeTabs basePath="/register" current={type} />
               </div>
               {type === 'customer' ? (
-                <CustomerRegisterForm onRegistered={() => setRegistered('customer')} />
+                <CustomerRegisterForm onRegistered={() => setRegistered('customer')} onVerify={goVerify} />
               ) : (
-                <SellerRegisterForm onRegistered={() => setRegistered('seller')} />
+                <SellerRegisterForm onRegistered={() => setRegistered('seller')} onVerify={goVerify} />
               )}
             </>
           )}

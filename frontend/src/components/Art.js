@@ -6,8 +6,8 @@ const PETAL = 'M120 140 C 97 104, 99 58, 120 20 C 141 58, 143 104, 120 140 Z';
 
 // In the logo colours: magenta on light backgrounds ("green" is the older name for it), white on dark ones
 const LOTUS_COLORS = {
-  green: { tip: '#fadce8', base: '#c8336f' },
-  white: { tip: '#ffffff', base: '#f3b8d0' },
+  green: { tip: 'var(--color-brand-100)', base: 'var(--color-magenta)' },
+  white: { tip: '#ffffff', base: 'var(--color-brand-200)' },
 };
 
 // A water lily on its leaf
@@ -19,8 +19,8 @@ export function Lotus({ className = '', color = 'green' }) {
     <svg viewBox="0 0 240 160" aria-hidden="true" focusable="false" className={className}>
       <defs>
         <linearGradient id={`${id}-petal`} x1="0" y1="1" x2="0" y2="0">
-          <stop offset="0" stopColor={base} />
-          <stop offset="1" stopColor={tip} />
+          <stop offset="0" style={{ stopColor: base }} />
+          <stop offset="1" style={{ stopColor: tip }} />
         </linearGradient>
         <linearGradient id={`${id}-leaf`} x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stopColor="#3d7c40" />
@@ -72,9 +72,9 @@ export function Squiggle({ className = '' }) {
     <svg viewBox="0 0 200 16" preserveAspectRatio="none" aria-hidden="true" focusable="false" className={className}>
       <defs>
         <linearGradient id={`${id}-line`} x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stopColor="#c8336f" />
-          <stop offset="0.55" stopColor="#ee7d2b" />
-          <stop offset="1" stopColor="#f4b93e" />
+          <stop offset="0" style={{ stopColor: 'var(--color-magenta)' }} />
+          <stop offset="0.55" style={{ stopColor: 'var(--color-saffron)' }} />
+          <stop offset="1" style={{ stopColor: 'var(--color-turmeric)' }} />
         </linearGradient>
       </defs>
       <path
