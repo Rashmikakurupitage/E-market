@@ -3,14 +3,15 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { ExternalLink, LogOut, ShieldCheck } from 'lucide-react';
-import { LANGUAGES, useLanguage } from '../lib/i18n';
+import { useLanguage } from '../lib/i18n';
 import { clearSession, useHydrated, useSession } from '../lib/auth';
 import ThemeToggle from './ThemeToggle';
+import LanguageSelect from './LanguageSelect';
 
 export default function AdminPortalShell({ children }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { lang, setLang, t } = useLanguage();
+  const { t } = useLanguage();
   const session = useSession();
   const hydrated = useHydrated();
   const isAdmin = session?.user?.role === 'SUPER_ADMIN';
@@ -22,7 +23,7 @@ export default function AdminPortalShell({ children }) {
   };
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
+    <div className="admin-surface flex min-h-full flex-1 flex-col">
       <header className="border-b border-white/10 bg-slate-950 text-white shadow-lg">
         <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3">
@@ -37,22 +38,7 @@ export default function AdminPortalShell({ children }) {
 
           <div className="flex items-center gap-2">
             <ThemeToggle className="!text-white/85 !ring-white/20 hover:!bg-white/10 hover:!text-white" />
-            <div role="group" aria-label="Language" className="flex items-center gap-1 rounded-full bg-white/10 p-1">
-              {LANGUAGES.map((option) => (
-                <button
-                  key={option.code}
-                  type="button"
-                  lang={option.code}
-                  aria-pressed={lang === option.code}
-                  onClick={() => setLang(option.code)}
-                  className={`rounded-full px-2 py-1 text-xs font-semibold transition-colors ${
-                    lang === option.code ? 'bg-white text-slate-900' : 'text-white/70 hover:text-white'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+            <LanguageSelect variant="dark" />
 
             {isDashboard && hydrated && isAdmin ? (
               <button

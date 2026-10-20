@@ -4,38 +4,13 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, LogIn, LogOut, LayoutDashboard, UserPlus, UserRound } from 'lucide-react';
-import { useLanguage, LANGUAGES, SITE_TITLES } from '../lib/i18n';
+import { useLanguage, SITE_TITLES } from '../lib/i18n';
 import { useSession, clearSession, homePathFor, loginPathFor } from '../lib/auth';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
+import LanguageSelect from './LanguageSelect';
 
 export const EMBLEM_URL = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Emblem_of_Sri_Lanka.svg';
-
-function LanguageSwitcher({ className = '' }) {
-  const { lang, setLang } = useLanguage();
-
-  return (
-    <div role="group" aria-label="Language" className={`items-center rounded-full bg-white/70 p-0.5 ring-1 ring-ink/5 ${className}`}>
-      {LANGUAGES.map((option) => {
-        const active = lang === option.code;
-        return (
-          <button
-            key={option.code}
-            type="button"
-            lang={option.code}
-            onClick={() => setLang(option.code)}
-            aria-pressed={active}
-            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold transition-colors duration-200 ${
-              active ? 'bg-ink text-white shadow-sm' : 'text-ink/65 hover:text-ink'
-            }`}
-          >
-            {option.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 const outlineButton =
   'inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-semibold text-ink/80 ring-1 ring-ink/10 transition-all duration-200 hover:bg-white hover:text-ink';
@@ -73,10 +48,6 @@ export default function SiteHeader() {
 
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
-  }, [menuOpen]);
-
-  useEffect(() => {
-    if (menuOpen) setHidden(false);
   }, [menuOpen]);
 
   const links = [
@@ -167,7 +138,10 @@ export default function SiteHeader() {
             {/* Menu toggle for smaller screens */}
             <button
               type="button"
-              onClick={() => setMenuOpen((open) => !open)}
+              onClick={() => {
+                setHidden(false);
+                setMenuOpen((open) => !open);
+              }}
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               aria-label={t.menu}
@@ -181,7 +155,7 @@ export default function SiteHeader() {
         {/* Second row below 1280px wide: language buttons, plus the account buttons from tablet size up (on phones those are in the menu) */}
         <div className="mt-2 flex items-center justify-center gap-2 border-t border-ink/10 pt-2 sm:justify-between xl:hidden">
           <div className="flex items-center gap-2">
-            <LanguageSwitcher className="flex" />
+            <LanguageSelect />
             <ThemeToggle className="!h-9 !w-9" />
           </div>
           <div className="hidden items-center gap-2 sm:flex">{accountButtons}</div>
@@ -204,7 +178,7 @@ export default function SiteHeader() {
           {/* Language and account buttons sit at the right end of the menu row */}
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />
-            <LanguageSwitcher className="flex" />
+            <LanguageSelect />
             {accountButtons}
           </div>
         </nav>

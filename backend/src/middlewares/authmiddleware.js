@@ -30,6 +30,18 @@ module.exports = async (req, res, next) => {
     }
   }
 
+  if (decoded.role === 'CUSTOMER') {
+    try {
+      const customer = await prisma.user.findUnique({ where: { id: decoded.userId }, select: { removedAt: true } });
+      if (!customer || customer.removedAt) {
+        return res.status(403).json({ code: 'ACCOUNT_REMOVED', message: 'This customer account has been removed.' });
+      }
+    } catch (error) {
+      console.error('AUTH_REMOVED_CHECK_ERROR:', error);
+      return res.status(500).json({ message: 'Server error.' });
+    }
+  }
+
   req.user = decoded; // { userId, role }
   next();
 };

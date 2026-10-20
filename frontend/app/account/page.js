@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { LoaderCircle, CircleAlert, RefreshCw, ShoppingBag, UserRound, LayoutDashboard, ClipboardList, Flag, Settings } from 'lucide-react';
@@ -52,6 +52,16 @@ export default function Account() {
   const [reloadKey, setReloadKey] = useState(0);
   const [section, setSection] = useState('overview'); // 'overview' | 'orders' | 'complaints' | 'settings'
 
+  const contactUpdated = useCallback((updatedUser) => {
+    setUser(updatedUser);
+    updateSessionUser(updatedUser);
+  }, []);
+
+  const loggedOut = useCallback(() => {
+    clearSession();
+    router.replace('/login?as=customer');
+  }, [router]);
+
   // Only logged-in customers may see this page
   useEffect(() => {
     if (!hydrated) return;
@@ -65,7 +75,7 @@ export default function Account() {
     }
 
     let ignore = false;
-    API.get('/auth/me')
+    API.get('/auth/me', { timeout: 15000 })
       .then((res) => {
         if (ignore) return;
         setUser(res.data.user);
@@ -122,17 +132,6 @@ export default function Account() {
   }
 
   const name = user?.profile?.fullName || '';
-
-  // Keep the page and the saved login (used by the header) in step with the new email/phone
-  const contactUpdated = (updatedUser) => {
-    setUser(updatedUser);
-    updateSessionUser(updatedUser);
-  };
-
-  const loggedOut = () => {
-    clearSession();
-    router.replace('/login?as=customer');
-  };
 
   const menu = [
     { value: 'overview', label: t.admin.tabOverview, icon: LayoutDashboard },

@@ -36,6 +36,9 @@ function getTransporter() {
       port,
       secure: port === 465, // 465 = SSL from the start, 587 = upgrades with STARTTLS
       auth: process.env.SMTP_USER ? { user: process.env.SMTP_USER.trim(), pass } : undefined,
+      // Local development only: some antivirus programs (Avast Mail Shield) re-sign mail connections with a certificate
+      // Node does not trust. SMTP_ALLOW_UNTRUSTED_CERT=true skips the certificate check, and is ignored in production.
+      tls: process.env.SMTP_ALLOW_UNTRUSTED_CERT === 'true' && process.env.NODE_ENV !== 'production' ? { rejectUnauthorized: false } : undefined,
     });
   }
   return transporter;
@@ -119,6 +122,14 @@ const CODE_EMAILS = {
     si: 'ඔබේ මුරපදය යළි පිහිටුවීමේ කේතය:',
     ta: 'உங்கள் கடவுச்சொல்லை மீட்டமைக்கும் குறியீடு:',
     ignore: "If you didn't ask to reset your password, you can ignore this email. Your password will not change.",
+  },
+  'verify-email': {
+    devLabel: 'Email verification code',
+    subject: (code) => `${code} is your Lanka Women E-Market verification code`,
+    intro: 'Welcome! To finish creating your account, enter this code:',
+    si: 'ඔබේ ගිණුම තහවුරු කිරීමේ කේතය:',
+    ta: 'உங்கள் கணக்கை உறுதிப்படுத்தும் குறியீடு:',
+    ignore: "If you didn't create an account, you can ignore this email.",
   },
   'email-change': {
     devLabel: 'New-email code',

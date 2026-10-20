@@ -2,18 +2,27 @@
 
 import { useEffect, useState } from 'react';
 import {
-  ArrowRight, BadgeCheck, CalendarDays, CircleCheck, Flag, Hourglass, MessageCircle, Package, ShoppingBag, Store, TrendingUp, UserRound, Users, Wallet,
+  AlertTriangle, ArrowRight, BadgeCheck, CalendarDays, CircleCheck, FileText, Flag, Hourglass, MessageCircle, Package, RefreshCw, ShoppingBag, Store, TrendingUp, UserRound, Users, Wallet,
 } from 'lucide-react';
 import API from '../lib/api';
 import { fill, useLanguage } from '../lib/i18n';
 import { formatPrice, initials } from '../lib/catalog';
 import CountUp from './CountUp';
 import Reveal from './Reveal';
+import { ComplaintStatusBadge } from './Complaints';
 
 export const ORDER_COLORS = { PENDING: '#f59e0b', CONFIRMED: '#3b82f6', SHIPPED: '#8b5cf6', DELIVERED: '#16a34a', CANCELLED: '#94a3b8' };
 const SELLER_COLORS = { PENDING: '#f59e0b', APPROVED: '#16a34a', REJECTED: '#94a3b8' };
 
-export function Kpi({ icon: Icon, label, value, sub, tone, delay }) {
+const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({
+  '&': '&amp;',
+  '<': '&lt;',
+  '>': '&gt;',
+  '"': '&quot;',
+  "'": '&#39;',
+}[character]));
+
+export function Kpi({ icon: Icon, label, value, sub, tone, delay, onClick }) {
   const tones = {
     magenta: 'from-magenta to-saffron',
     ink: 'from-ink to-slate-600',
@@ -31,13 +40,23 @@ export function Kpi({ icon: Icon, label, value, sub, tone, delay }) {
       <p className="mt-3 text-3xl font-extrabold tabular-nums text-ink">{typeof value === 'number' ? <CountUp value={value} /> : value ?? '–'}</p>
       <p className="mt-0.5 text-sm font-semibold text-ink/70">{label}</p>
       {sub && <p className="mt-0.5 text-xs text-ink/45">{sub}</p>}
+      {onClick && (
+        <button
+          type="button"
+          onClick={onClick}
+          aria-label={`${label}: ${value ?? ''}`}
+          className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-magenta"
+        >
+          <span className="sr-only">{label}</span>
+        </button>
+      )}
     </Reveal>
   );
 }
 
-export function Card({ title, action, children, className = '' }) {
+export function Card({ title, action, children, className = '', id }) {
   return (
-    <section className={`rounded-[28px] bg-white p-5 shadow-sm ring-1 ring-ink/5 ${className}`}>
+    <section id={id} className={`scroll-mt-24 rounded-[28px] bg-white p-5 shadow-sm ring-1 ring-ink/5 ${className}`}>
       <div className="mb-4 flex items-center justify-between gap-3">
         <h3 className="font-sans text-sm font-bold uppercase tracking-wider text-slate-800">{title}</h3>
         {action}
@@ -53,7 +72,7 @@ export function BarChart({ days, lang }) {
   const label = (date) => new Date(`${date}T00:00:00`).toLocaleDateString(lang === 'en' ? 'en-GB' : lang === 'si' ? 'si-LK' : 'ta-LK', { day: 'numeric', month: 'short' });
   return (
     <div>
-      <div className="flex h-40 items-end gap-1.5 sm:gap-2" role="img" aria-label="Enquiries per day">
+      <div className={`flex h-40 items-end ${days.length > 31 ? 'gap-px' : 'gap-1.5 sm:gap-2'}`} role="img" aria-label="Enquiries per day">
         {days.map((day, index) => (
           <div key={day.date} className="group relative flex h-full min-w-0 flex-1 flex-col justify-end" title={`${label(day.date)}: ${day.count}`}>
             <span className="pointer-events-none absolute -top-6 left-1/2 z-10 hidden -translate-x-1/2 rounded-md bg-ink px-1.5 py-0.5 text-[11px] font-bold text-white group-hover:block">{day.count}</span>
@@ -104,6 +123,128 @@ function Donut({ parts, total }) {
   );
 }
 
+function RegistrationChart({ days, lang, labels, previousTotal }) {
+  const [active, setActive] = useState(null);
+  const locale = lang === 'en' ? 'en-GB' : lang === 'si' ? 'si-LK' : 'ta-LK';
+  const formatDay = (date, options = { day: 'numeric', month: 'short' }) => new Date(`${date}T00:00:00`).toLocaleDateString(locale, options);
+
+  const totals = days.reduce(
+    (sum, day) => ({ customers: sum.customers + day.customers, sellers: sum.sellers + day.sellers }),
+    { customers: 0, sellers: 0 }
+  );
+  const grand = totals.customers + totals.sellers;
+  const peakIndex = days.reduce((best, day, i) => (day.customers + day.sellers > days[best].customers + days[best].sellers ? i : best), 0);
+  const peak = days[peakIndex];
+  const peakTotal = peak.customers + peak.sellers;
+
+  // A tidy axis: whole numbers only, four steps up to a round maximum
+  const rawMax = Math.max(...days.map((day) => day.customers + day.sellers));
+  const step = Math.max(1, Math.ceil(rawMax / 4));
+  const axisMax = step * 4;
+  const ticks = [0, 1, 2, 3, 4].map((i) => i * step);
+  const current = active !== null ? days[active] : null;
+  const labelStep = Math.max(1, Math.ceil(days.length / 14));
+  const gapClass = days.length > 31 ? 'gap-px' : 'gap-1 sm:gap-1.5';
+  const delta = typeof previousTotal === 'number' ? grand - previousTotal : null;
+
+  return (
+    <div>
+      <div className="flex flex-wrap items-end gap-x-8 gap-y-3">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-ink/50">{labels.total}</p>
+          <p className="text-3xl font-bold leading-none tabular-nums text-ink">{grand}</p>
+          {delta !== null && (
+            <p className={`mt-1 text-[11px] font-semibold tabular-nums ${delta > 0 ? 'text-leaf' : delta < 0 ? 'text-rose-600' : 'text-ink/45'}`}>
+              {delta > 0 ? '▲ +' : delta < 0 ? '▼ ' : '● '}{delta} {labels.vsPrevious}
+            </p>
+          )}
+        </div>
+        <div>
+          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink/50"><span className="h-2.5 w-2.5 rounded-sm bg-blue-500" />{labels.customers}</p>
+          <p className="text-xl font-bold leading-none tabular-nums text-ink">{totals.customers}</p>
+        </div>
+        <div>
+          <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-ink/50"><span className="h-2.5 w-2.5 rounded-sm bg-magenta" />{labels.sellers}</p>
+          <p className="text-xl font-bold leading-none tabular-nums text-ink">{totals.sellers}</p>
+        </div>
+        {peakTotal > 0 && (
+          <div className="sm:ml-auto sm:text-right">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-ink/50">{labels.peak}</p>
+            <p className="text-sm font-semibold tabular-nums text-ink">{formatDay(peak.date)} · {peakTotal}</p>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-5 flex gap-2">
+        <div className="relative h-48 w-6 shrink-0 text-right text-[11px] tabular-nums text-ink/45" aria-hidden="true">
+          {ticks.map((tick) => (
+            <span key={tick} className="absolute right-0 -translate-y-1/2" style={{ bottom: `${(tick / axisMax) * 100}%` }}>{tick}</span>
+          ))}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="relative h-48" role="img" aria-label={labels.chart} onMouseLeave={() => setActive(null)}>
+            {ticks.map((tick) => (
+              <div key={tick} className={`absolute inset-x-0 border-t ${tick === 0 ? 'border-ink/25' : 'border-dashed border-ink/10'}`} style={{ bottom: `${(tick / axisMax) * 100}%` }} />
+            ))}
+
+            <div className={`absolute inset-0 flex items-end ${gapClass}`}>
+              {days.map((day, i) => {
+                const total = day.customers + day.sellers;
+                return (
+                  <button
+                    type="button"
+                    key={day.date}
+                    onMouseEnter={() => setActive(i)}
+                    onFocus={() => setActive(i)}
+                    onBlur={() => setActive(null)}
+                    aria-label={`${formatDay(day.date)}: ${labels.customers} ${day.customers}, ${labels.sellers} ${day.sellers}`}
+                    className={`relative flex h-full min-w-0 flex-1 flex-col justify-end rounded-t-md outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand-500 ${active === i ? 'bg-ink/[0.06]' : ''}`}
+                  >
+                    {total > 0 ? (
+                      <span className="flex w-full flex-col justify-end gap-0.5" style={{ height: `${(total / axisMax) * 100}%` }}>
+                        {day.sellers > 0 && <span className={`w-full bg-magenta ${day.customers > 0 ? 'rounded-t-[5px]' : 'rounded-t-[5px]'}`} style={{ flexGrow: day.sellers, flexBasis: 0, minHeight: 4 }} />}
+                        {day.customers > 0 && <span className={`w-full bg-blue-500 ${day.sellers > 0 ? '' : 'rounded-t-[5px]'}`} style={{ flexGrow: day.customers, flexBasis: 0, minHeight: 4 }} />}
+                      </span>
+                    ) : (
+                      <span className="mx-auto mb-px h-0.5 w-3/5 rounded-full bg-ink/15" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            {current && (
+              <div
+                role="status"
+                className="pointer-events-none absolute z-10 w-40 -translate-x-1/2 rounded-xl bg-white px-3 py-2 text-xs shadow-lg ring-1 ring-ink/10"
+                style={{ left: `${Math.min(88, Math.max(12, ((active + 0.5) / days.length) * 100))}%`, bottom: `calc(${((current.customers + current.sellers) / axisMax) * 100}% + 10px)` }}
+              >
+                <p className="font-semibold text-ink">{formatDay(current.date, { weekday: 'short', day: 'numeric', month: 'short' })}</p>
+                <p className="mt-1 flex items-center justify-between gap-3 text-ink/70"><span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-blue-500" />{labels.customers}</span><strong className="tabular-nums text-ink">{current.customers}</strong></p>
+                <p className="flex items-center justify-between gap-3 text-ink/70"><span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-sm bg-magenta" />{labels.sellers}</span><strong className="tabular-nums text-ink">{current.sellers}</strong></p>
+                <p className="mt-1 flex items-center justify-between gap-3 border-t border-ink/10 pt-1 text-ink/70"><span>{labels.total}</span><strong className="tabular-nums text-ink">{current.customers + current.sellers}</strong></p>
+              </div>
+            )}
+          </div>
+
+          <div className={`mt-2 flex ${gapClass}`} aria-hidden="true">
+            {days.map((day, i) => {
+              const date = new Date(`${day.date}T00:00:00`);
+              const newMonth = i === 0 || date.getDate() === 1;
+              return (
+                <div key={day.date} className={`min-w-0 flex-1 text-center text-[10px] leading-tight tabular-nums ${active === i ? 'font-bold text-ink' : 'text-ink/45'}`}>
+                  <span className={i % labelStep === 0 ? '' : 'hidden'}>{date.getDate()}</span>
+                  {newMonth && <span className="block font-semibold text-ink/60">{formatDay(day.date, { month: 'short' })}</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Empty({ children }) {
   return <p className="rounded-2xl bg-cream px-4 py-6 text-center text-sm text-ink/50">{children}</p>;
 }
@@ -113,20 +254,40 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
   const o = t.overview;
   const [data, setData] = useState(null);
   const [failed, setFailed] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [days, setDays] = useState(14);
+  const [reportError, setReportError] = useState(false);
 
   useEffect(() => {
     let ignore = false;
-    API.get('/admin/overview')
-      .then((res) => !ignore && setData(res.data))
-      .catch((err) => {
-        if (ignore) return;
-        if ([401, 403].includes(err.response?.status)) onAuthError();
-        else setFailed(true);
-      });
+    const load = () => {
+      API.get(`/admin/overview?days=${days}`, { timeout: 15000 })
+        .then((res) => {
+          if (ignore) return;
+          setData(res.data);
+          setFailed(false);
+        })
+        .catch((err) => {
+          if (ignore) return;
+          if ([401, 403].includes(err.response?.status)) onAuthError();
+          else setFailed(true);
+        });
+    };
+    load();
+    const refreshTimer = setInterval(load, 60000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') load();
+    };
+    document.addEventListener('visibilitychange', onVisible);
     return () => {
       ignore = true;
+      clearInterval(refreshTimer);
+      document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [onAuthError]);
+  }, [onAuthError, reloadKey, days]);
+
+  // Cards with no page of their own: bring the matching section into view
+  const scrollToCard = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? o.morning : hour < 17 ? o.afternoon : o.evening;
@@ -141,6 +302,123 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
   const totalEnquiries = data ? data.clicksByDay.reduce((sum, day) => sum + day.count, 0) : 0;
   const orderTotal = data?.orders.total || 0;
   const needsAttention = (stats?.sellers.PENDING || 0) + (stats?.complaints.OPEN || 0);
+
+  const generateRegistrationReport = () => {
+    const reportDays = data?.registrations?.byDay;
+    if (!reportDays?.length) return;
+
+    const reportWindow = window.open('', '_blank');
+    if (!reportWindow) {
+      setReportError(true);
+      return;
+    }
+    reportWindow.opener = null;
+    setReportError(false);
+
+    const locale = lang === 'en' ? 'en-GB' : lang === 'si' ? 'si-LK' : 'ta-LK';
+    const formatDate = (value, options) => new Date(`${value}T00:00:00`).toLocaleDateString(locale, options);
+    const reportTotals = reportDays.reduce(
+      (sum, day) => ({ customers: sum.customers + day.customers, sellers: sum.sellers + day.sellers }),
+      { customers: 0, sellers: 0 }
+    );
+    const peak = reportDays.reduce((best, day) =>
+      day.customers + day.sellers > best.customers + best.sellers ? day : best
+    );
+    const reportLabels = {
+      title: o.reportTitle || 'Registration report',
+      period: o.reportPeriod || 'Reporting period',
+      generated: o.reportGenerated || 'Generated',
+      breakdown: o.reportDaily || 'Daily breakdown',
+      date: o.reportDate || 'Date',
+      customers: o.customers || 'Customers',
+      sellers: o.sellers || 'Sellers',
+      total: o.regTotal || 'Total',
+      peak: o.regPeak || 'Busiest day',
+      print: o.printReport || 'Print report',
+      close: o.closeReport || 'Close',
+    };
+    const rows = reportDays.map((day) => `
+      <tr>
+        <td>${escapeHtml(formatDate(day.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }))}</td>
+        <td class="number">${escapeHtml(day.customers)}</td>
+        <td class="number">${escapeHtml(day.sellers)}</td>
+        <td class="number">${escapeHtml(day.customers + day.sellers)}</td>
+      </tr>
+    `).join('');
+
+    reportWindow.document.open();
+    reportWindow.document.write(`<!doctype html>
+      <html lang="${escapeHtml(lang)}">
+        <head>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>${escapeHtml(reportLabels.title)} - Lanka Women E-Market</title>
+          <style>
+            :root { color-scheme: light; font-family: Arial, sans-serif; color: #172033; }
+            * { box-sizing: border-box; }
+            body { margin: 0; padding: 32px; background: #f4f6f8; }
+            main { max-width: 960px; margin: 0 auto; padding: 36px; background: white; border: 1px solid #dfe4ea; border-radius: 12px; }
+            header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 24px; border-bottom: 2px solid #172033; }
+            h1 { margin: 0; font-size: 25px; }
+            .brand { margin: 0 0 8px; color: #526079; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+            .meta { margin: 8px 0 0; color: #526079; font-size: 13px; }
+            .actions { display: flex; gap: 8px; }
+            button { border: 0; border-radius: 7px; padding: 10px 14px; background: #172033; color: white; font-weight: 700; cursor: pointer; }
+            button.secondary { background: #eef1f5; color: #172033; }
+            .summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 24px 0; }
+            .metric { padding: 16px; border: 1px solid #dfe4ea; border-radius: 8px; }
+            .metric span { display: block; color: #526079; font-size: 12px; }
+            .metric strong { display: block; margin-top: 6px; font-size: 24px; }
+            .peak { margin: 0 0 20px; color: #526079; font-size: 13px; }
+            h2 { margin: 28px 0 12px; font-size: 16px; }
+            table { width: 100%; border-collapse: collapse; font-size: 13px; }
+            th, td { padding: 10px 12px; border-bottom: 1px solid #dfe4ea; text-align: left; }
+            th { background: #f4f6f8; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+            .number { text-align: right; font-variant-numeric: tabular-nums; }
+            @media (max-width: 600px) {
+              body { padding: 12px; }
+              main { padding: 20px; }
+              header { flex-direction: column; }
+            }
+            @media print {
+              @page { size: A4; margin: 16mm; }
+              body { padding: 0; background: white; }
+              main { max-width: none; padding: 0; border: 0; }
+              .actions { display: none; }
+              tr { break-inside: avoid; }
+            }
+          </style>
+        </head>
+        <body>
+          <main>
+            <header>
+              <div>
+                <p class="brand">Lanka Women E-Market</p>
+                <h1>${escapeHtml(reportLabels.title)}</h1>
+                <p class="meta">${escapeHtml(reportLabels.period)}: ${escapeHtml(formatDate(reportDays[0].date))} – ${escapeHtml(formatDate(reportDays[reportDays.length - 1].date))}</p>
+                <p class="meta">${escapeHtml(reportLabels.generated)}: ${escapeHtml(new Date().toLocaleString(locale))}</p>
+              </div>
+              <div class="actions">
+                <button type="button" onclick="window.print()">${escapeHtml(reportLabels.print)}</button>
+                <button type="button" class="secondary" onclick="window.close()">${escapeHtml(reportLabels.close)}</button>
+              </div>
+            </header>
+            <section class="summary" aria-label="${escapeHtml(reportLabels.title)}">
+              <div class="metric"><span>${escapeHtml(reportLabels.total)}</span><strong>${escapeHtml(reportTotals.customers + reportTotals.sellers)}</strong></div>
+              <div class="metric"><span>${escapeHtml(reportLabels.customers)}</span><strong>${escapeHtml(reportTotals.customers)}</strong></div>
+              <div class="metric"><span>${escapeHtml(reportLabels.sellers)}</span><strong>${escapeHtml(reportTotals.sellers)}</strong></div>
+            </section>
+            ${peak.customers + peak.sellers > 0 ? `<p class="peak"><strong>${escapeHtml(reportLabels.peak)}:</strong> ${escapeHtml(formatDate(peak.date))} · ${escapeHtml(peak.customers + peak.sellers)}</p>` : ''}
+            <h2>${escapeHtml(reportLabels.breakdown)}</h2>
+            <table>
+              <thead><tr><th>${escapeHtml(reportLabels.date)}</th><th class="number">${escapeHtml(reportLabels.customers)}</th><th class="number">${escapeHtml(reportLabels.sellers)}</th><th class="number">${escapeHtml(reportLabels.total)}</th></tr></thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </main>
+        </body>
+      </html>`);
+    reportWindow.document.close();
+  };
 
   return (
     <div className="space-y-6">
@@ -160,19 +438,75 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
 
       {/* Key numbers */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
-        <Kpi icon={Store} label={o.sellers} value={sellers ? sellers.APPROVED : undefined} sub={sellers && fill(o.sellersSub, { count: sellers.PENDING })} tone="magenta" delay={0} />
-        <Kpi icon={Users} label={o.customers} value={data?.customers} sub={o.customersSub} tone="blue" delay={60} />
-        <Kpi icon={Package} label={o.products} value={stats?.products.onSite} sub={stats && fill(o.productsSub, { count: stats.products.total })} tone="leaf" delay={120} />
-        <Kpi icon={ShoppingBag} label={o.orders} value={data ? orderTotal : undefined} sub={data && fill(o.ordersSub, { count: data.orders.byStatus.DELIVERED })} tone="ink" delay={180} />
-        <Kpi icon={MessageCircle} label={o.enquiries} value={weekEnquiries} sub={o.enquiriesSub} tone="amber" delay={240} />
-        <Kpi icon={Flag} label={o.complaints} value={stats?.complaints.OPEN} sub={stats && fill(o.complaintsSub, { count: stats.complaints.IN_REVIEW })} tone="rose" delay={300} />
+        <Kpi icon={Store} label={o.sellers} value={data?.registrations?.sellers} sub={sellers && fill(o.sellersSub, { approved: sellers.APPROVED, pending: sellers.PENDING, rejected: sellers.REJECTED })} tone="magenta" delay={0} onClick={() => onNavigate('sellers')} />
+        <Kpi icon={Users} label={o.customers} value={data?.customers} sub={o.customersSub} tone="blue" delay={60} onClick={() => onNavigate('customers')} />
+        <Kpi icon={Package} label={o.products} value={stats?.products.onSite} sub={stats && fill(o.productsSub, { count: stats.products.total })} tone="leaf" delay={120} onClick={() => onNavigate('products')} />
+        <Kpi icon={ShoppingBag} label={o.orders} value={data ? orderTotal : undefined} sub={data && fill(o.ordersSub, { count: data.orders.byStatus.DELIVERED })} tone="ink" delay={180} onClick={() => scrollToCard('orders-card')} />
+        <Kpi icon={MessageCircle} label={o.enquiries} value={weekEnquiries} sub={o.enquiriesSub} tone="amber" delay={240} onClick={() => scrollToCard('enquiries-card')} />
+        <Kpi icon={Flag} label={o.complaints} value={stats?.complaints.OPEN} sub={stats && fill(o.complaintsSub, { count: stats.complaints.IN_REVIEW })} tone="rose" delay={300} onClick={() => onNavigate('complaints')} />
       </div>
 
       {failed && <Empty>{o.loadError}</Empty>}
 
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-ink/60">{o.rangeLabel}</p>
+        <div role="group" aria-label={o.rangeLabel} className="inline-flex rounded-full bg-white p-1 shadow-sm ring-1 ring-ink/5">
+          {[7, 14, 30, 90].map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setDays(value)}
+              aria-pressed={days === value}
+              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${days === value ? 'bg-ink text-white' : 'text-ink/60 hover:bg-sand/70'}`}
+            >
+              {fill(o.rangeDays, { days: value })}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <Card
+        title={`${o.regShort} · ${fill(o.lastDays, { days })}`}
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={generateRegistrationReport}
+              disabled={!data?.registrations?.byDay?.length}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              <FileText className="h-3.5 w-3.5" />
+              {o.generateReport}
+            </button>
+            <button
+              type="button"
+              onClick={() => setReloadKey((key) => key + 1)}
+              aria-label={o.refreshRegistrations}
+              title={o.refreshRegistrations}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-sand/70 px-3 py-2 text-xs font-semibold text-ink/70 transition-colors hover:bg-sand"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              {o.refreshRegistrations}
+            </button>
+          </div>
+        }
+      >
+        {reportError && <p role="alert" className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{o.reportPopupBlocked}</p>}
+        {data?.registrations?.byDay?.length ? (
+          <RegistrationChart
+            days={data.registrations.byDay}
+            lang={lang}
+            previousTotal={data.previous?.registrations}
+            labels={{ chart: o.chartRegistrations, customers: o.customers, sellers: o.sellers, total: o.regTotal, peak: o.regPeak, vsPrevious: fill(o.vsPrevious, { days }) }}
+          />
+        ) : (
+          <div className="skeleton h-40 rounded-2xl" />
+        )}
+      </Card>
+
       {/* Charts */}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Card title={o.chartEnquiries} action={<span className="rounded-full bg-sand/70 px-3 py-1 text-xs font-semibold text-ink/70">{fill(o.inTotal, { count: totalEnquiries })}</span>}>
+        <Card id="enquiries-card" title={`${o.enqShort} · ${fill(o.lastDays, { days })}`} action={<span className="rounded-full bg-sand/70 px-3 py-1 text-xs font-semibold text-ink/70">{fill(o.inTotal, { count: totalEnquiries })}</span>}>
           {data ? (totalEnquiries > 0 ? <BarChart days={data.clicksByDay} lang={lang} /> : <Empty>{o.noEnquiries}</Empty>) : <div className="skeleton h-40 rounded-2xl" />}
         </Card>
 
@@ -203,7 +537,7 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
       </div>
 
       {/* Orders pipeline */}
-      <Card title={o.chartOrders} action={data && <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf/10 px-3 py-1 text-xs font-semibold text-leaf"><Wallet className="h-3.5 w-3.5" />{fill(o.deliveredValue, { value: formatPrice(data.orders.deliveredValue) || 'LKR 0' })}</span>}>
+      <Card id="orders-card" title={o.chartOrders} action={data && <span className="inline-flex items-center gap-1.5 rounded-full bg-leaf/10 px-3 py-1 text-xs font-semibold text-leaf"><Wallet className="h-3.5 w-3.5" />{fill(o.deliveredValue, { value: formatPrice(data.orders.deliveredValue) || 'LKR 0' })}</span>}>
         {data ? (
           orderTotal > 0 ? (
             <>
@@ -258,26 +592,57 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
           )}
         </Card>
 
-        <Card title={o.complaintsTitle} action={<button type="button" onClick={() => onNavigate('complaints')} className="inline-flex items-center gap-1 text-xs font-bold text-magenta hover:underline">{o.viewAll}<ArrowRight className="h-3.5 w-3.5" /></button>}>
+        <Card
+          id="complaints-card"
+          title={o.complaintsTitle}
+          action={<button type="button" onClick={() => onNavigate('complaints')} className="inline-flex items-center gap-1 text-xs font-bold text-magenta hover:underline">{o.viewAll}<ArrowRight className="h-3.5 w-3.5" /></button>}
+        >
+          {stats && (
+            <div className="mb-4 flex flex-wrap gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-700 ring-1 ring-rose-200">
+                <span className="h-2 w-2 rounded-full bg-rose-500" />
+                {fill(o.cmpOpenCount, { count: stats.complaints.OPEN })}
+              </span>
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-bold text-blue-700 ring-1 ring-blue-200">
+                <span className="h-2 w-2 rounded-full bg-blue-500" />
+                {fill(o.cmpReviewCount, { count: stats.complaints.IN_REVIEW })}
+              </span>
+            </div>
+          )}
           {data ? (
             data.recentComplaints.length === 0 ? (
               <Empty><CircleCheck className="mx-auto mb-1 h-5 w-5 text-leaf" />{o.nothingOpen}</Empty>
             ) : (
               <ul className="space-y-2">
-                {data.recentComplaints.map((complaint) => (
-                  <li key={complaint.id} className="flex items-center gap-3 rounded-2xl bg-cream p-3">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-rose-100 text-rose-700">
-                      <UserRound className="h-5 w-5" />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-bold text-ink">{complaint.customer?.fullName} → {complaint.seller?.businessName}</p>
-                      <p className="truncate text-xs text-ink/50">{complaint.reference} · {t.complaints.reasons[complaint.reason] || complaint.reason}</p>
-                    </div>
-                    <button type="button" onClick={() => onNavigate('complaints')} className="shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-ink ring-1 ring-ink/10 transition-colors hover:bg-magenta hover:text-white">
-                      {o.open}
-                    </button>
-                  </li>
-                ))}
+                {data.recentComplaints.map((complaint) => {
+                  const ageDays = Math.max(0, Math.floor((Date.now() - new Date(complaint.createdAt).getTime()) / 86400000));
+                  const overdue = complaint.status === 'OPEN' && ageDays >= 3;
+                  return (
+                    <li key={complaint.id} className={`rounded-2xl p-3 ${overdue ? 'bg-rose-50 ring-1 ring-rose-200' : 'bg-cream'}`}>
+                      <div className="flex items-start gap-3">
+                        <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full ${complaint.status === 'IN_REVIEW' ? 'bg-blue-100 text-blue-700' : 'bg-rose-100 text-rose-700'}`}>
+                          {overdue ? <AlertTriangle className="h-5 w-5" /> : <Flag className="h-5 w-5" />}
+                        </span>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-bold text-ink">{complaint.customer?.fullName} → {complaint.seller?.businessName}</p>
+                          <p className="truncate text-xs text-ink/50">{complaint.reference} · {t.complaints.reasons[complaint.reason] || complaint.reason}</p>
+                          {complaint.message && <p className="mt-1 line-clamp-1 text-xs text-ink/65">{complaint.message}</p>}
+                        </div>
+                        <div className="shrink-0 text-right">
+                          <ComplaintStatusBadge status={complaint.status} />
+                          <p className={`mt-1 text-[11px] font-semibold tabular-nums ${overdue ? 'text-rose-700' : 'text-ink/45'}`}>
+                            {ageDays === 0 ? o.cmpToday : fill(o.cmpDaysAgo, { count: ageDays })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="mt-2 flex justify-end">
+                        <button type="button" onClick={() => onNavigate('complaints')} className="rounded-full bg-white px-3 py-1.5 text-xs font-bold text-ink ring-1 ring-ink/10 transition-colors hover:bg-magenta hover:text-white">
+                          {o.open}
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             )
           ) : (
@@ -308,6 +673,33 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
                 </li>
               ))}
             </ol>
+          )
+        ) : (
+          <div className="skeleton h-32 rounded-2xl" />
+        )}
+      </Card>
+
+      {/* Latest people to join */}
+      <Card title={o.recentTitle}>
+        {data ? (
+          data.recentSignups?.length ? (
+            <ul className="divide-y divide-ink/5">
+              {data.recentSignups.map((person) => (
+                <li key={person.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                  <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold ${person.role === 'SELLER' ? 'bg-magenta/10 text-magenta' : 'bg-blue-100 text-blue-700'}`}>{initials(person.name) || '?'}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-bold text-ink">{person.name || '–'}</p>
+                    <p className="truncate text-xs text-ink/50">{person.detail || (person.role === 'SELLER' ? o.roleSeller : o.roleCustomer)}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-bold ${person.role === 'SELLER' ? 'bg-magenta/10 text-magenta' : 'bg-blue-100 text-blue-700'}`}>{person.role === 'SELLER' ? o.roleSeller : o.roleCustomer}</span>
+                    <p className="mt-0.5 text-[11px] tabular-nums text-ink/45">{new Date(person.createdAt).toLocaleString(lang === 'en' ? 'en-GB' : lang === 'si' ? 'si-LK' : 'ta-LK', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <Empty>{o.noRecent}</Empty>
           )
         ) : (
           <div className="skeleton h-32 rounded-2xl" />

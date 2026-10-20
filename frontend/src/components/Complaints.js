@@ -43,7 +43,7 @@ export function useMyComplaints(onAuthError) {
 
   useEffect(() => {
     let ignore = false;
-    API.get('/complaints/mine')
+    API.get('/complaints/mine', { timeout: 15000 })
       .then((res) => {
         if (ignore) return;
         setComplaints(res.data);
