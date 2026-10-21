@@ -54,7 +54,6 @@ model LearningProgress {
   progress  Json     @default("{}") @db.JsonB
   updatedAt DateTime @updatedAt
 }
-}
 
 // A customer's profile photo (a small square picture stored as a data URL)
 model ProfilePhoto {
