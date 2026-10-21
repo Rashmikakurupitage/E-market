@@ -25,6 +25,8 @@ const {
   createCourse,
   updateCourse,
   setCoursePublished,
+  uploadCourseMedia,
+  deleteCourseMedia,
 } = require('../controllers/learningCourseController');
 
 // Every admin route needs a logged-in admin
@@ -60,5 +62,14 @@ router.get('/learning-courses', listAdminCourses);
 router.post('/learning-courses', createCourse);
 router.put('/learning-courses/:courseId', updateCourse);
 router.patch('/learning-courses/:courseId/published', setCoursePublished);
+router.put(
+  '/learning-courses/:courseId/media/:slot',
+  express.raw({
+    type: ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/webm', 'audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/webm'],
+    limit: '100mb',
+  }),
+  uploadCourseMedia
+);
+router.delete('/learning-courses/:courseId/media/:slot', deleteCourseMedia);
 
 module.exports = router;
