@@ -1,12 +1,51 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BookOpen, CircleCheck, CirclePlus, LoaderCircle, Pencil, Plus, Send, EyeOff, Trash2 } from 'lucide-react';
+import { BookOpen, CircleCheck, CirclePlus, LoaderCircle, Pencil, Plus, Send, EyeOff, Trash2, Upload, Image as ImageIcon, Video, Music2 } from 'lucide-react';
 import API from '../lib/api';
 import { LANGUAGES, translations, useLanguage } from '../lib/i18n';
 import { inputClass } from './form';
 
 const LANGUAGE_CODES = LANGUAGES.map(({ code }) => code);
+const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const VIDEO_TYPES = ['video/mp4', 'video/webm'];
+const AUDIO_TYPES = ['audio/aac', 'audio/mp4', 'audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/webm'];
+const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
+const MAX_AUDIO_BYTES = 100 * 1024 * 1024;
+const MAX_LESSONS = 100;
+
+function courseMediaUrl(courseId, slot, updatedAt) {
+  const path = `/learning/media/${encodeURIComponent(courseId)}/${encodeURIComponent(slot)}`;
+  return API.getUri({ url: path }) + (updatedAt ? `?v=${encodeURIComponent(updatedAt)}` : '');
+}
+
+function shrinkImage(file) {
+  return new Promise((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new window.Image();
+    image.onload = () => {
+      const scale = Math.min(1, 1600 / Math.max(image.width, image.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext('2d');
+      if (!context) {
+        URL.revokeObjectURL(objectUrl);
+        reject(new Error('image-processing'));
+        return;
+      }
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(objectUrl);
+      canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error('image-processing')), 'image/jpeg', 0.85);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('image-processing'));
+    };
+    image.src = objectUrl;
+  });
+}
 
 function defaultContent() {
   return {
@@ -66,6 +105,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
   const [draft, setDraft] = useState(null);
   const [saving, setSaving] = useState(false);
   const [publishingId, setPublishingId] = useState(null);
+  const [uploadingSlot, setUploadingSlot] = useState(null);
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
@@ -143,13 +183,16 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
     },
   }));
 
-  const addLesson = () => setDraft((previous) => ({
-    ...previous,
-    translations: Object.fromEntries(LANGUAGE_CODES.map((language) => [
-      language,
-      { ...previous.translations[language], lessons: [...previous.translations[language].lessons, { title: '', body: '' }] },
-    ])),
-  }));
+  const addLesson = () => setDraft((previous) => {
+    if (previous.translations.en.lessons.length >= MAX_LESSONS) return previous;
+    return {
+      ...previous,
+      translations: Object.fromEntries(LANGUAGE_CODES.map((language) => [
+        language,
+        { ...previous.translations[language], lessons: [...previous.translations[language].lessons, { title: '', body: '' }] },
+      ])),
+    };
+  });
 
   const removeLesson = (index) => setDraft((previous) => ({
     ...previous,
@@ -175,17 +218,22 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
     ])),
   }));
 
+  const persistDraft = async (content, courseId) => {
+    const response = courseId === null
+      ? await API.post('/admin/learning-courses', { content })
+      : await API.put(`/admin/learning-courses/${encodeURIComponent(courseId)}`, { content });
+    setRecords((previous) => replaceRecord(previous || [], response.data));
+    setEditingId(String(response.data.id));
+    setDraft(response.data);
+    return response.data;
+  };
+
   const saveCourse = async (event) => {
     event.preventDefault();
     setSaving(true);
     setFormError('');
     try {
-      const response = editingId === null
-        ? await API.post('/admin/learning-courses', { content: draft })
-        : await API.put(`/admin/learning-courses/${encodeURIComponent(editingId)}`, { content: draft });
-      setRecords((previous) => replaceRecord(previous || [], response.data));
-      setEditingId(String(response.data.id));
-      setDraft(response.data);
+      await persistDraft(draft, editingId);
       onChanged(copy.saved);
     } catch (error) {
       if ([401, 403].includes(error.response?.status)) onAuthError();
@@ -211,6 +259,128 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
     } finally {
       setPublishingId(null);
     }
+  };
+
+  const mediaFor = (slot) => recordMap.get(String(editingId))?.media?.find((item) => item.slot === slot);
+
+  const uploadMedia = async (slot, file, kind) => {
+    if (!file || !draft) return;
+    if (kind === 'image' && !IMAGE_TYPES.includes(file.type)) {
+      setFormError(copy.mediaTypes);
+      return;
+    }
+    if (kind === 'video' && !VIDEO_TYPES.includes(file.type)) {
+      setFormError(copy.mediaTypes);
+      return;
+    }
+    if (kind === 'audio' && !AUDIO_TYPES.includes(file.type)) {
+      setFormError(copy.mediaTypes);
+      return;
+    }
+    const maxBytes = kind === 'image' ? MAX_IMAGE_BYTES : kind === 'video' ? MAX_VIDEO_BYTES : MAX_AUDIO_BYTES;
+    if (file.size > maxBytes) {
+      setFormError(kind === 'image' ? copy.imageSizeLimit : kind === 'video' ? copy.videoSizeLimit : copy.audioSizeLimit);
+      return;
+    }
+
+    setUploadingSlot(slot);
+    setFormError('');
+    try {
+      const savedCourse = await persistDraft(draft, editingId);
+      const courseId = String(savedCourse.id);
+      const body = kind === 'image' ? await shrinkImage(file) : file;
+      const contentType = kind === 'image' ? 'image/jpeg' : file.type;
+      const response = await API.put(
+        `/admin/learning-courses/${encodeURIComponent(courseId)}/media/${encodeURIComponent(slot)}`,
+        body,
+        { headers: { 'Content-Type': contentType } }
+      );
+      setRecords((previous) => (previous || []).map((record) => {
+        if (String(record.id) !== courseId) return record;
+        return {
+          ...record,
+          media: [...(record.media || []).filter((item) => item.slot !== slot), response.data],
+        };
+      }));
+      onChanged(copy.mediaSaved);
+    } catch (error) {
+      if ([401, 403].includes(error.response?.status)) onAuthError();
+      else if (error.response?.status === 413) {
+        setFormError(kind === 'image' ? copy.imageSizeLimit : kind === 'video' ? copy.videoSizeLimit : copy.audioSizeLimit);
+      }
+      else if (error.response?.status === 400) setFormError(copy.saveError);
+      else setFormError(copy.mediaSaveError);
+    } finally {
+      setUploadingSlot(null);
+    }
+  };
+
+  const removeMedia = async (slot) => {
+    if (!editingId) return;
+    setUploadingSlot(slot);
+    setFormError('');
+    try {
+      await API.delete(`/admin/learning-courses/${encodeURIComponent(editingId)}/media/${encodeURIComponent(slot)}`);
+      setRecords((previous) => (previous || []).map((record) => (
+        String(record.id) === String(editingId)
+          ? { ...record, media: (record.media || []).filter((item) => item.slot !== slot) }
+          : record
+      )));
+      onChanged(copy.mediaRemoved);
+    } catch (error) {
+      if ([401, 403].includes(error.response?.status)) onAuthError();
+      else setFormError(copy.mediaSaveError);
+    } finally {
+      setUploadingSlot(null);
+    }
+  };
+
+  const mediaControl = (slot, kind, label) => {
+    const media = mediaFor(slot);
+    const busy = uploadingSlot === slot;
+    const canEditMedia = Boolean(draft);
+    return (
+      <div className="flex flex-wrap items-center gap-3 rounded-lg bg-cream p-3">
+        {kind === 'image'
+          ? <ImageIcon className="h-4 w-4 shrink-0 text-slate-500" />
+          : kind === 'video'
+            ? <Video className="h-4 w-4 shrink-0 text-slate-500" />
+            : <Music2 className="h-4 w-4 shrink-0 text-slate-500" />}
+        <div className="min-w-0 flex-1">
+          <p className="text-xs font-semibold text-slate-700">{label}</p>
+          {media && (
+            kind === 'image'
+              ? <div role="img" aria-label={label} className="mt-2 h-24 w-40 rounded-lg bg-cover bg-center ring-1 ring-slate-200" style={{ backgroundImage: `url("${courseMediaUrl(editingId, slot, media.updatedAt)}")` }} />
+              : kind === 'video'
+                ? <video className="mt-2 max-h-32 w-full max-w-sm rounded-lg bg-black" controls preload="metadata" src={courseMediaUrl(editingId, slot, media.updatedAt)} />
+                : <audio className="mt-2 w-full max-w-sm" controls preload="metadata" src={courseMediaUrl(editingId, slot, media.updatedAt)} />
+          )}
+        </div>
+        <label
+          className={`inline-flex min-h-9 items-center gap-1.5 rounded-full px-3 py-2 text-xs font-semibold text-brand-700 ring-1 ring-brand-200 ${canEditMedia && !busy ? 'cursor-pointer hover:bg-white' : 'cursor-not-allowed opacity-50'}`}
+        >
+          {busy ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+          {media ? copy.replaceMedia : kind === 'image' ? copy.chooseImage : kind === 'video' ? copy.chooseVideo : copy.chooseAudio}
+          <input
+            type="file"
+            accept={kind === 'image' ? 'image/jpeg,image/png,image/webp' : kind === 'video' ? 'video/mp4,video/webm' : AUDIO_TYPES.join(',')}
+            disabled={!canEditMedia || busy}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = '';
+              uploadMedia(slot, file, kind);
+            }}
+            className="sr-only"
+          />
+        </label>
+        {media && (
+          <button type="button" onClick={() => removeMedia(slot)} disabled={busy} aria-label={`${copy.removeMedia}: ${label}`} className="inline-flex h-9 w-9 items-center justify-center rounded-full text-red-700 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-50">
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
+        <p className="w-full text-xs text-slate-500">{copy.saveBeforeMedia}</p>
+      </div>
+    );
   };
 
   const contentLanguage = draft?.translations?.[selectedLanguage];
@@ -250,6 +420,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
                 </button>
               ))}
             </div>
+            <p className="mt-2 text-xs text-slate-500">{copy.translationFallbackNotice}</p>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
@@ -283,11 +454,18 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
             </label>
           </div>
 
+          <section className="space-y-3">
+            <h4 className="font-extrabold text-ink">{copy.coverImage}</h4>
+            <p className="text-xs text-slate-500">{copy.mediaTypes} {copy.uploadLimits}</p>
+            {mediaControl('cover-image', 'image', copy.coverImage)}
+          </section>
+
           <section className="space-y-4">
             <div className="flex items-center justify-between gap-2">
               <h4 className="font-extrabold text-ink">{copy.lessons}</h4>
-              <button type="button" onClick={addLesson} disabled={draft.translations.en.lessons.length >= 20} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 disabled:opacity-50"><Plus className="h-4 w-4" />{copy.addLesson}</button>
+              <button type="button" onClick={addLesson} disabled={draft.translations.en.lessons.length >= MAX_LESSONS} className="inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 disabled:opacity-50"><Plus className="h-4 w-4" />{copy.addLesson}</button>
             </div>
+            <p className="text-xs text-slate-500">{copy.lessonLimit.replace('{count}', String(draft.translations.en.lessons.length)).replace('{max}', String(MAX_LESSONS))}</p>
             {contentLanguage.lessons.map((lesson, index) => (
               <fieldset key={index} className="space-y-3 rounded-xl bg-white p-4 ring-1 ring-slate-200">
                 <legend className="px-1 text-sm font-bold text-slate-700">{copy.lesson} {index + 1}</legend>
@@ -299,6 +477,9 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
                   {copy.lessonBody}
                   <textarea required maxLength={5000} rows={4} value={lesson.body} onChange={(event) => updateTranslation(selectedLanguage, (value) => ({ ...value, lessons: value.lessons.map((item, i) => i === index ? { ...item, body: event.target.value } : item) }))} className={`${inputClass(false)} mt-1.5`} />
                 </label>
+                {mediaControl(`lesson-${index}-image`, 'image', `${copy.lesson} ${index + 1}: ${copy.lessonImage}`)}
+                {mediaControl(`lesson-${index}-video`, 'video', `${copy.lesson} ${index + 1}: ${copy.lessonVideo}`)}
+                {mediaControl(`lesson-${index}-audio`, 'audio', `${copy.lesson} ${index + 1}: ${copy.lessonAudio}`)}
                 <button type="button" onClick={() => removeLesson(index)} disabled={contentLanguage.lessons.length <= 1} className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" />{copy.removeLesson}</button>
               </fieldset>
             ))}
@@ -338,7 +519,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
           </section>
 
           {formError && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800" role="alert">{formError}</p>}
-          <button type="submit" disabled={saving} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-magenta disabled:opacity-60">
+          <button type="submit" disabled={saving || Boolean(uploadingSlot)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-magenta disabled:opacity-60">
             {saving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CircleCheck className="h-4 w-4" />}
             {saving ? copy.saving : copy.save}
           </button>

@@ -133,6 +133,13 @@ const COURSE_IMAGES = {
   6: '/wallpapers/masks.jpg',
 };
 
+function managedMediaUrl(course, slot) {
+  const media = course?.media?.find((item) => item.slot === slot);
+  if (!media) return null;
+  const path = `/learning/media/${encodeURIComponent(course.id)}/${encodeURIComponent(slot)}`;
+  return API.getUri({ url: path }) + (media.updatedAt ? `?v=${encodeURIComponent(media.updatedAt)}` : '');
+}
+
 const LESSON_IMAGES = {
   1: ['/hero_main.jpg', '/wallpapers/masks.jpg', '/wallpapers/cane-market.jpg', '/wallpapers/tea-woman.jpg'],
   2: ['/wallpapers/spices.jpg', '/wallpapers/kitchen.jpg', '/wallpapers/basketry.jpg'],
@@ -175,6 +182,7 @@ export default function ELearning() {
           lessons: localized.lessons,
           modules: localized.lessons.length,
           quiz: localized.quiz,
+          media: override.media || [],
         };
       })
       .filter(Boolean),
@@ -193,6 +201,7 @@ export default function ELearning() {
           lessons: localized.lessons,
           modules: localized.lessons.length,
           quiz: localized.quiz,
+          media: course.media || [],
         };
       }),
   ];
@@ -235,7 +244,14 @@ export default function ELearning() {
     : 0;
   const selectedProgress = selectedCourse ? progress[selectedCourse.id] || { completed: [], current: 0, done: false } : null;
   const lesson = selectedCourse?.lessons[currentModule];
-  const lessonImage = selectedCourse ? LESSON_IMAGES[selectedCourse.id]?.[currentModule] || COURSE_IMAGES[selectedCourse.id] : null;
+  const lessonImage = selectedCourse
+    ? managedMediaUrl(selectedCourse, `lesson-${currentModule}-image`)
+      || managedMediaUrl(selectedCourse, 'cover-image')
+      || LESSON_IMAGES[selectedCourse.id]?.[currentModule]
+      || COURSE_IMAGES[selectedCourse.id]
+    : null;
+  const lessonVideo = selectedCourse ? managedMediaUrl(selectedCourse, `lesson-${currentModule}-video`) : null;
+  const lessonAudio = selectedCourse ? managedMediaUrl(selectedCourse, `lesson-${currentModule}-audio`) : null;
   const quiz = selectedCourse?.quiz || [];
   const showCompletion = showQuiz && quizSubmitted && selectedProgress?.done;
   const visibleSyncStatus = sessionUserId
@@ -568,11 +584,12 @@ export default function ELearning() {
                   <Reveal key={course.id} animation="zoom-in" delay={index * 120} className="grid">
                     <article className="group flex flex-col overflow-hidden rounded-[32px] bg-white shadow-sm ring-1 ring-ink/5 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
                       <div className={`relative isolate flex h-48 items-end justify-between overflow-hidden bg-linear-to-br ${theme.header}`}>
-                        {COURSE_IMAGES[course.id] ? (
+                        {managedMediaUrl(course, 'cover-image') || COURSE_IMAGES[course.id] ? (
                           <Image
-                            src={COURSE_IMAGES[course.id]}
-                            alt=""
+                            src={managedMediaUrl(course, 'cover-image') || COURSE_IMAGES[course.id]}
+                            alt={course.title}
                             fill
+                            unoptimized={Boolean(managedMediaUrl(course, 'cover-image'))}
                             sizes="(max-width: 768px) 100vw, 33vw"
                             loading={index === 0 ? 'eager' : 'lazy'}
                             className="object-cover transition-transform duration-700 group-hover:scale-105"
@@ -774,12 +791,33 @@ export default function ELearning() {
                               src={lessonImage}
                               alt={`${selectedCourse.title}: ${lesson.title}`}
                               fill
+                              unoptimized={Boolean(managedMediaUrl(selectedCourse, `lesson-${currentModule}-image`) || managedMediaUrl(selectedCourse, 'cover-image'))}
                               sizes="(max-width: 768px) 100vw, 720px"
                               className="object-cover"
                             />
                           </figure>
                         )}
                         <p className="mt-6 max-w-2xl whitespace-pre-line text-base leading-8 text-slate-700">{lesson.body}</p>
+                        {lessonVideo && (
+                          <video
+                            key={lessonVideo}
+                            className="mt-6 aspect-video w-full max-w-3xl rounded-2xl bg-black shadow-sm"
+                            controls
+                            preload="metadata"
+                            src={lessonVideo}
+                          >
+                            {hub.videoUnsupported}
+                          </video>
+                        )}
+                        {lessonAudio && (
+                          <audio
+                            key={lessonAudio}
+                            className="mt-6 w-full max-w-3xl"
+                            controls
+                            preload="metadata"
+                            src={lessonAudio}
+                          />
+                        )}
                         {selectedProgress.completed.includes(currentModule) && (
                           <p className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-brand-700">
                             <CircleCheck className="h-5 w-5" /> {hub.moduleCompleted}
