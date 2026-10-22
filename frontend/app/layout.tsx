@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import { Geist, Geist_Mono, Noto_Sans_Sinhala, Noto_Sans_Tamil, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import "./dark-theme.css";
@@ -56,14 +57,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
       className={`${geistSans.variable} ${geistMono.variable} ${notoSinhala.variable} ${notoTamil.variable} ${playfair.variable} h-full antialiased`}
     >
-      <head>
-        {/* Light or dark: applied before the first paint so the page never flashes the wrong colours */}
-        <script dangerouslySetInnerHTML={{ __html: "try{var d=document.documentElement,l=localStorage;if(l.getItem('lw-theme')==='dark')d.setAttribute('data-theme','dark');var a=l.getItem('lw-accent'),p=l.getItem('lw-pattern');if(/^(ocean|forest|royal|slate)$/.test(a))d.setAttribute('data-accent',a);if(/^(dots|lattice|waves)$/.test(p))d.setAttribute('data-pattern',p)}catch(e){}" }} />
-      </head>
       {/* Browser extensions (e.g. converters, translators) add attributes to <body>; don't treat that as a hydration error */}
       <body className="bg-mesh flex min-h-full flex-col text-ink" suppressHydrationWarning>
+        {/* Apply saved colors before hydration without an inline script in the React tree */}
+        <Script src="/theme-init.js" strategy="beforeInteractive" />
         <LanguageProvider>
           <SiteFrame>{children}</SiteFrame>
           <AppShell />

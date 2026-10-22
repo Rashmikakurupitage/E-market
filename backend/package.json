@@ -11,7 +11,8 @@
   },
   "nodemonConfig": {
     "watch": ["src", ".env"],
-    "ext": "js,json,env"
+    "ext": "js,json,env",
+    "delay": 500
   },
   "keywords": [],
   "author": "",

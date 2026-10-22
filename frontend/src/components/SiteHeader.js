@@ -109,8 +109,8 @@ export default function SiteHeader() {
       }`}
     >
       <div
-        className={`glass mx-auto max-w-7xl rounded-[32px] bg-white/90 px-3 py-2 transition-shadow duration-300 sm:px-5 ${
-          scrolled ? 'shadow-xl shadow-ink/10' : ''
+        className={`glass mx-auto max-w-7xl rounded-[32px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border px-3 py-2 transition-all duration-300 sm:px-5 ${
+          scrolled ? 'shadow-xl shadow-ink/10 border-ink/15' : 'border-ink/5'
         }`}
       >
         <div className="flex items-center justify-between gap-3">

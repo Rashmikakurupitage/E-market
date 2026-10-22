@@ -196,23 +196,51 @@ const dayKey = (date) => {
 
 exports.getOverview = async (req, res) => {
   try {
-    const requestedDays = Number(req.query.days);
-    const DAYS = [7, 14, 30, 90].includes(requestedDays) ? requestedDays : 14;
-    const start = new Date();
-    start.setHours(0, 0, 0, 0);
-    start.setDate(start.getDate() - (DAYS - 1));
+    const yearNum = req.query.year ? Number(req.query.year) : null;
+    const monthNum = req.query.month ? Number(req.query.month) : null;
+    const dayNum = req.query.day ? Number(req.query.day) : null;
+
+    let start;
+    let end;
+    let DAYS;
+
+    if (yearNum && yearNum >= 2000 && yearNum <= 2100) {
+      if (dayNum && dayNum >= 1 && dayNum <= 31 && monthNum && monthNum >= 1 && monthNum <= 12) {
+        start = new Date(yearNum, monthNum - 1, dayNum, 0, 0, 0, 0);
+        end = new Date(yearNum, monthNum - 1, dayNum, 23, 59, 59, 999);
+        DAYS = 1;
+      } else if (monthNum && monthNum >= 1 && monthNum <= 12) {
+        start = new Date(yearNum, monthNum - 1, 1, 0, 0, 0, 0);
+        const daysInMonth = new Date(yearNum, monthNum, 0).getDate();
+        end = new Date(yearNum, monthNum - 1, daysInMonth, 23, 59, 59, 999);
+        DAYS = daysInMonth;
+      } else {
+        start = new Date(yearNum, 0, 1, 0, 0, 0, 0);
+        end = new Date(yearNum, 11, 31, 23, 59, 59, 999);
+        const isLeap = (yearNum % 4 === 0 && yearNum % 100 !== 0) || yearNum % 400 === 0;
+        DAYS = isLeap ? 366 : 365;
+      }
+    } else {
+      const requestedDays = Number(req.query.days);
+      DAYS = Number.isInteger(requestedDays) && requestedDays >= 1 && requestedDays <= 365 ? requestedDays : 14;
+      start = new Date();
+      start.setHours(0, 0, 0, 0);
+      start.setDate(start.getDate() - (DAYS - 1));
+      end = new Date();
+      end.setHours(23, 59, 59, 999);
+    }
 
     const [customers, sellers, newRegistrations, orders, ordersByStatus, delivered, clicks, topRaw, pendingSellers, recentComplaints] = await Promise.all([
       prisma.user.count({ where: { role: 'CUSTOMER', removedAt: null, emailVerifiedAt: { not: null } } }),
       prisma.user.count({ where: { role: 'SELLER', removedAt: null, sellerProfile: { is: { removedAt: null } } } }),
       prisma.user.findMany({
-        where: { role: { in: ['CUSTOMER', 'SELLER'] }, emailVerifiedAt: { not: null }, createdAt: { gte: start } },
+        where: { role: { in: ['CUSTOMER', 'SELLER'] }, emailVerifiedAt: { not: null }, createdAt: { gte: start, lte: end } },
         select: { role: true, createdAt: true }
       }),
       prisma.order.count(),
       prisma.order.groupBy({ by: ['status'], _count: { _all: true } }),
       prisma.order.aggregate({ where: { status: 'DELIVERED' }, _sum: { total: true } }),
-      prisma.clickAnalytics.findMany({ where: { timestamp: { gte: start } }, select: { timestamp: true }, take: 20000 }),
+      prisma.clickAnalytics.findMany({ where: { timestamp: { gte: start, lte: end } }, select: { timestamp: true }, take: 50000 }),
       prisma.clickAnalytics.groupBy({ by: ['sellerId'], _count: { _all: true }, orderBy: { _count: { sellerId: 'desc' } }, take: 8 }),
       prisma.sellerProfile.findMany({
         where: { status: 'PENDING', removedAt: null },
@@ -301,6 +329,7 @@ exports.getOverview = async (req, res) => {
 
     res.json({
       days: DAYS,
+      range: { start: dayKey(start), end: dayKey(end) },
       previous: { registrations: previousRegistrations, clicks: previousClicks },
       recentSignups: recentSignups.map((user) => ({
         id: user.id,

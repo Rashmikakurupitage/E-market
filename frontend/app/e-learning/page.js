@@ -433,7 +433,7 @@ export default function ELearning() {
             {visibleSyncStatus === 'local' && (
               <>
                 <span className="text-slate-500">{hub.progressLocal}</span>
-                {!sessionUserId && <Link href="/login" className="font-semibold text-brand-700 underline underline-offset-2">{hub.progressSignIn}</Link>}
+                {!sessionUserId && <Link href="/login?as=customer&next=%2Fe-learning" className="font-semibold text-brand-700 underline underline-offset-2">{hub.progressSignIn}</Link>}
               </>
             )}
             {visibleSyncStatus === 'loading' && <span className="text-slate-500">{hub.progressSyncing}</span>}

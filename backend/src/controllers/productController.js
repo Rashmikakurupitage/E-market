@@ -44,7 +44,7 @@ const readPhotos = (input, req) => {
   return { urls, uploads };
 };
 
-// 1. අලුත් Product එකක් එකතු කිරීම (Sellers Only)
+// 1. Add a new product (sellers only).
 exports.createProduct = async (req, res) => {
   try {
     const { title, description, category, images, price } = req.body;
@@ -69,7 +69,7 @@ exports.createProduct = async (req, res) => {
       return res.status(400).json({ code: 'DISCOUNT_NEEDS_PRICE', message: 'Set a price before giving a discount.' });
     }
 
-    // Request එක එවන Seller ගේ SellerProfile ID එක සොයාගැනීම
+    // Find the SellerProfile ID for the seller making this request.
     const sellerProfile = await prisma.sellerProfile.findUnique({
       where: { userId: req.user.userId }
     });
@@ -101,7 +101,7 @@ exports.createProduct = async (req, res) => {
   }
 };
 
-// 2. සියලුම Products ලබාගැනීම (Public Search/Filter)
+// 2. Get all products (public search/filter).
 // True when the request carries a valid login token of a registered customer. Everyone else gets no seller contact details.
 const isCustomer = (req) => {
   const header = req.headers.authorization;
@@ -181,7 +181,7 @@ exports.getAllProducts = async (req, res) => {
   }
 };
 
-// 3. Log වී සිටින Seller ගේ Products ලබාගැනීම (Seller Dashboard)
+// 3. Get products for the logged-in seller (seller dashboard).
 // Numbers for the seller dashboard's overview: 14 days of enquiries, orders, and the most contacted products
 const dayKey = (date) => {
   const d = new Date(date);
@@ -271,7 +271,7 @@ exports.getMyProducts = async (req, res) => {
 
     const weekCounts = new Map(recentClicks.map((row) => [row.productId, row._count._all]));
 
-    // Dashboard එක clickCount (මුළු) සහ clicksThisWeek (පසුගිය දින 7) පෙන්වයි
+    // The dashboard shows clickCount (total) and clicksThisWeek (last 7 days).
     res.json(
       products.map(({ _count, ...product }) =>
         withDiscount({
@@ -319,7 +319,7 @@ exports.setDiscount = async (req, res) => {
   }
 };
 
-// 4. Seller ගේ Product එකක් ඉවත් කිරීම (තමන්ගේ products පමණි)
+// 4. Delete a seller's product (only their own products).
 exports.deleteProduct = async (req, res) => {
   try {
     const sellerProfile = await prisma.sellerProfile.findUnique({

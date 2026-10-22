@@ -3,16 +3,16 @@
 import { createContext, useContext, useEffect, useSyncExternalStore } from 'react';
 
 export const LANGUAGES = [
+  { code: 'en', label: 'English' },
   { code: 'si', label: 'සිංහල' },
   { code: 'ta', label: 'தமிழ்' },
-  { code: 'en', label: 'English' },
 ];
 
 // Site name is always shown in all three languages in the header
 export const SITE_TITLES = {
+  en: 'Lanka Women E-Market System',
   si: 'ලංකා කාන්තා ඊ-වෙළඳපොළ පද්ධතිය',
   ta: 'இலங்கைப் பெண்கள் மின்-சந்தை அமைப்பு',
-  en: 'Lanka Women E-Market System',
 };
 
 export const translations = {
@@ -1009,6 +1009,19 @@ export const translations = {
       regPeak: "වැඩිම ලියාපදිංචි දිනය",
       rangeLabel: "කාල සීමාව",
       rangeDays: "පසුගිය දින {days}",
+      rangeDay7: "දින · පසුගිය දින 7",
+      rangeDay1: "දින · අද (දින 1)",
+      rangeDay14: "දින · පසුගිය දින 14",
+      rangeMonth30: "මාස · පසුගිය දින 30",
+      rangeMonth90: "මාස · පසුගිය දින 90 (කාර්තු)",
+      rangeYear365: "වසර · පසුගිය දින 365 (වසර 1)",
+      rangeCustom: "📅 නිශ්චිත වසර / මාස / දින",
+      optDay: "දින",
+      optMonth: "මාස",
+      optYear: "වසර",
+      optCustom: "තෝරාගත් දිනය",
+      allMonths: "සියලු මාස",
+      allDays: "සියලු දින",
       regShort: "ලියාපදිංචිවීම්",
       enqShort: "ව්‍යවසායිකා විමසුම්",
       lastDays: "පසුගිය දින {days}",
@@ -2392,6 +2405,19 @@ export const translations = {
       regPeak: "Busiest day",
       rangeLabel: "Time range",
       rangeDays: "Last {days} days",
+      rangeDay7: "Day · Last 7 days",
+      rangeDay1: "Day · Today (1 day)",
+      rangeDay14: "Day · Last 14 days",
+      rangeMonth30: "Month · Last 30 days",
+      rangeMonth90: "Month · Last 90 days (Quarter)",
+      rangeYear365: "Year · Last 365 days (1 year)",
+      rangeCustom: "📅 Specific Year / Month / Day",
+      optDay: "Day",
+      optMonth: "Month",
+      optYear: "Year",
+      optCustom: "Custom",
+      allMonths: "All Months",
+      allDays: "All Days",
       regShort: "Registrations",
       enqShort: "Seller enquiries",
       lastDays: "last {days} days",
@@ -3775,6 +3801,19 @@ export const translations = {
       regPeak: "அதிக பதிவுகள் நாள்",
       rangeLabel: "கால வரம்பு",
       rangeDays: "கடந்த {days} நாட்கள்",
+      rangeDay7: "நாள் · கடந்த 7 நாட்கள்",
+      rangeDay1: "நாள் · இன்று (1 நாள்)",
+      rangeDay14: "நாள் · கடந்த 14 நாட்கள்",
+      rangeMonth30: "மாதம் · கடந்த 30 நாட்கள்",
+      rangeMonth90: "மாதம் · கடந்த 90 நாட்கள் (காலாண்டு)",
+      rangeYear365: "ஆண்டு · கடந்த 365 நாட்கள் (1 ஆண்டு)",
+      rangeCustom: "📅 குறிப்பிட்ட ஆண்டு / மாதம் / நாள்",
+      optDay: "நாள்",
+      optMonth: "மாதம்",
+      optYear: "ஆண்டு",
+      optCustom: "விருப்பத்தேர்வு",
+      allMonths: "அனைத்து மாதங்கள்",
+      allDays: "அனைத்து நாட்கள்",
       regShort: "பதிவுகள்",
       enqShort: "விற்பனையாளர் விசாரணைகள்",
       lastDays: "கடந்த {days} நாட்கள்",
@@ -4173,26 +4212,38 @@ export const fill = (template, values) => template.replace(/\{(\w+)\}/g, (_, key
 const DEFAULT_LANG = 'en';
 const STORAGE_KEY = 'lang';
 
-// The chosen language lives in localStorage so it carries across pages and visits.
-// `current` keeps switching working even when storage is blocked (e.g. private mode).
+// The website always opens in English by default.
+// Temporary session choice is kept in sessionStorage so page navigation during a session
+// respects manual changes, but reopening or launching the website always starts fresh in English.
 let current = null;
 const listeners = new Set();
 
 function readLang() {
   if (current) return current;
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved && translations[saved]) return saved;
+    if (typeof window !== 'undefined') {
+      // Clean up any legacy localStorage entry that forced non-English across visits
+      if (window.localStorage && window.localStorage.getItem(STORAGE_KEY)) {
+        window.localStorage.removeItem(STORAGE_KEY);
+      }
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = params.get('lang');
+      if (urlLang && translations[urlLang]) {
+        current = urlLang;
+        if (window.sessionStorage) window.sessionStorage.setItem(STORAGE_KEY, urlLang);
+        return urlLang;
+      }
+      const saved = window.sessionStorage ? window.sessionStorage.getItem(STORAGE_KEY) : null;
+      if (saved && translations[saved]) return saved;
+    }
   } catch {}
   return DEFAULT_LANG;
 }
 
 function subscribe(callback) {
   listeners.add(callback);
-  window.addEventListener('storage', callback);
   return () => {
     listeners.delete(callback);
-    window.removeEventListener('storage', callback);
   };
 }
 
@@ -4200,7 +4251,10 @@ function setLang(code) {
   if (!translations[code]) return;
   current = code;
   try {
-    localStorage.setItem(STORAGE_KEY, code);
+    if (typeof window !== 'undefined') {
+      if (window.sessionStorage) window.sessionStorage.setItem(STORAGE_KEY, code);
+      if (window.localStorage) window.localStorage.removeItem(STORAGE_KEY);
+    }
   } catch {}
   listeners.forEach((listener) => listener());
 }

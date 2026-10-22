@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Script from 'next/script';
 import { Search, ChevronDown, ShoppingBag, Store, KeyRound, MessageCircleQuestion, Mail, X } from 'lucide-react';
 import { useLanguage, fill } from '../../src/lib/i18n';
 import { HERO_IMAGE } from '../../src/lib/catalog';
@@ -78,7 +79,7 @@ export default function FAQ() {
   return (
     <main className="relative isolate flex-1">
       <PageArt />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: structuredData }} />
+      <Script id="faq-structured-data" type="application/ld+json" strategy="afterInteractive" dangerouslySetInnerHTML={{ __html: structuredData }} />
 
       {/* Title + search */}
       <section className="relative isolate mx-auto mt-4 w-[calc(100%-1.5rem)] max-w-7xl rounded-[40px] sm:mt-6 sm:w-[calc(100%-3rem)] overflow-hidden px-4 pb-20 pt-12 text-white sm:pb-28 sm:pt-16">

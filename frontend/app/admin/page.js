@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   BadgeCheck, Package, Search, MapPin, Mail, Phone, IdCard, ArrowLeft,
   ChevronDown, ChevronUp, Eye, EyeOff, Trash2, CircleCheck, CircleAlert, LoaderCircle,
-  Users, UserRound, CalendarDays, ShieldCheck, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw, BookOpen,
+  Users, UserRound, CalendarDays, ShieldCheck, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw, BookOpen, X,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -50,34 +50,55 @@ function useDebounced(value, delay = 300) {
 
 function Toolbar({ filters, active, onFilter, search, onSearch, placeholder }) {
   return (
-    <div className="flex flex-col gap-3 border-b border-slate-100 p-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col gap-3 border-b border-slate-100 bg-white/50 p-4 backdrop-blur-xs lg:flex-row lg:items-center lg:justify-between">
       <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
-        {filters.map((filter) => (
-          <button
-            key={filter.value}
-            type="button"
-            onClick={() => onFilter(filter.value)}
-            aria-pressed={active === filter.value}
-            className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors ${
-              active === filter.value ? 'bg-slate-800 text-white' : 'bg-sand/60 text-slate-600 hover:bg-slate-200'
-            }`}
-          >
-            {filter.label}
-            {filter.count !== undefined && <span className="ml-1.5 opacity-70">{filter.count}</span>}
-          </button>
-        ))}
+        {filters.map((filter) => {
+          const on = active === filter.value;
+          return (
+            <button
+              key={filter.value}
+              type="button"
+              onClick={() => onFilter(filter.value)}
+              aria-pressed={on}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
+                on
+                  ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950'
+                  : 'bg-sand/70 text-slate-700 hover:bg-slate-200'
+              }`}
+            >
+              {on && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />}
+              <span>{filter.label}</span>
+              {filter.count !== undefined && (
+                <span className={`ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-extrabold ${on ? 'bg-white/20 text-white' : 'bg-ink/10 text-ink/70'}`}>
+                  {filter.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
-      <label className="relative block lg:w-80">
-        <span className="sr-only">{placeholder}</span>
+      <div className="relative lg:w-80">
+        <label htmlFor="toolbar-search" className="sr-only">{placeholder}</label>
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
+          id="toolbar-search"
           type="search"
           value={search}
           onChange={(e) => onSearch(e.target.value)}
           placeholder={placeholder}
-          className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20"
+          className="w-full rounded-xl border border-slate-200 bg-white py-2 pl-9 pr-8 text-xs font-medium text-slate-800 placeholder:text-slate-400 focus:border-brand-600 focus:outline-none focus:ring-2 focus:ring-brand-600/20 shadow-xs"
         />
-      </label>
+        {search && (
+          <button
+            type="button"
+            onClick={() => onSearch('')}
+            aria-label="Clear search"
+            className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-full p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
@@ -101,6 +122,7 @@ function ComplaintsPanel({ stats, onChanged, onAuthError }) {
   const [complaints, setComplaints] = useState(null);
   const [failed, setFailed] = useState(false);
   const [openIds, setOpenIds] = useState([]); // complaints start folded to one line; the admin opens the one to handle
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     let ignore = false;
@@ -151,7 +173,7 @@ function ComplaintsPanel({ stats, onChanged, onAuthError }) {
         <ul className="divide-y divide-slate-100">
           {complaints.map((complaint) => {
             const open = openIds.includes(complaint.id);
-            const ageDays = Math.max(0, Math.floor((Date.now() - new Date(complaint.createdAt).getTime()) / 86400000));
+            const ageDays = Math.max(0, Math.floor((now - new Date(complaint.createdAt).getTime()) / 86400000));
             const overdue = complaint.status === 'OPEN' && ageDays >= 3;
             const accent = overdue ? 'border-l-rose-500' : { OPEN: 'border-l-rose-300', IN_REVIEW: 'border-l-blue-400', RESOLVED: 'border-l-emerald-400', DISMISSED: 'border-l-slate-300' }[complaint.status] || 'border-l-slate-200';
             return (
@@ -1283,7 +1305,7 @@ function WallpaperPanel({ onChanged, onAuthError }) {
   );
 }
 
-const ADMIN_TABS = ['overview', 'customers', 'sellers', 'products', 'complaints', 'appearance', 'admins'];
+const ADMIN_TABS = ['overview', 'customers', 'sellers', 'products', 'courses', 'complaints', 'appearance', 'admins'];
 
 export default function AdminDashboard() {
   const router = useRouter();

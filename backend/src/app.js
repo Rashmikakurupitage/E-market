@@ -34,12 +34,7 @@ app.get('/', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, (error) => {
-  if (error) {
-    // e.g. EADDRINUSE: another backend is already running on this port
-    console.error(`Could not start on port ${PORT}: ${error.message}`);
-    process.exit(1);
-  }
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(
     isEmailConfigured()
@@ -47,3 +42,25 @@ app.listen(PORT, (error) => {
       : 'Email: NOT set up - configure EMAIL_PROVIDER and its settings in backend/.env.'
   );
 });
+
+server.on('error', (error) => {
+  if (error.code === 'EADDRINUSE') {
+    console.warn(`Port ${PORT} is temporarily busy. Waiting 1 second to retry...`);
+    setTimeout(() => {
+      server.close();
+      server.listen(PORT);
+    }, 1000);
+  } else {
+    console.error(`Could not start on port ${PORT}:`, error);
+    process.exit(1);
+  }
+});
+
+function gracefulShutdown() {
+  server.close(() => {
+    process.exit(0);
+  });
+}
+process.once('SIGUSR2', gracefulShutdown);
+process.on('SIGINT', gracefulShutdown);
+process.on('SIGTERM', gracefulShutdown);

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import {
-  AlertTriangle, ArrowRight, BadgeCheck, CalendarDays, CircleCheck, FileText, Flag, Hourglass, MessageCircle, Package, RefreshCw, ShoppingBag, Store, TrendingUp, UserRound, Users, Wallet,
+  AlertTriangle, ArrowRight, BadgeCheck, CalendarDays, ChevronDown, CircleCheck, FileText, Flag, Hourglass, MessageCircle, Package, RefreshCw, ShoppingBag, Store, TrendingUp, Users, Wallet,
 } from 'lucide-react';
 import API from '../lib/api';
 import { fill, useLanguage } from '../lib/i18n';
@@ -32,20 +32,20 @@ export function Kpi({ icon: Icon, label, value, sub, tone, delay, onClick }) {
     rose: 'from-rose-500 to-orange-400',
   };
   return (
-    <Reveal delay={delay} className="relative overflow-hidden rounded-[24px] bg-white p-4 shadow-sm ring-1 ring-ink/5 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
-      <span aria-hidden="true" className={`absolute -right-6 -top-6 h-20 w-20 rounded-full bg-linear-to-br opacity-15 ${tones[tone]}`} />
-      <span className={`flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br text-white shadow-md ${tones[tone]}`}>
+    <Reveal delay={delay} className="group relative overflow-hidden rounded-[26px] border border-ink/8 bg-white p-5 shadow-sm shadow-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/10 hover:border-ink/15">
+      <span aria-hidden="true" className={`absolute -right-6 -top-6 h-24 w-24 rounded-full bg-linear-to-br opacity-15 transition-transform duration-500 group-hover:scale-125 ${tones[tone]}`} />
+      <span className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br text-white shadow-md shadow-ink/10 transition-transform duration-300 group-hover:scale-105 ${tones[tone]}`}>
         <Icon className="h-5 w-5" />
       </span>
-      <p className="mt-3 text-3xl font-extrabold tabular-nums text-ink">{typeof value === 'number' ? <CountUp value={value} /> : value ?? '–'}</p>
-      <p className="mt-0.5 text-sm font-semibold text-ink/70">{label}</p>
-      {sub && <p className="mt-0.5 text-xs text-ink/45">{sub}</p>}
+      <p className="mt-3.5 text-3xl font-extrabold tabular-nums tracking-tight text-ink">{typeof value === 'number' ? <CountUp value={value} /> : value ?? '–'}</p>
+      <p className="mt-1 text-sm font-semibold text-ink/75">{label}</p>
+      {sub && <p className="mt-0.5 text-xs font-medium text-ink/50">{sub}</p>}
       {onClick && (
         <button
           type="button"
           onClick={onClick}
           aria-label={`${label}: ${value ?? ''}`}
-          className="absolute inset-0 z-10 rounded-[24px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-magenta"
+          className="absolute inset-0 z-10 rounded-[26px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-magenta"
         >
           <span className="sr-only">{label}</span>
         </button>
@@ -56,9 +56,9 @@ export function Kpi({ icon: Icon, label, value, sub, tone, delay, onClick }) {
 
 export function Card({ title, action, children, className = '', id }) {
   return (
-    <section id={id} className={`scroll-mt-24 rounded-[28px] bg-white p-5 shadow-sm ring-1 ring-ink/5 ${className}`}>
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="font-sans text-sm font-bold uppercase tracking-wider text-slate-800">{title}</h3>
+    <section id={id} className={`scroll-mt-24 rounded-[28px] border border-ink/8 bg-white p-5 sm:p-6 shadow-sm shadow-ink/5 transition-all duration-300 hover:shadow-md hover:border-ink/12 ${className}`}>
+      <div className="mb-4 flex items-center justify-between gap-3 border-b border-ink/5 pb-3">
+        <h3 className="font-sans text-xs font-extrabold uppercase tracking-wider text-slate-700">{title}</h3>
         {action}
       </div>
       {children}
@@ -255,13 +255,27 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
   const [data, setData] = useState(null);
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
-  const [days, setDays] = useState(14);
+  const [now] = useState(() => new Date());
+  const currentYear = now.getFullYear();
+  const [rangeMode, setRangeMode] = useState('days-14');
+  const [selectedYear, setSelectedYear] = useState(currentYear);
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const [selectedDay, setSelectedDay] = useState('all');
   const [reportError, setReportError] = useState(false);
 
   useEffect(() => {
     let ignore = false;
     const load = () => {
-      API.get(`/admin/overview?days=${days}`, { timeout: 15000 })
+      let queryParam = '';
+      if (rangeMode === 'custom') {
+        queryParam = `year=${selectedYear}`;
+        if (selectedMonth !== 'all') queryParam += `&month=${selectedMonth}`;
+        if (selectedDay !== 'all') queryParam += `&day=${selectedDay}`;
+      } else {
+        const numDays = Number(rangeMode.replace('days-', '')) || 14;
+        queryParam = `days=${numDays}`;
+      }
+      API.get(`/admin/overview?${queryParam}`, { timeout: 15000 })
         .then((res) => {
           if (ignore) return;
           setData(res.data);
@@ -284,7 +298,7 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
       clearInterval(refreshTimer);
       document.removeEventListener('visibilitychange', onVisible);
     };
-  }, [onAuthError, reloadKey, days]);
+  }, [onAuthError, reloadKey, rangeMode, selectedYear, selectedMonth, selectedDay]);
 
   // Cards with no page of their own: bring the matching section into view
   const scrollToCard = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -302,6 +316,40 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
   const totalEnquiries = data ? data.clicksByDay.reduce((sum, day) => sum + day.count, 0) : 0;
   const orderTotal = data?.orders.total || 0;
   const needsAttention = (stats?.sellers.PENDING || 0) + (stats?.complaints.OPEN || 0);
+
+  const monthNames = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ];
+  const fullMonthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  const daysInSelectedMonth = selectedMonth === 'all'
+    ? 31
+    : new Date(selectedYear, Number(selectedMonth), 0).getDate();
+  const safeSelectedDay = selectedDay === 'all' || Number(selectedDay) <= daysInSelectedMonth ? selectedDay : 'all';
+  const yearOptions = [currentYear, currentYear - 1, currentYear - 2, currentYear - 3];
+
+  const getPeriodLabel = () => {
+    if (rangeMode === 'custom') {
+      if (selectedMonth !== 'all' && safeSelectedDay !== 'all') {
+        return `${safeSelectedDay} ${fullMonthNames[Number(selectedMonth) - 1]} ${selectedYear}`;
+      }
+      if (selectedMonth !== 'all') {
+        return `${fullMonthNames[Number(selectedMonth) - 1]} ${selectedYear}`;
+      }
+      return `${selectedYear}`;
+    }
+    const numDays = Number(rangeMode.replace('days-', '')) || 14;
+    if (numDays === 1) return o.rangeDay1 || 'Day · Today (1 day)';
+    if (numDays === 7) return o.rangeDay7 || 'Day · Last 7 days';
+    if (numDays === 14) return o.rangeDay14 || 'Day · Last 14 days';
+    if (numDays === 30) return o.rangeMonth30 || 'Month · Last 30 days';
+    if (numDays === 90) return o.rangeMonth90 || 'Month · Last 90 days (Quarter)';
+    if (numDays === 365) return o.rangeYear365 || 'Year · Last 365 days (1 year)';
+    return fill(o.lastDays, { days: numDays });
+  };
 
   const generateRegistrationReport = () => {
     const reportDays = data?.registrations?.byDay;
@@ -326,7 +374,7 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
     );
     const reportLabels = {
       title: o.reportTitle || 'Registration report',
-      period: o.reportPeriod || 'Reporting period',
+      period: `${o.reportPeriod || 'Reporting period'}: ${getPeriodLabel()}`,
       generated: o.reportGenerated || 'Generated',
       breakdown: o.reportDaily || 'Daily breakdown',
       date: o.reportDate || 'Date',
@@ -449,24 +497,100 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
       {failed && <Empty>{o.loadError}</Empty>}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm font-semibold text-ink/60">{o.rangeLabel}</p>
-        <div role="group" aria-label={o.rangeLabel} className="inline-flex rounded-full bg-white p-1 shadow-sm ring-1 ring-ink/5">
-          {[7, 14, 30, 90].map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setDays(value)}
-              aria-pressed={days === value}
-              className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${days === value ? 'bg-ink text-white' : 'text-ink/60 hover:bg-sand/70'}`}
+        <div className="flex items-center gap-2">
+          <CalendarDays className="h-4 w-4 text-ink/60" />
+          <p className="text-sm font-semibold text-ink/70">{o.rangeLabel}</p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {/* Main Range Dropdown */}
+          <div className="relative inline-flex items-center">
+            <select
+              value={rangeMode}
+              onChange={(e) => setRangeMode(e.target.value)}
+              aria-label={o.rangeLabel}
+              className="h-10 cursor-pointer appearance-none rounded-xl border border-ink/15 bg-white py-2 pl-3.5 pr-9 text-xs font-bold text-ink shadow-sm transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
             >
-              {fill(o.rangeDays, { days: value })}
-            </button>
-          ))}
+              <optgroup label={o.optDay || 'Day'}>
+                <option value="days-1">{o.rangeDay1 || 'Day · Today (1 day)'}</option>
+                <option value="days-7">{o.rangeDay7 || 'Day · Last 7 days'}</option>
+                <option value="days-14">{o.rangeDay14 || 'Day · Last 14 days'}</option>
+              </optgroup>
+              <optgroup label={o.optMonth || 'Month'}>
+                <option value="days-30">{o.rangeMonth30 || 'Month · Last 30 days'}</option>
+                <option value="days-90">{o.rangeMonth90 || 'Month · Last 90 days (Quarter)'}</option>
+              </optgroup>
+              <optgroup label={o.optYear || 'Year'}>
+                <option value="days-365">{o.rangeYear365 || 'Year · Last 365 days (1 year)'}</option>
+              </optgroup>
+              <optgroup label={o.optCustom || 'Custom'}>
+                <option value="custom">{o.rangeCustom || '📅 Specific Year / Month / Day'}</option>
+              </optgroup>
+            </select>
+            <ChevronDown className="pointer-events-none absolute right-3 h-4 w-4 text-ink/40" />
+          </div>
+
+          {/* Granular Year, Month, Day Dropdowns */}
+          {rangeMode === 'custom' && (
+            <div className="flex flex-wrap items-center gap-1.5 animate-fadeIn">
+              {/* Year Dropdown */}
+              <div className="relative inline-flex items-center">
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(Number(e.target.value))}
+                  aria-label={o.selectYear || 'Year'}
+                  className="h-10 cursor-pointer appearance-none rounded-xl border border-ink/15 bg-white py-2 pl-3 pr-7 text-xs font-bold text-ink shadow-sm transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                >
+                  {yearOptions.map((y) => (
+                    <option key={y} value={y}>{y}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-ink/40" />
+              </div>
+
+              {/* Month Dropdown */}
+              <div className="relative inline-flex items-center">
+                <select
+                  value={selectedMonth}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setSelectedMonth(val === 'all' ? 'all' : Number(val));
+                    if (val === 'all') setSelectedDay('all');
+                  }}
+                  aria-label={o.selectMonth || 'Month'}
+                  className="h-10 cursor-pointer appearance-none rounded-xl border border-ink/15 bg-white py-2 pl-3 pr-7 text-xs font-bold text-ink shadow-sm transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
+                >
+                  <option value="all">{o.allMonths || 'All Months'}</option>
+                  {monthNames.map((name, i) => (
+                    <option key={i + 1} value={i + 1}>{name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-ink/40" />
+              </div>
+
+              {/* Day Dropdown */}
+              <div className="relative inline-flex items-center">
+                <select
+                  value={safeSelectedDay}
+                  disabled={selectedMonth === 'all'}
+                  onChange={(e) => setSelectedDay(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+                  aria-label={o.selectDay || 'Day'}
+                  className="h-10 cursor-pointer appearance-none rounded-xl border border-ink/15 bg-white py-2 pl-3 pr-7 text-xs font-bold text-ink shadow-sm transition hover:border-ink/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 disabled:cursor-not-allowed disabled:bg-slate-100 disabled:opacity-50"
+                >
+                  <option value="all">{o.allDays || 'All Days'}</option>
+                  {Array.from({ length: daysInSelectedMonth }, (_, i) => i + 1).map((d) => (
+                    <option key={d} value={d}>Day {d}</option>
+                  ))}
+                </select>
+                <ChevronDown className="pointer-events-none absolute right-2 h-3.5 w-3.5 text-ink/40" />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
       <Card
-        title={`${o.regShort} · ${fill(o.lastDays, { days })}`}
+        title={`${o.regShort} · ${getPeriodLabel()}`}
         action={
           <div className="flex flex-wrap items-center gap-2">
             <button
@@ -497,7 +621,7 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
             days={data.registrations.byDay}
             lang={lang}
             previousTotal={data.previous?.registrations}
-            labels={{ chart: o.chartRegistrations, customers: o.customers, sellers: o.sellers, total: o.regTotal, peak: o.regPeak, vsPrevious: fill(o.vsPrevious, { days }) }}
+            labels={{ chart: o.chartRegistrations, customers: o.customers, sellers: o.sellers, total: o.regTotal, peak: o.regPeak, vsPrevious: fill(o.vsPrevious, { days: data?.days || 14 }) }}
           />
         ) : (
           <div className="skeleton h-40 rounded-2xl" />
@@ -506,7 +630,7 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
 
       {/* Charts */}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-        <Card id="enquiries-card" title={`${o.enqShort} · ${fill(o.lastDays, { days })}`} action={<span className="rounded-full bg-sand/70 px-3 py-1 text-xs font-semibold text-ink/70">{fill(o.inTotal, { count: totalEnquiries })}</span>}>
+        <Card id="enquiries-card" title={`${o.enqShort} · ${getPeriodLabel()}`} action={<span className="rounded-full bg-sand/70 px-3 py-1 text-xs font-semibold text-ink/70">{fill(o.inTotal, { count: totalEnquiries })}</span>}>
           {data ? (totalEnquiries > 0 ? <BarChart days={data.clicksByDay} lang={lang} /> : <Empty>{o.noEnquiries}</Empty>) : <div className="skeleton h-40 rounded-2xl" />}
         </Card>
 
@@ -615,7 +739,7 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
             ) : (
               <ul className="space-y-2">
                 {data.recentComplaints.map((complaint) => {
-                  const ageDays = Math.max(0, Math.floor((Date.now() - new Date(complaint.createdAt).getTime()) / 86400000));
+                  const ageDays = Math.max(0, Math.floor((now.getTime() - new Date(complaint.createdAt).getTime()) / 86400000));
                   const overdue = complaint.status === 'OPEN' && ageDays >= 3;
                   return (
                     <li key={complaint.id} className={`rounded-2xl p-3 ${overdue ? 'bg-rose-50 ring-1 ring-rose-200' : 'bg-cream'}`}>
