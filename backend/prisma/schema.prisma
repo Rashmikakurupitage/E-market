@@ -37,6 +37,7 @@ model User {
   adminProfile    AdminProfile?
   profilePhoto    ProfilePhoto?
   learningProgress LearningProgress?
+  learningCertificates LearningCertificate[]
 }
 
 model LearningCourse {
@@ -66,6 +67,22 @@ model LearningProgress {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   progress  Json     @default("{}") @db.JsonB
   updatedAt DateTime @updatedAt
+}
+
+model LearningCertificate {
+  id               String   @id @default(uuid())
+  certificateCode  String   @unique @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId         String
+  courseTitle      String
+  learnerName      String
+  lessonCount      Int
+  quizScore        Int
+  quizQuestionCount Int
+  issuedAt         DateTime @default(now())
+
+  @@unique([userId, courseId])
 }
 
 // A customer's profile photo (a small square picture stored as a data URL)

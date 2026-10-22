@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
-import { BookOpen, Video, FileText, Award, Megaphone, Calculator, Camera, ArrowRight, ArrowLeft, GraduationCap, Lightbulb, Search, X, Check, CircleCheck } from 'lucide-react';
+import { BookOpen, Video, FileText, Award, Megaphone, Calculator, Camera, ArrowRight, ArrowLeft, GraduationCap, Lightbulb, Search, X, Check, CircleCheck, LoaderCircle, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import Reveal from '../../src/components/Reveal';
 import { Lotus, PageArt } from '../../src/components/Art';
@@ -220,6 +220,9 @@ export default function ELearning() {
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [certificateCode, setCertificateCode] = useState('');
+  const [certificateLoading, setCertificateLoading] = useState(false);
+  const [certificateError, setCertificateError] = useState('');
   const [syncStatus, setSyncStatus] = useState('local');
   const [syncAttempt, setSyncAttempt] = useState(0);
   const syncQueue = useRef(Promise.resolve());
@@ -343,7 +346,30 @@ export default function ELearning() {
     setShowQuiz((saved?.completed?.length || 0) === course.lessons.length);
     setQuizAnswers({});
     setQuizSubmitted(typeof saved?.quizScore === 'number');
+    setCertificateCode('');
+    setCertificateError('');
     setSelectedCourse(course);
+  };
+
+  const requestCertificate = async () => {
+    if (!sessionUserId || !selectedCourse || !selectedProgress?.done || certificateLoading) return;
+    setCertificateLoading(true);
+    setCertificateError('');
+    try {
+      await syncQueue.current;
+      const response = await API.post('/learning/certificates', {
+        courseId: String(selectedCourse.id),
+        courseTitle: selectedCourse.title,
+        lessonCount: selectedCourse.lessons.length,
+        quizQuestionCount: quiz.length,
+      });
+      setCertificateCode(response.data.certificateCode);
+    } catch (error) {
+      console.error('LEARNING_CERTIFICATE_ISSUE_ERROR:', error?.response?.status || error?.message || 'Unknown error');
+      setCertificateError(error.response?.data?.message || hub.certificateError);
+    } finally {
+      setCertificateLoading(false);
+    }
   };
 
   const saveProgress = (nextProgress) => {
@@ -410,7 +436,7 @@ export default function ELearning() {
       <div className="mx-auto max-w-6xl space-y-10">
 
         {/* Banner */}
-        <Reveal as="section" animation="fade-down" className="relative isolate overflow-hidden rounded-[32px] bg-ink p-8 text-white shadow-2xl sm:p-10">
+        <Reveal as="section" animation="fade-down" className="relative isolate overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-2xl sm:p-10 lg:p-12">
           <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />
           <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 -z-10 h-64 w-64 animate-float rounded-full bg-magenta/50 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 right-10 -z-10 h-56 w-56 animate-float rounded-full bg-saffron/35 blur-3xl [animation-delay:-4s]" />
@@ -426,17 +452,62 @@ export default function ELearning() {
             </span>
           ))}
 
-          <div className="max-w-2xl">
-            <span className="inline-flex animate-fade-up items-center gap-1.5 rounded-full bg-turmeric px-3 py-1 text-[11px] font-black uppercase tracking-wider text-slate-950 shadow-lg">
-              <Award className="h-3.5 w-3.5" /> {hub.badge}
-            </span>
-            <h1 className="mt-4 animate-fade-up text-2xl font-extrabold leading-snug [animation-delay:120ms] sm:text-4xl">
-              {hub.title}
-            </h1>
-            <span aria-hidden="true" className="mt-4 block h-1 w-16 animate-fade-up rounded-full bg-turmeric [animation-delay:180ms]" />
-            <p className="mt-4 animate-fade-up text-sm leading-relaxed text-white/80 [animation-delay:240ms] sm:text-base">
-              {hub.description}
-            </p>
+          <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1.15fr)_minmax(280px,0.85fr)]">
+            <div className="max-w-2xl">
+              <span className="inline-flex animate-fade-up items-center gap-1.5 rounded-full bg-turmeric px-3 py-1 text-[11px] font-black uppercase tracking-wider text-slate-950 shadow-lg">
+                <Award className="h-3.5 w-3.5" /> {hub.badge}
+              </span>
+              <h1 className="mt-4 animate-fade-up text-2xl font-extrabold leading-snug [animation-delay:120ms] sm:text-4xl">
+                {hub.title}
+              </h1>
+              <span aria-hidden="true" className="mt-4 block h-1 w-16 animate-fade-up rounded-full bg-turmeric [animation-delay:180ms]" />
+              <p className="mt-4 animate-fade-up text-sm leading-relaxed text-white/80 [animation-delay:240ms] sm:text-base">
+                {hub.description}
+              </p>
+              <a
+                href="#course-catalog-title"
+                className="mt-6 inline-flex min-h-11 items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-bold text-ink shadow-lg transition hover:-translate-y-0.5 hover:bg-cream focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-turmeric/60"
+              >
+                {hub.catalogTitle}<ArrowRight className="h-4 w-4" />
+              </a>
+            </div>
+            <div className="relative mx-auto w-full max-w-sm rounded-3xl border border-white/15 bg-white/10 p-5 shadow-xl backdrop-blur-md sm:p-6">
+              <div aria-hidden="true" className="absolute -right-3 -top-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-turmeric text-ink shadow-lg">
+                <GraduationCap className="h-6 w-6" />
+              </div>
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/65">{hub.dashboardTitle}</p>
+              <p className="mt-2 text-lg font-extrabold leading-snug text-white">{featuredCourse?.title || hub.title}</p>
+              {featuredCourse && featuredProgress ? (
+                <div className="mt-5 flex items-center gap-4">
+                  <div
+                    className="grid h-16 w-16 shrink-0 place-items-center rounded-full"
+                    style={{ background: `conic-gradient(var(--color-turmeric) ${featuredPercent}%, rgb(255 255 255 / 0.18) ${featuredPercent}% 100%)` }}
+                    role="img"
+                    aria-label={`${featuredPercent}%`}
+                  >
+                    <span className="grid h-12 w-12 place-items-center rounded-full bg-ink text-sm font-extrabold text-white">{featuredPercent}%</span>
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-white">
+                      {activeCourse ? hub.dashboardContinue : latestCompletedCourse ? hub.dashboardAllDone : hub.dashboardWelcome}
+                    </p>
+                    <p className="mt-1 text-xs text-white/65">
+                      {hub.courseProgress.replace('{complete}', String(featuredProgress.completed.length)).replace('{total}', String(featuredCourse.lessons.length))}
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+              <div className="mt-6 grid grid-cols-2 gap-3">
+                <div className="rounded-2xl bg-white/10 p-3">
+                  <p className="text-2xl font-extrabold">{startedCourses.length}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-white/65">{hub.dashboardStarted}</p>
+                </div>
+                <div className="rounded-2xl bg-white/10 p-3">
+                  <p className="text-2xl font-extrabold">{completedCourses.length}</p>
+                  <p className="mt-1 text-[11px] font-semibold text-white/65">{hub.dashboardCompleted}</p>
+                </div>
+              </div>
+            </div>
           </div>
         </Reveal>
 
@@ -467,8 +538,8 @@ export default function ELearning() {
               { label: hub.dashboardCompleted, value: completedCourses.length, icon: CircleCheck },
               { label: hub.dashboardLessons, value: completedLessons, icon: Check },
             ].map(({ label, value, icon: Icon }) => (
-              <div key={label} className="flex items-center gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-ink/5">
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
+              <div key={label} className="group flex items-center gap-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-ink/5 transition duration-200 hover:-translate-y-1 hover:shadow-lg">
+                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 ring-1 ring-brand-100 transition group-hover:scale-105">
                   <Icon className="h-5 w-5" />
                 </span>
                 <div>
@@ -525,7 +596,7 @@ export default function ELearning() {
           {catalogLoadFailed && (
             <p role="status" className="rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">{hub.catalogLoadError}</p>
           )}
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-col gap-5 rounded-3xl border border-slate-200/70 bg-white/80 p-5 shadow-sm backdrop-blur-sm sm:flex-row sm:items-end sm:justify-between sm:p-6">
             <div>
               <h2 id="course-catalog-title" className="text-2xl font-extrabold text-ink">{hub.catalogTitle}</h2>
               <p className="mt-1 text-sm text-slate-500">{hub.catalogCount.replace('{count}', String(visibleCourses.length))}</p>
@@ -576,14 +647,18 @@ export default function ELearning() {
           </div>
 
           {visibleCourses.length > 0 ? (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               {visibleCourses.map((course, index) => {
                 const theme = THEMES[course.themeKey] || DEFAULT_THEME;
                 const Icon = theme.icon;
+                const courseProgress = progress[course.id];
+                const coursePercent = courseProgress
+                  ? Math.round(courseProgress.completed.length / course.lessons.length * 100)
+                  : 0;
                 return (
                   <Reveal key={course.id} animation="zoom-in" delay={index * 120} className="grid">
-                    <article className="group flex flex-col overflow-hidden rounded-[32px] bg-white shadow-sm ring-1 ring-ink/5 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl">
-                      <div className={`relative isolate flex h-48 items-end justify-between overflow-hidden bg-linear-to-br ${theme.header}`}>
+                    <article className="group flex flex-col overflow-hidden rounded-3xl bg-white shadow-md ring-1 ring-ink/5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl">
+                      <div className={`relative isolate flex h-52 items-end justify-between overflow-hidden bg-linear-to-br ${theme.header}`}>
                         {managedMediaUrl(course, 'cover-image') || COURSE_IMAGES[course.id] ? (
                           <Image
                             src={managedMediaUrl(course, 'cover-image') || COURSE_IMAGES[course.id]}
@@ -601,12 +676,17 @@ export default function ELearning() {
                         <span className="relative z-10 mb-4 ml-4 flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 text-white ring-1 ring-white/35 backdrop-blur-sm">
                           <Icon className="h-5 w-5" />
                         </span>
-                        <span className="absolute left-4 top-4 z-10 rounded-full bg-white/95 px-3 py-1 text-[11px] font-bold text-slate-800 shadow">
+                        <span className="absolute left-4 top-4 z-10 rounded-full bg-white/95 px-3 py-1.5 text-[11px] font-bold text-slate-800 shadow-md">
                           {hub.levels[course.levelKey]}
                         </span>
+                        {courseProgress?.done && (
+                          <span className="absolute right-4 top-4 z-10 inline-flex items-center gap-1 rounded-full bg-emerald-500 px-3 py-1.5 text-[11px] font-bold text-white shadow-md">
+                            <CircleCheck className="h-3.5 w-3.5" />{hub.reviewCourse}
+                          </span>
+                        )}
                       </div>
 
-                      <div className="flex-1 space-y-3 p-6">
+                      <div className="flex-1 space-y-3 p-5 sm:p-6">
                         <span className={`inline-block rounded-full px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide ring-1 ${theme.chip}`}>
                           {hub.categories[course.categoryKey]}
                         </span>
@@ -614,7 +694,25 @@ export default function ELearning() {
                         <p className="text-xs leading-relaxed text-slate-500">{course.description}</p>
                       </div>
 
-                      <div className="space-y-4 border-t border-slate-100 bg-cream/70 p-6">
+                      <div className="space-y-4 border-t border-slate-100 bg-linear-to-b from-cream/35 to-cream/80 p-5 sm:p-6">
+                        {courseProgress?.started && !courseProgress.done && (
+                          <div>
+                            <div className="mb-1.5 flex items-center justify-between text-[11px] font-semibold text-slate-500">
+                              <span>{hub.continueCourse}</span>
+                              <span>{coursePercent}%</span>
+                            </div>
+                            <div
+                              className="h-1.5 overflow-hidden rounded-full bg-slate-200"
+                              role="progressbar"
+                              aria-valuemin={0}
+                              aria-valuemax={100}
+                              aria-valuenow={coursePercent}
+                              aria-label={hub.courseProgress.replace('{complete}', String(courseProgress.completed.length)).replace('{total}', String(course.lessons.length))}
+                            >
+                              <div className="h-full rounded-full bg-brand-600 transition-[width]" style={{ width: `${coursePercent}%` }} />
+                            </div>
+                          </div>
+                        )}
                         <div className="flex items-center justify-between text-[11px] font-medium text-slate-500">
                           <span className="flex items-center gap-1.5"><Video className="h-4 w-4 text-slate-400" /> {course.duration}</span>
                           <span className="flex items-center gap-1.5"><FileText className="h-4 w-4 text-slate-400" /> {hub.modules.replace('{count}', String(course.modules))}</span>
@@ -626,8 +724,8 @@ export default function ELearning() {
                           disabled={visibleSyncStatus === 'loading'}
                           className={`group/btn flex w-full items-center justify-center gap-2 rounded-xl py-3 text-xs font-bold text-white shadow-lg transition-all duration-200 active:scale-[0.98] ${theme.button}`}
                         >
-                          {progress[course.id]?.done ? <CircleCheck className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}
-                          <span>{progress[course.id]?.done ? hub.reviewCourse : progress[course.id]?.completed?.length || progress[course.id]?.started ? hub.continueCourse : hub.startCourse}</span>
+                          {courseProgress?.done ? <CircleCheck className="h-4 w-4" /> : courseProgress?.started ? <ArrowRight className="h-4 w-4" /> : <BookOpen className="h-4 w-4" />}
+                          <span>{courseProgress?.done ? hub.reviewCourse : courseProgress?.completed?.length || courseProgress?.started ? hub.continueCourse : hub.startCourse}</span>
                           <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover/btn:translate-x-1" />
                         </button>
                       </div>
@@ -656,35 +754,65 @@ export default function ELearning() {
               aria-modal="true"
               aria-labelledby="course-reader-title"
               onClick={(event) => event.stopPropagation()}
-              className="flex h-full max-h-[92dvh] w-full max-w-5xl flex-col overflow-hidden bg-white shadow-2xl sm:rounded-2xl"
+              className="flex h-full max-h-[94dvh] w-full max-w-6xl flex-col overflow-hidden bg-white shadow-2xl ring-1 ring-white/20 sm:rounded-3xl"
             >
-              <header className="flex items-start justify-between gap-4 border-b border-slate-200 px-5 py-4 sm:px-7">
-                <div className="min-w-0">
-                  <p className="text-xs font-bold uppercase text-brand-700">{hub.categories[selectedCourse.categoryKey]}</p>
-                  <h2 id="course-reader-title" className="mt-1 text-lg font-extrabold leading-snug text-ink sm:text-xl">{selectedCourse.title}</h2>
+              <header className="relative z-10 border-b border-slate-200 bg-white/95 px-4 py-3 shadow-sm backdrop-blur-md sm:px-7 sm:py-4">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <div className="relative hidden h-12 w-16 shrink-0 overflow-hidden rounded-xl bg-ink sm:block">
+                    {managedMediaUrl(selectedCourse, 'cover-image') || COURSE_IMAGES[selectedCourse.id] ? (
+                      <Image
+                        src={managedMediaUrl(selectedCourse, 'cover-image') || COURSE_IMAGES[selectedCourse.id]}
+                        alt=""
+                        fill
+                        unoptimized={Boolean(managedMediaUrl(selectedCourse, 'cover-image'))}
+                        sizes="64px"
+                        className="object-cover"
+                      />
+                    ) : (
+                      <span aria-hidden="true" className="absolute inset-0 bg-linear-to-br from-brand-500 to-ink" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full bg-brand-50 px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wide text-brand-700 ring-1 ring-brand-100">
+                        {hub.categories[selectedCourse.categoryKey]}
+                      </span>
+                      <span className="text-[11px] font-semibold text-slate-500">
+                        {hub.courseProgress.replace('{complete}', String(selectedProgress.completed.length)).replace('{total}', String(selectedCourse.lessons.length))}
+                      </span>
+                    </div>
+                    <h2 id="course-reader-title" className="mt-1 truncate text-sm font-extrabold leading-snug text-ink sm:text-base">{selectedCourse.title}</h2>
+                    <div
+                      className="mt-2 h-1 overflow-hidden rounded-full bg-slate-100"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={Math.round(selectedProgress.completed.length / selectedCourse.lessons.length * 100)}
+                      aria-label={hub.courseProgress.replace('{complete}', String(selectedProgress.completed.length)).replace('{total}', String(selectedCourse.lessons.length))}
+                    >
+                      <div className="h-full rounded-full bg-linear-to-r from-brand-600 to-saffron transition-[width] duration-500" style={{ width: `${selectedProgress.completed.length / selectedCourse.lessons.length * 100}%` }} />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCourse(null)}
+                    aria-label={hub.closeReader}
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 text-slate-500 ring-1 ring-slate-200 transition hover:bg-brand-50 hover:text-brand-700 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-200"
+                  >
+                    <X className="h-5 w-5" />
+                  </button>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setSelectedCourse(null)}
-                  aria-label={hub.closeReader}
-                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-ink"
-                >
-                  <X className="h-5 w-5" />
-                </button>
               </header>
 
               <div className="flex min-h-0 flex-1 flex-col md:grid md:grid-cols-[260px_minmax(0,1fr)]">
-                <aside className="shrink-0 border-b border-slate-200 bg-cream/60 p-4 md:overflow-y-auto md:border-b-0 md:border-r md:p-5">
-                  <div className="mb-3 flex items-center justify-between gap-2">
-                    <h3 className="text-xs font-extrabold uppercase text-slate-500">{hub.courseContents}</h3>
-                    <span className="text-xs font-bold text-slate-500">
-                      {hub.courseProgress.replace('{complete}', String(selectedProgress.completed.length)).replace('{total}', String(selectedCourse.lessons.length))}
+                <aside className="shrink-0 border-b border-slate-200 bg-slate-50/80 p-3 md:overflow-y-auto md:border-b-0 md:border-r md:bg-cream/50 md:p-5">
+                  <div className="mb-3 flex items-center justify-between gap-2 px-1">
+                    <h3 className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">{hub.courseContents}</h3>
+                    <span className="rounded-full bg-white px-2 py-1 text-[10px] font-bold text-slate-500 ring-1 ring-slate-200">
+                      {selectedProgress.completed.length}/{selectedCourse.lessons.length}
                     </span>
                   </div>
-                  <div className="mb-4 h-1.5 overflow-hidden rounded-full bg-slate-200">
-                    <div className="h-full rounded-full bg-brand-600 transition-[width]" style={{ width: `${selectedProgress.completed.length / selectedCourse.lessons.length * 100}%` }} />
-                  </div>
-                  <ol className="flex gap-2 overflow-x-auto pb-1 md:flex-col md:overflow-visible">
+                  <ol className="no-scrollbar flex max-h-28 gap-2 overflow-x-auto overflow-y-hidden pb-1 md:max-h-none md:flex-col md:overflow-visible">
                     {selectedCourse.lessons.map((module, index) => {
                       const isComplete = selectedProgress.completed.includes(index);
                       const isCurrent = currentModule === index;
@@ -699,7 +827,7 @@ export default function ELearning() {
                               saveProgress(nextProgress);
                             }}
                             aria-current={isCurrent ? 'step' : undefined}
-                            className={`flex min-h-11 max-w-[220px] items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold transition md:max-w-none md:w-full ${isCurrent ? 'bg-brand-700 text-white' : 'text-slate-600 hover:bg-white'}`}
+                            className={`flex min-h-11 max-w-[240px] items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold transition md:max-w-none md:w-full ${isCurrent ? 'bg-brand-700 text-white shadow-md shadow-brand-700/15' : 'bg-white text-slate-600 ring-1 ring-slate-200/80 hover:bg-brand-50 hover:text-brand-800 md:bg-transparent md:ring-0 md:hover:bg-white'}`}
                           >
                             <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 text-[10px]">
                               {isComplete ? <Check className="h-3.5 w-3.5" /> : index + 1}
@@ -719,7 +847,7 @@ export default function ELearning() {
                             setQuizAnswers({});
                           }}
                           aria-current={showQuiz ? 'step' : undefined}
-                          className={`flex min-h-11 max-w-[220px] items-center gap-2 rounded-lg px-3 py-2 text-left text-xs font-semibold transition md:max-w-none md:w-full ${showQuiz ? 'bg-brand-700 text-white' : 'text-slate-600 hover:bg-white'}`}
+                          className={`flex min-h-11 max-w-[240px] items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold transition md:max-w-none md:w-full ${showQuiz ? 'bg-brand-700 text-white shadow-md shadow-brand-700/15' : 'bg-white text-slate-600 ring-1 ring-slate-200/80 hover:bg-brand-50 hover:text-brand-800 md:bg-transparent md:ring-0 md:hover:bg-white'}`}
                         >
                           <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/20 text-[10px]"><Award className="h-3.5 w-3.5" /></span>
                           <span>{hub.assessment}</span>
@@ -730,7 +858,7 @@ export default function ELearning() {
                 </aside>
 
                 <div className="flex min-h-0 flex-1 flex-col">
-                  <main className="flex-1 overflow-y-auto p-6 sm:p-10">
+                  <main className="flex-1 overflow-y-auto bg-linear-to-br from-white via-white to-cream/45 p-5 sm:p-8 lg:p-10">
                     {showCompletion ? (
                       <div className="mx-auto flex min-h-full max-w-xl flex-col items-center justify-center text-center">
                         <span className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-50 text-brand-700 ring-8 ring-brand-50/60">
@@ -749,6 +877,37 @@ export default function ELearning() {
                             <p className="mt-1 text-lg font-extrabold text-brand-800">{selectedProgress.quizScore ?? 0} / {quiz.length}</p>
                           </div>
                         </div>
+                        <div className="mt-6 w-full">
+                          {sessionUserId ? (
+                            certificateCode ? (
+                              <Link
+                                href={`/verify-certificate/${encodeURIComponent(certificateCode)}`}
+                                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-700/20 transition hover:bg-brand-800"
+                              >
+                                <ShieldCheck className="h-4 w-4" />{hub.viewCertificate}<ArrowRight className="h-4 w-4" />
+                              </Link>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={requestCertificate}
+                                disabled={certificateLoading}
+                                className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-700/20 transition hover:bg-brand-800 disabled:cursor-wait disabled:opacity-60"
+                              >
+                                {certificateLoading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Award className="h-4 w-4" />}
+                                {certificateLoading ? hub.certificateIssuing : hub.getCertificate}
+                              </button>
+                            )
+                          ) : (
+                            <Link
+                              href="/login?as=customer&next=%2Fe-learning"
+                              className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-brand-700/20 transition hover:bg-brand-800"
+                            >
+                              <Award className="h-4 w-4" />{hub.certificateSignIn}
+                            </Link>
+                          )}
+                          {certificateError && <p role="alert" className="mt-3 rounded-xl bg-red-50 px-4 py-3 text-left text-sm text-red-800">{certificateError}</p>}
+                          <p className="mt-3 text-xs leading-relaxed text-slate-500">{hub.certificateNote}</p>
+                        </div>
                       </div>
                     ) : showQuiz ? (
                       <div className="mx-auto max-w-2xl">
@@ -757,11 +916,11 @@ export default function ELearning() {
                         <p className="mt-3 text-sm leading-relaxed text-slate-600">{hub.assessmentInstructions}</p>
                         <div className="mt-8 space-y-6">
                           {quiz.map((question, questionIndex) => (
-                            <fieldset key={question.question} className="rounded-xl border border-slate-200 p-5">
+                            <fieldset key={question.question} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                               <legend className="px-1 text-sm font-bold leading-relaxed text-ink">{questionIndex + 1}. {question.question}</legend>
                               <div className="mt-3 space-y-2">
                                 {question.options.map((option, optionIndex) => (
-                                  <label key={option} className="flex cursor-pointer items-start gap-3 rounded-lg p-3 text-sm text-slate-700 transition hover:bg-cream">
+                                  <label key={option} className="flex cursor-pointer items-start gap-3 rounded-xl border border-transparent p-3 text-sm text-slate-700 transition hover:border-brand-100 hover:bg-brand-50/60 has-[:checked]:border-brand-200 has-[:checked]:bg-brand-50">
                                     <input
                                       type="radio"
                                       name={`question-${questionIndex}`}
@@ -781,23 +940,34 @@ export default function ELearning() {
                       </div>
                     ) : lesson ? (
                       <>
-                        <p className="text-xs font-bold uppercase tracking-wide text-brand-700">
-                          {hub.moduleProgress.replace('{current}', String(currentModule + 1)).replace('{total}', String(selectedCourse.lessons.length))}
-                        </p>
-                        <h3 className="mt-3 max-w-2xl text-2xl font-extrabold leading-tight text-ink sm:text-3xl">{lesson.title}</h3>
+                        <div className="mx-auto max-w-3xl">
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <span className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-xs font-extrabold text-brand-700 ring-1 ring-brand-100">
+                              <BookOpen className="h-3.5 w-3.5" />
+                              {hub.moduleProgress.replace('{current}', String(currentModule + 1)).replace('{total}', String(selectedCourse.lessons.length))}
+                            </span>
+                            <span className="text-xs font-semibold text-slate-400">
+                              {Math.round((selectedProgress.completed.length / selectedCourse.lessons.length) * 100)}%
+                            </span>
+                          </div>
+                          <h3 className="mt-4 max-w-2xl text-2xl font-extrabold leading-tight text-ink sm:text-3xl">{lesson.title}</h3>
                         {lessonImage && (
-                          <figure className="relative mt-6 aspect-[16/7] max-w-3xl overflow-hidden rounded-2xl bg-cream shadow-sm ring-1 ring-ink/10">
+                          <figure className="group relative mt-6 aspect-[16/7] overflow-hidden rounded-3xl bg-cream shadow-lg ring-1 ring-ink/10">
                             <Image
                               src={lessonImage}
                               alt={`${selectedCourse.title}: ${lesson.title}`}
                               fill
                               unoptimized={Boolean(managedMediaUrl(selectedCourse, `lesson-${currentModule}-image`) || managedMediaUrl(selectedCourse, 'cover-image'))}
                               sizes="(max-width: 768px) 100vw, 720px"
-                              className="object-cover"
+                              className="object-cover transition-transform duration-700 group-hover:scale-[1.02]"
                             />
+                            <div aria-hidden="true" className="absolute inset-0 bg-linear-to-t from-ink/35 via-transparent to-transparent" />
+                            <figcaption className="absolute bottom-4 left-4 rounded-full bg-ink/45 px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-white backdrop-blur-sm">
+                              {hub.categories[selectedCourse.categoryKey]}
+                            </figcaption>
                           </figure>
                         )}
-                        <p className="mt-6 max-w-2xl whitespace-pre-line text-base leading-8 text-slate-700">{lesson.body}</p>
+                        <p className="mt-6 max-w-3xl whitespace-pre-line rounded-2xl border border-slate-100 bg-white/85 p-5 text-base leading-8 text-slate-700 shadow-sm sm:p-7">{lesson.body}</p>
                         {lessonVideo && (
                           <video
                             key={lessonVideo}
@@ -818,6 +988,7 @@ export default function ELearning() {
                             src={lessonAudio}
                           />
                         )}
+                        </div>
                         {selectedProgress.completed.includes(currentModule) && (
                           <p className="mt-8 inline-flex items-center gap-2 text-sm font-bold text-brand-700">
                             <CircleCheck className="h-5 w-5" /> {hub.moduleCompleted}
@@ -826,7 +997,7 @@ export default function ELearning() {
                       </>
                     ) : null}
                   </main>
-                  <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white px-5 py-4 sm:px-8">
+                  <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 bg-white/95 px-4 py-3 shadow-[0_-8px_24px_-20px_rgba(30,32,41,0.5)] backdrop-blur-md sm:px-8 sm:py-4">
                     {showQuiz ? (
                       showCompletion ? (
                         <>

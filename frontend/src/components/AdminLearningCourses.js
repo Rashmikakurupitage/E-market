@@ -6,6 +6,42 @@ import API from '../lib/api';
 import { LANGUAGES, translations, useLanguage } from '../lib/i18n';
 import { inputClass } from './form';
 
+function AdminImagePreview({ courseId, slot, label, unavailableLabel }) {
+  const [imageUrl, setImageUrl] = useState('');
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    let objectUrl;
+    API.get(`/admin/learning-courses/${encodeURIComponent(courseId)}/media/${encodeURIComponent(slot)}`, {
+      responseType: 'blob',
+    })
+      .then((response) => {
+        if (!active) return;
+        objectUrl = URL.createObjectURL(response.data);
+        setImageUrl(objectUrl);
+      })
+      .catch(() => {
+        if (active) setFailed(true);
+      });
+    return () => {
+      active = false;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [courseId, slot]);
+
+  return (
+    <div
+      role="img"
+      aria-label={label}
+      className="mt-2 flex h-24 w-40 items-center justify-center rounded-lg bg-cover bg-center text-xs text-slate-500 ring-1 ring-slate-200"
+      style={imageUrl ? { backgroundImage: `url("${imageUrl}")` } : undefined}
+    >
+      {failed && unavailableLabel}
+    </div>
+  );
+}
+
 const LANGUAGE_CODES = LANGUAGES.map(({ code }) => code);
 const IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const VIDEO_TYPES = ['video/mp4', 'video/webm'];
@@ -350,7 +386,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
           <p className="text-xs font-semibold text-slate-700">{label}</p>
           {media && (
             kind === 'image'
-              ? <div role="img" aria-label={label} className="mt-2 h-24 w-40 rounded-lg bg-cover bg-center ring-1 ring-slate-200" style={{ backgroundImage: `url("${courseMediaUrl(editingId, slot, media.updatedAt)}")` }} />
+              ? <AdminImagePreview key={`${editingId}-${slot}-${media.updatedAt}`} courseId={editingId} slot={slot} label={label} unavailableLabel={copy.mediaPreviewError} />
               : kind === 'video'
                 ? <video className="mt-2 max-h-32 w-full max-w-sm rounded-lg bg-black" controls preload="metadata" src={courseMediaUrl(editingId, slot, media.updatedAt)} />
                 : <audio className="mt-2 w-full max-w-sm" controls preload="metadata" src={courseMediaUrl(editingId, slot, media.updatedAt)} />

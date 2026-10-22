@@ -287,7 +287,7 @@ exports.deleteCourseMedia = async (req, res) => {
   }
 };
 
-exports.getCourseMedia = async (req, res) => {
+async function sendCourseMedia(req, res, publishedOnly) {
   const { courseId, slot } = req.params;
   if (!COURSE_ID_PATTERN.test(courseId) || !MEDIA_SLOT_PATTERN.test(slot)) {
     return res.status(400).json({ code: 'INVALID_COURSE_MEDIA_TARGET', message: 'Course media target is invalid.' });
@@ -298,7 +298,7 @@ exports.getCourseMedia = async (req, res) => {
       where: { courseId_slot: { courseId, slot } },
       select: { data: true, contentType: true, course: { select: { published: true } } },
     });
-    if (!media || !media.course.published) {
+    if (!media || (publishedOnly && !media.course.published)) {
       return res.status(404).json({ message: 'Course media was not found.' });
     }
 
@@ -307,7 +307,7 @@ exports.getCourseMedia = async (req, res) => {
       'Content-Type': media.contentType,
       'Content-Length': String(data.length),
       'Accept-Ranges': 'bytes',
-      'Cache-Control': 'public, max-age=3600',
+      'Cache-Control': publishedOnly ? 'public, max-age=3600' : 'private, no-store',
       'X-Content-Type-Options': 'nosniff',
       'Content-Disposition': 'inline',
     });
@@ -334,7 +334,10 @@ exports.getCourseMedia = async (req, res) => {
     }
     return res.send(data);
   } catch (error) {
-    console.error('LEARNING_COURSE_MEDIA_GET_ERROR:', error);
+    console.error(publishedOnly ? 'LEARNING_COURSE_MEDIA_GET_ERROR:' : 'LEARNING_COURSE_MEDIA_ADMIN_GET_ERROR:', error);
     res.status(500).json({ message: 'Could not load course media.' });
   }
-};
+}
+
+exports.getCourseMedia = (req, res) => sendCourseMedia(req, res, true);
+exports.getAdminCourseMedia = (req, res) => sendCourseMedia(req, res, false);

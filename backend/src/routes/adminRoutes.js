@@ -27,6 +27,7 @@ const {
   setCoursePublished,
   uploadCourseMedia,
   deleteCourseMedia,
+  getAdminCourseMedia,
 } = require('../controllers/learningCourseController');
 
 // Every admin route needs a logged-in admin
@@ -62,6 +63,7 @@ router.get('/learning-courses', listAdminCourses);
 router.post('/learning-courses', createCourse);
 router.put('/learning-courses/:courseId', updateCourse);
 router.patch('/learning-courses/:courseId/published', setCoursePublished);
+router.get('/learning-courses/:courseId/media/:slot', getAdminCourseMedia);
 router.put(
   '/learning-courses/:courseId/media/:slot',
   express.raw({
