@@ -277,6 +277,20 @@ export default function StorePage() {
     };
   }, []);
 
+  // Initialize filters from URL parameters (e.g., from home page district/seller links)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const params = new URLSearchParams(window.location.search);
+    const cat = params.get('category');
+    const dist = params.get('district');
+    const q = params.get('q') || params.get('seller');
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (cat) setCategory(cat);
+    if (dist) setDistrict(dist);
+    if (q) setQuery(q);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
   // A link like /store?product=<id> (from the home page) opens that product straight away
   useEffect(() => {
     if (!hydrated || status === 'loading') return;

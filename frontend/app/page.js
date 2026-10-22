@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   Search, ArrowRight, Megaphone, HandCoins, Laptop, PackageSearch, ChevronDown, ShieldCheck, HandHeart, MapPin,
   Scissors, Shirt, Sprout, Soup, Sparkles, PackageCheck, Store, BookOpen, Tag, Plus, CircleHelp,
+  HeartHandshake, Star, Quote, GraduationCap,
 } from 'lucide-react';
 import API from '../src/lib/api';
 import { useLanguage } from '../src/lib/i18n';
@@ -249,19 +250,33 @@ export default function Home() {
               </button>
             </form>
 
-            {/* Quick category buttons */}
+            {/* Quick search craft pills */}
             <div className="mt-5 flex animate-fade-up flex-wrap items-center gap-2 [animation-delay:480ms]">
               <span className="text-xs font-semibold text-ink/60">{h.popular}</span>
-              {CATEGORIES.slice(0, 3).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => chooseCategory(value)}
-                  className="glass rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink/80 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-ink"
-                >
-                  {t.categories[value]}
-                </button>
-              ))}
+              {h.quickTags && h.quickTags.length > 0
+                ? h.quickTags.map((tag) => (
+                    <button
+                      key={tag.label}
+                      type="button"
+                      onClick={() => {
+                        setSearch(tag.query);
+                        scrollToProducts();
+                      }}
+                      className="glass rounded-full px-3 py-1.5 text-xs font-semibold text-ink/80 transition-all duration-200 hover:-translate-y-0.5 hover:border-magenta/30 hover:bg-magenta hover:text-white"
+                    >
+                      {tag.label}
+                    </button>
+                  ))
+                : CATEGORIES.slice(0, 3).map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      onClick={() => chooseCategory(value)}
+                      className="glass rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink/80 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-ink"
+                    >
+                      {t.categories[value]}
+                    </button>
+                  ))}
             </div>
 
             <button
@@ -282,6 +297,29 @@ export default function Home() {
             <DotGrid className="absolute -left-10 top-16 -z-10 hidden w-24 text-magenta/35 sm:block" />
             <div aria-hidden="true" className="absolute -bottom-10 right-4 -z-10 h-28 w-28 animate-spin-slow rounded-full border-2 border-dashed border-saffron/60" />
             <Sparkle className="absolute -right-4 top-8 h-8 w-8 animate-twinkle text-turmeric [animation-delay:-0.6s] sm:-right-8" />
+
+            {/* Floating Trust Badge 1 (Top-Left) */}
+            <div className="absolute -left-6 top-10 z-20 hidden items-center gap-2.5 rounded-2xl border border-white/70 bg-white/95 p-3 shadow-xl backdrop-blur-md sm:flex animate-float">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-leaf/15 text-leaf shadow-xs">
+                <HeartHandshake className="h-5 w-5" />
+              </span>
+              <div>
+                <p className="text-xs font-bold text-ink">{h.heroBadge1Title || '100% Fair Trade'}</p>
+                <p className="text-[10px] font-medium text-ink/60">{h.heroBadge1Sub || 'Direct from rural makers'}</p>
+              </div>
+            </div>
+
+            {/* Floating Trust Badge 2 (Bottom-Right) */}
+            <div className="absolute -bottom-5 -right-4 z-20 hidden items-center gap-2.5 rounded-2xl border border-white/70 bg-white/95 p-3 shadow-xl backdrop-blur-md sm:flex animate-float [animation-delay:-2.5s]">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-turmeric/30 text-ink shadow-xs">
+                <ShieldCheck className="h-5 w-5 text-turmeric-dark" />
+              </span>
+              <div>
+                <p className="text-xs font-bold text-ink">{h.heroBadge2Title || 'Ministry Verified'}</p>
+                <p className="text-[10px] font-medium text-ink/60">{h.heroBadge2Sub || '25 Districts covered'}</p>
+              </div>
+            </div>
+
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[48px_160px_48px_160px] shadow-2xl shadow-magenta/20 ring-8 ring-white/60 sm:rounded-[48px_200px_48px_200px]">
               <HeroSlideshow {...wallpapers} />
             </div>
@@ -355,21 +393,70 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Crafted Across Sri Lanka's 25 Districts */}
+      <section className="relative isolate mx-auto w-full max-w-7xl px-4 pb-20 pt-4 sm:px-6">
+        <SectionTitle title={h.districtsTitle} sub={h.districtsSub} />
+        <div className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {h.districtList?.map((item, idx) => (
+            <Reveal key={item.district} delay={idx * 70} className="grid">
+              <Link
+                href={`/store?district=${encodeURIComponent(item.district)}`}
+                className="group relative flex flex-col justify-between overflow-hidden rounded-[28px] border border-ink/8 bg-white/80 p-6 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1.5 hover:border-magenta/40 hover:bg-white hover:shadow-xl hover:shadow-magenta/10"
+              >
+                <div>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-sand/80 px-3 py-1 text-xs font-semibold text-ink/75">
+                      <MapPin className="h-3.5 w-3.5 text-magenta" />
+                      {item.province}
+                    </span>
+                    <span className="rounded-full bg-magenta/10 px-2.5 py-0.5 text-xs font-bold text-magenta">
+                      {item.tag}
+                    </span>
+                  </div>
+                  <h3 className="mt-4 text-xl font-extrabold text-ink transition-colors group-hover:text-magenta">
+                    {item.district}
+                  </h3>
+                  <p className="mt-1.5 text-xs font-medium leading-relaxed text-ink/65">
+                    {item.craft}
+                  </p>
+                </div>
+                <div className="mt-6 flex items-center justify-between border-t border-ink/5 pt-4">
+                  <span className="text-xs font-bold text-magenta group-hover:underline">
+                    {h.districtsExplore || 'Explore crafts'}
+                  </span>
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-magenta/10 text-magenta transition-all duration-300 group-hover:translate-x-1 group-hover:bg-magenta group-hover:text-white">
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
+                </div>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
       {/* White lower half of the page */}
       <div className="rounded-t-[48px] bg-white">
         {/* Products */}
         <main id="products" className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6">
-          <Reveal className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <Reveal className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <h2 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">{t.productsTitle}</h2>
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-magenta">
+                <Sparkles className="h-3.5 w-3.5" />
+                {h.featuredPicks || 'Curated Artisan Creations'}
+              </span>
+              <h2 className="mt-1 text-3xl font-bold tracking-tight text-ink sm:text-4xl">{t.productsTitle}</h2>
               <Squiggle className="mt-1 h-3 w-36" />
               <p className="mt-2 text-sm text-ink/60 sm:text-base">{t.productsSub}</p>
             </div>
-            {!loading && (
-              <p className="text-sm font-medium text-ink/55">
-                {visibleProducts.length} {t.productsCount}
-              </p>
-            )}
+            <div className="flex items-center gap-3">
+              <Link
+                href="/store"
+                className="btn-shine group inline-flex items-center gap-2 rounded-full border border-magenta/30 bg-magenta/5 px-4 py-2.5 text-xs font-bold text-magenta transition-all hover:bg-magenta hover:text-white sm:text-sm"
+              >
+                <span>{h.viewStoreCta || 'Visit Full Store'}</span>
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
           </Reveal>
 
           <div id="categories" className="no-scrollbar -mx-4 mt-6 flex gap-2.5 overflow-x-auto px-4 pb-1">
@@ -400,13 +487,24 @@ export default function Home() {
               ))}
             </div>
           ) : visibleProducts.length > 0 ? (
-            <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
-              {visibleProducts.map((product, index) => (
-                <Reveal key={product.id} delay={(index % 4) * 80} className="grid">
-                  <ProductCard product={product} />
-                </Reveal>
-              ))}
-            </div>
+            <>
+              <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
+                {visibleProducts.map((product, index) => (
+                  <Reveal key={product.id} delay={(index % 4) * 80} className="grid">
+                    <ProductCard product={product} />
+                  </Reveal>
+                ))}
+              </div>
+              <div className="mt-12 flex justify-center">
+                <Link
+                  href="/store"
+                  className="btn-shine group inline-flex items-center gap-3 rounded-full bg-ink px-8 py-3.5 text-sm font-bold text-white shadow-xl shadow-ink/20 transition-all hover:bg-magenta hover:shadow-magenta/25"
+                >
+                  <span>{h.viewStoreCta || 'Visit Full Store & Filter by District'}</span>
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </Link>
+              </div>
+            </>
           ) : (
             <div className="mt-8 animate-fade-up rounded-[28px] border border-dashed border-ink/15 bg-cream px-6 py-16 text-center">
               <PackageSearch className="mx-auto h-12 w-12 text-ink/25" />
@@ -453,6 +551,42 @@ export default function Home() {
               );
             })}
           </ol>
+          </div>
+        </section>
+
+        {/* Customer Testimonials & Trust */}
+        <section className="mx-auto w-full max-w-7xl px-4 pb-20 pt-4 sm:px-6">
+          <SectionTitle title={h.testimonialsTitle} sub={h.testimonialsSub} />
+          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
+            {h.testimonials?.map((item, index) => (
+              <Reveal key={item.author} delay={index * 120} className="grid">
+                <div className="relative flex flex-col justify-between rounded-[32px] border border-ink/5 bg-cream/70 p-6 shadow-sm ring-1 ring-ink/5 transition-all duration-300 hover:-translate-y-1 hover:bg-cream hover:shadow-lg">
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1 text-amber-500">
+                        {Array.from({ length: 5 }, (_, i) => (
+                          <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
+                        ))}
+                      </div>
+                      <Quote className="h-6 w-6 text-magenta/25" />
+                    </div>
+                    <p className="mt-4 text-sm leading-relaxed text-ink/80 italic">
+                      &ldquo;{item.quote}&rdquo;
+                    </p>
+                  </div>
+                  <div className="mt-6 flex items-center justify-between border-t border-ink/8 pt-4">
+                    <div>
+                      <p className="text-sm font-bold text-ink">{item.author}</p>
+                      <p className="text-xs text-ink/55">{item.location}</p>
+                    </div>
+                    <span className="inline-flex items-center gap-1 rounded-full bg-leaf/15 px-2.5 py-1 text-[11px] font-bold text-leaf">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      {item.verified}
+                    </span>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </section>
 
@@ -512,7 +646,8 @@ export default function Home() {
 
             <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
               <Reveal animation="fade-right" delay={150} className="max-w-2xl">
-                <span className="inline-block rounded-full bg-turmeric px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-ink">
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-turmeric px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-ink shadow-xs">
+                  <GraduationCap className="h-3.5 w-3.5" />
                   {t.learnTag}
                 </span>
                 <h2 className="mt-4 text-3xl font-bold leading-tight sm:text-4xl">{t.learnTitle}</h2>
