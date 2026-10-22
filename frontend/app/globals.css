@@ -137,6 +137,26 @@ html {
   scroll-behavior: smooth;
 }
 
+@media print {
+  body.learning-certificate-print * {
+    visibility: hidden !important;
+  }
+  body.learning-certificate-print #learning-certificate,
+  body.learning-certificate-print #learning-certificate * {
+    visibility: visible !important;
+  }
+  body.learning-certificate-print #learning-certificate {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
 body {
   background: #fdf7ee;
   color: #1e2029;
