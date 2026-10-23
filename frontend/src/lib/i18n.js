@@ -497,117 +497,117 @@ export const translations = {
       ],
     },
     about: {
-      badge: 'தேசிய திட்டம் • மகளிர் மற்றும் சிறுவர் அலுவல்கள் அமைச்சு',
-      title: 'இலங்கை மகளிர் இ-சந்தை பற்றி',
-      subtitle: 'இலங்கையின் 25 மாவட்டங்களிலும் உள்ள கிராமப்புற பெண் தொழில்முனைவோரை நுகர்வோருடன் நேரடியாக இணைத்து அவர்களை வலுவூட்டும் அதிகாரபூர்வ தேசிய தளம்.',
+      badge: 'කාන්තා හා ළමා කටයුතු අමාත්‍යාංශයේ ජාතික වැඩසටහනකි',
+      title: 'ලංකා කාන්තා ඊ-වෙළඳපොළ ගැන',
+      subtitle: 'දිවයිනේ දිස්ත්‍රික්ක 25ම ආවරණය කරමින් ග්‍රාමීය කාන්තා ව්‍යවසායිකාවන් සවිබලගන්වන, පාරිභෝගිකයින් හා සෘජුවම සම්බන්ධ කරන නිල ජාතික ඩිජිටල් වේදිකාව.',
       stats: [
-        { value: 25, suffix: '', label: 'இணைக்கப்பட்ட மாவட்டங்கள்', desc: '9 மாகாணங்களையும் உள்ளடக்கிய நாடு தழுவிய கிராமப்புற நெட்வொர்க்' },
-        { value: 100, suffix: '%', label: 'நேரடியாக கைவினைஞருக்கு', desc: 'முழு வருமானமும் இடைத்தரகர்கள் இன்றி உற்பத்தியாளருக்கே செல்கிறது' },
-        { value: 0, suffix: '%', label: 'தள கமிஷன்', desc: 'அமைச்சினால் வழங்கப்படும் முற்றிலும் இலவசமான பொதுச் சேவை' },
-        { value: 3, suffix: '', label: 'தேசிய மொழிகள்', desc: 'சிங்களம், தமிழ் மற்றும் ஆங்கிலம் ஆகிய மூன்று மொழிகளிலும் பயன்பாடு' },
+        { value: 25, suffix: '', label: 'සම්බන්ධිත දිස්ත්‍රික්ක', desc: 'පළාත් 9ම ආවරණය වන පරිදි දිවයින පුරා විහිදුණු ජාලය' },
+        { value: 100, suffix: '%', label: 'සෘජුවම නිර්මාණකාරියට', desc: 'සියලු ආදායම අතරමැදියන්ගෙන් තොරව නිෂ්පාදිකාවට' },
+        { value: 0, suffix: '%', label: 'වේදිකා කොමිස් මුදල්', desc: 'අමාත්‍යාංශය මගින් සපයන පූර්ණ නොමිලේ රාජ්‍ය සේවාවකි' },
+        { value: 3, suffix: '', label: 'රාජ්‍ය භාෂා ත්‍රිත්වය', desc: 'සිංහල, දෙමළ සහ ඉංග්‍රීසි භාෂා තුනෙන්ම ක්‍රියාත්මකයි' },
       ],
-      storyBadge: 'எங்கள் தேசிய நோக்கம்',
-      storyTitle: 'இடைத்தரகர்களின் சுரண்டலை நீக்கி நேரடி டிஜிட்டல் சந்தை',
-      storyP1: 'இலங்கை மகளிர் இ-சந்தை என்பது மகளிர், சிறுவர் அலுவல்கள் மற்றும் சமூக வலுவூட்டல் அமைச்சு முன்னெடுத்துள்ள ஒரு முதன்மை தேசிய திட்டமாகும். பாரம்பரிய சந்தைகளில் கிராமப்புற பெண் கைவினைஞர்கள் தங்கள் வருமானத்தில் 30% முதல் 50% வரை இடைத்தரகர்களிடம் இழக்க நேரிடுகிறது. இந்த தடைகளைத் தகர்த்து, ஒவ்வொரு கைவினைஞருக்கும் இலவசமான, சரிபார்க்கப்பட்ட டிஜிட்டல் சந்தையை வழங்குவதே எங்கள் நோக்கமாகும்.',
-      storyP2: 'கைத்தறி, பித்தளைப் பொருட்கள், பிரம்பு வேலைப்பாடுகள், இயற்கை விவசாயப் பொருட்கள் மற்றும் ஆயுர்வேதப் பொருட்களை உற்பத்தி செய்யும் கிராமப்புற பெண்களை நாடு முழுவதிலும் உள்ள வாடிக்கையாளர்களுடன் நேரடியாக இணைத்து, அவர்களது பொருளாதார சுதந்திரத்தை மேம்படுத்துகிறோம்.',
-      modelBadge: 'நேரடி சந்தையின் வித்தியாசம்',
-      modelTitle: 'பாரம்பரிய சந்தை மற்றும் இலங்கை மகளிர் இ-சந்தை ஒப்பீடு',
-      modelSubtitle: 'எங்கள் நேரடி அணுகுமுறை எவ்வாறு பெண் தொழில்முனைவோரின் வாழ்வாதாரத்தை மாற்றுகிறது',
-      traditionalLabel: 'பாரம்பரிய சந்தை',
+      storyBadge: 'අපේ ජාතික අරමුණ',
+      storyTitle: 'අතරමැදියන්ගේ සූරාකෑමෙන් තොර සාධාරණ වෙළඳපොළක්',
+      storyP1: 'ලංකා කාන්තා ඊ-වෙළඳපොළ යනු කාන්තා, ළමා කටයුතු සහ සමාජ සවිබලගැන්වීම් අමාත්‍යාංශය මගින් මෙහෙයවනු ලබන පුරෝගාමී ජාතික වැඩසටහනකි. සාම්ප්‍රදායික වෙළඳපොළ තුළ ග්‍රාමීය කාන්තා නිර්මාණකාරියන්ට තම ආදායමෙන් 30% සිට 50% දක්වා අතරමැදියන්ට අහිමි වන අතර ඍජු වෙළඳපොළ ප්‍රවේශයක් නොමැත. අපගේ අරමුණ වන්නේ මෙම බාධක බිඳදමා, සෑම ව්‍යවසායිකාවකටම නොමිලේ, තහවුරු කළ ඩිජිටල් වෙළඳසැලක් ලබාදීමයි.',
+      storyP2: 'අත්කම්, පිත්තල, වේවැල්, දේශීය කෘෂි අස්වැන්න, ලංකා කුළුබඩු හෝ ආයුර්වේද නිෂ්පාදන නිපදවන ග්‍රාමීය කාන්තාවන් දිවයින පුරා සහ ලොවපුරා සිටින සවිඥානික පාරිභෝගිකයන් හා සෘජුවම සම්බන්ධ කරමින්, ඔවුන්ගේ ආර්ථික ස්වාධීනත්වය ගොඩනැගීමට සහ අපේ ජාතික සංස්කෘතික උරුමය සුරැකීමට අපි කැපවී සිටිමු.',
+      modelBadge: 'සෘජු වෙළඳපොළේ වෙනස',
+      modelTitle: 'සාම්ප්‍රදායික වෙළඳපොළ හා ලංකා කාන්තා ඊ-වෙළඳපොළ සැසඳීම',
+      modelSubtitle: 'අපගේ සෘජු ආකෘතිය මගින් ග්‍රාමීය ව්‍යවසායිකාවන්ගේ ජීවනෝපාය නගාසිටුවන ආකාරය',
+      traditionalLabel: 'සාම්ප්‍රදායික වෙළඳපොළ',
       traditionalPoints: [
-        '50% வரை சுரண்டப்படும் இடைத்தரகர் கமிஷன்',
-        'தாமதமான கொடுப்பனவுகள் மற்றும் நிச்சயமற்ற வருமானம்',
-        'உற்பத்தியாளரின் அடையாளம் மறைக்கப்பட்டு வாடிக்கையாளர் தொடர்பு இழக்கப்படல்',
-        'நகரங்களுக்குச் சென்று கண்காட்சிகளில் பங்கேற்பதற்கான அதிக போக்குவரத்துச் செலவு',
+        'ආදායමෙන් 50%ක් දක්වා අයකරන අතරමැදි කොමිස්',
+        'ප්‍රමාද වන ගෙවීම් සහ අවිනිශ්චිත ආදායම් මාර්ග',
+        'නිෂ්පාදිකාවගේ අනන්‍යතාව සහ පාරිභෝගික සම්බන්ධතා අහිමි වීම',
+        'නගරයේ ප්‍රදර්ශන කුටි වෙත භාණ්ඩ ප්‍රවාහනයට අධික පිරිවැයක්',
       ],
-      platformLabel: 'இலங்கை மகளிர் இ-சந்தை',
+      platformLabel: 'ලංකා කාන්තා ඊ-වෙළඳපොළ',
       platformPoints: [
-        '0% கமிஷன் — 100% வருமானம் பெண் கைவினைஞருக்கே',
-        'வங்கிப் பரிமாற்றம் அல்லது COD மூலம் நேரடியாக கைவினைஞருக்குப் பணம்',
-        'விருப்பப்படி ஆர்டர் செய்ய நேரடி WhatsApp தொடர்பு',
-        'கிராமத்திலிருந்தே நாடு தழுவிய இலவச டிஜிட்டல் சந்தை வாய்ப்பு',
+        '0% කොමිස් — 100%ක ආදායම ව්‍යවසායිකාවටම හිමිවීම',
+        'බැංකු තැන්පතු හෝ COD මගින් සෘජුවම නිෂ්පාදිකාවට මුදල් ගෙවීම',
+        'ඇණවුම් සහ අවශ්‍යතා සාකච්ඡා කිරීමට සෘජු WhatsApp සම්බන්ධතාව',
+        'ගමෙහි සිටම මුළු දිවයිනටම නොමිලේ ඩිජිටල් ප්‍රවේශය',
       ],
-      howBadge: 'செயல்முறை',
-      howTitle: 'தளம் செயல்படும் விதம்',
-      howSubtitle: 'கைவினைஞர்களையும் நுகர்வோரையும் இணைக்கும் நான்கு படிநிலைகள் கொண்ட வெளிப்படையான முறை',
+      howBadge: 'ක්‍රියාකාරීත්වය',
+      howTitle: 'වේදිකාව ක්‍රියාත්මක වන ආකාරය',
+      howSubtitle: 'ව්‍යවසායිකාවන් සහ පාරිභෝගිකයන් සම්බන්ධ වන පියවර හතරක විනිවිද ක්‍රමවේදය',
       steps: [
         {
           step: '01',
-          title: 'பதிவு மற்றும் அமைச்சு மூலம் சரிபார்ப்பு',
-          desc: 'பெண் தொழில்முனைவோர் தங்கள் தேசிய அடையாள அட்டை (NIC) மூலம் பதிவு செய்கிறார்கள், அமைச்சு அதிகாரிகள் விபரங்களைச் சரிபார்க்கின்றனர்.',
+          title: 'ලියාපදිංචිය සහ නිල අනන්‍යතා තහවුරු කිරීම',
+          desc: 'කාන්තා ව්‍යවසායිකාවන් NIC සහ ව්‍යාපාරික තොරතුරු සමඟ ලියාපදිංචි වන අතර, අමාත්‍යාංශයේ කාන්තා සංවර්ධන නිලධාරීන් මගින් ගිණුම තහවුරු කෙරේ.',
         },
         {
           step: '02',
-          title: 'தயாரிப்புப் பட்டியல் மற்றும் இலவசக் கல்வி',
-          desc: 'தயாரிப்புகளைப் பதிவேற்றி, டிஜிட்டல் சந்தைப்படுத்தல் மற்றும் நிதி மேலாண்மை குறித்த இலவச ஆன்லைன் படிப்புகளைக் கற்கலாம்.',
+          title: 'නිෂ්පාදන ඇතුළත් කිරීම සහ නොමිලේ ඊ-ඉගෙනුම',
+          desc: 'නිෂ්පාදන වෙබ් අඩවියට එක් කරන අතරම, ඩිජිටල් අලෙවිකරණය සහ මූල්‍ය කළමනාකරණය පිළිබඳ නොමිලේ පාඨමාලා හදාරා ව්‍යාපාරය දියුණු කරයි.',
         },
         {
           step: '03',
-          title: 'நேரடி WhatsApp தொடர்பு',
-          desc: 'வாடிக்கையாளர்கள் தயாரிப்புகளைப் பார்த்து, கைவினைஞருடன் நேரடியாக பாதுகாப்பான WhatsApp உரையாடலைத் தொடங்கலாம்.',
+          title: 'සෘජු WhatsApp සන්නිවේදනය',
+          desc: 'පාරිභෝගිකයන් කැමති නිෂ්පාදන තෝරාගෙන, නිෂ්පාදිකාවගේ WhatsApp අංකය සමඟ ආරක්ෂිතව සෘජු සංවාදයක් අරඹයි.',
         },
         {
           step: '04',
-          title: 'டெலிவரி மற்றும் சமூக நம்பிக்கை',
-          desc: 'விலை, பணம் மற்றும் விநியோகம் நேரடியாகத் தீர்மானிக்கப்பட்டு, வாடிக்கையாளர் மதிப்பாய்வுகள் மூலம் நம்பிக்கை வளர்க்கப்படுகிறது.',
+          title: 'ඇණවුම භාරදීම සහ පාරිභෝගික ඇගයීම්',
+          desc: 'මිල, ගෙවීම සහ බෙදාහැරීම දෙපාර්ශවය එකඟතාවයෙන් සිදුකරන අතර, සැබෑ පාරිභෝගික ඇගයීම් මගින් විශ්වසනීයත්වය ඉහළ නංවයි.',
         },
       ],
-      missionBadge: 'நோக்கம்',
-      missionTitle: 'எங்கள் பணி',
-      missionText: 'நாடு முழுவதும் உள்ள ஒவ்வொரு கிராமத்திலும் உள்ள சிறு மற்றும் குறு பெண் தொழில்முனைவோருக்கு டிஜிட்டல் தொழில்நுட்பம், இலவச சந்தை வாய்ப்புகள் மற்றும் தொழில்முனைவோர் பயிற்சிகளை வழங்கி அவர்களை பெருமைமிக்க பொருளாதார சக்தியாக மாற்றுதல்.',
-      visionBadge: 'எதிர்காலம்',
-      visionTitle: 'எங்கள் தொலைநோக்கு',
-      visionText: 'ஒவ்வொரு இலங்கை பெண்ணுக்கும் தனது சொந்த தொழிலை வெற்றிகரமாக நடத்துவதற்கு சம வாய்ப்புகள் உள்ள ஒரு நியாயமான மற்றும் நிலையான தேசிய டிஜிட்டல் பொருளாதாரத்தை உருவாக்குதல்.',
-      valuesBadge: 'கொள்கைகள்',
-      valuesTitle: 'எங்கள் அடிப்படைக் கொள்கைகள்',
-      valuesSubtitle: 'தளத்தின் ஒவ்வொரு முடிவையும் வழிநடத்தும் அடிப்படைக் கொள்கைகள்',
+      missionBadge: 'අරමුණ',
+      missionTitle: 'අපේ මෙහෙවර',
+      missionText: 'දිවයින පුරා සෑම ගමකම සිටින ක්ෂුද්‍ර හා සුළු පරිමාණ කාන්තා ව්‍යවසායිකාවන්ට ඩිජිටල් තාක්ෂණය, නොමිලේ වෙළඳපොළ පහසුකම් සහ ව්‍යවසායකත්ව පුහුණුව ලබාදෙමින් ඔවුන් සාඩම්බර ආර්ථික බලවේගයක් බවට පත්කිරීම.',
+      visionBadge: 'අනාගතය',
+      visionTitle: 'අපේ දැක්ම',
+      visionText: 'සෑම ශ්‍රී ලාංකික කාන්තාවකටම තමන්ගේම ව්‍යාපාරයක් සාර්ථකව පවත්වාගෙන යාමට සමාන අවස්ථා හිමිවන, සාධාරණ සහ තිරසාර ජාතික ඩිජිටල් ආර්ථිකයක් නිර්මාණය කිරීම.',
+      valuesBadge: 'මූලධර්ම',
+      valuesTitle: 'අපේ මූලික හරයන්',
+      valuesSubtitle: 'වේදිකාවේ සෑම තීරණයකටම පදනම් වන මූලධර්ම',
       values: [
-        { title: 'நேரடி வலுவூட்டல்', desc: 'இடைத்தரகர் கட்டணம் இன்றி 100% பலன் பெண் கைவினைஞரையே சென்றடைகிறது.' },
-        { title: 'பாரம்பரிய மரபைப் பாதுகாத்தல்', desc: 'தலைமுறை தலைமுறையாக வந்த பாரம்பரிய கைவினை மற்றும் அறிவைப் பாதுகாத்து ஊக்குவித்தல்.' },
-        { title: 'நம்பகத்தன்மை மற்றும் சரிபார்ப்பு', desc: 'அமைச்சு அதிகாரிகள் மூலம் ஒவ்வொரு தொழில்முனைவோரின் விபரங்களும் சரிபார்க்கப்படுகின்றன.' },
-        { title: 'வெளிப்படையான தொடர்பு', desc: 'வாடிக்கையாளர் நேரடியாக WhatsApp மூலம் கைவினைஞருடன் பேசி ஆர்டர் செய்யும் வசதி.' },
+        { title: 'සෘජු සවිබලගැන්වීම', desc: 'අතරමැදි කොමිස් හෝ ගාස්තු අය නොකර 100% ප්‍රතිලාභ ව්‍යවසායිකාවටම හිමිවේ.' },
+        { title: 'සාම්ප්‍රදායික උරුමය රැකගැනීම', desc: 'පරම්පරාවෙන් පරම්පරාවට ආ දේශීය අත්කම් හා සාම්ප්‍රදායික දැනුම ආරක්ෂා කර ප්‍රවර්ධනය කිරීම.' },
+        { title: 'විශ්වාසය සහ තහවුරු කළ අනන්‍යතාව', desc: 'අමාත්‍යාංශය හා සම්බන්ධ රාජ්‍ය නිලධාරීන් මගින් සෑම ව්‍යවසායිකාවකගේම තොරතුරු තහවුරු කරනු ලැබේ.' },
+        { title: 'සාධාරණ සහ විනිවිදභාවය', desc: 'පාරිභෝගිකයාට සෘජුවම නිෂ්පාදිකාව හා WhatsApp හරහා කතා කර සාකච්ඡා කර ඇණවුම් කිරීමේ හැකියාව.' },
       ],
-      pillarsBadge: 'தேசிய உள்கட்டமைப்பு',
-      pillarsTitle: 'தளத்தின் முக்கிய தூண்கள்',
-      pillarsSubtitle: 'கட்டமைப்பை பலப்படுத்தும் முக்கிய தூண்கள்',
+      pillarsBadge: 'ජාතික යටිතල පහසුකම්',
+      pillarsTitle: 'වේදිකාවේ ප්‍රධාන කුලුනු',
+      pillarsSubtitle: 'පද්ධතිය ශක්තිමත් කරන මූලික කුලුනු 4',
       pillars: [
-        { title: 'இலவச மின்-கற்றல் தளம்', desc: 'டிஜிட்டல் அறிவு, சந்தைப்படுத்தல் மற்றும் நிதி மேலாண்மை குறித்த ஆன்லைன் படிப்புகள்.' },
-        { title: '25 மாவட்டங்களையும் இணைத்தல்', desc: 'யாழ்ப்பாணம் முதல் அம்பாந்தோட்டை வரை அனைத்து பகுதி பெண்களும் ஒரே வலையமைப்பில்.' },
-        { title: 'மும்மொழி வசதி', desc: 'சிங்களம், தமிழ் மற்றும் ஆங்கிலம் ஆகிய மூன்று மொழிகளிலும் பயன்படுத்தும் சுதந்திரம்.' },
-        { title: 'உண்மையான மதிப்பாய்வுகள்', desc: 'கைவினைஞர்களின் தரம் மற்றும் வாடிக்கையாளர் திருப்தியை வெளிப்படுத்தும் மதிப்பாய்வு முறை.' },
+        { title: 'නොමිලේ ඊ-ඉගෙනුම් පීඨිකාව', desc: 'ව්‍යවසායිකාවන්ගේ ඩිජිටල් සාක්ෂරතාව, අලෙවිකරණය සහ මූල්‍ය කළමනාකරණය සංවර්ධනය කරන මාර්ගගත පාඨමාලා.' },
+        { title: 'දිස්ත්‍රික්ක 25ම ආවරණය', desc: 'යාපනයේ සිට හම්බන්තොට දක්වාත්, මඩකලපුවේ සිට කොළඹ දක්වාත් සෑම ප්‍රදේශයකම කාන්තාවන් එකම ජාලයකට.' },
+        { title: 'ත්‍රෛභාෂික පහසුකම', desc: 'සිංහල, දෙමළ සහ ඉංග්‍රීසි භාෂා තුනෙන්ම වෙබ් අඩවිය පරිශීලනය කිරීමේ නිදහස.' },
+        { title: 'පාරිභෝගික විශ්වාසය සහ ඇගයීම්', desc: 'නිෂ්පාදන හා ව්‍යවසායිකාවන් පිළිබඳ සැබෑ පාරිභෝගික ඇගයීම් සහ සමාලෝචන පද්ධතිය.' },
       ],
-      governanceBadge: 'அரச நிர்வாகம்',
-      governanceTitle: 'அதிகாரபூர்வ நிர்வாகம் மற்றும் அமைச்சின் ஆதரவு',
-      governanceP1: 'மகளிர், சிறுவர் அலுவல்கள் மற்றும் சமூக வலுவூட்டல் அமைச்சின் நேரடி வழிகாட்டலின் கீழ் செயல்படுத்தப்படும் தேசிய திட்டமாகும்.',
-      governanceP2: 'நாடளாவிய ரீதியில் உள்ள பிரதேச செயலகங்களின் மகளிர் அபிவிருத்தி உத்தியோகத்தர்கள் கிராமப்புற உற்பத்தியாளர்களுக்கு ஆதரவளிக்கின்றனர்.',
-      governanceOffice: 'செத்சிறிபாய இரண்டாம் கட்டம், பத்தரமுல்ல, இலங்கை',
-      faqBadge: 'பொதுவான வினாக்கள்',
-      faqTitle: 'திட்டம் குறித்த அடிக்கடி கேட்கப்படும் கேள்விகள்',
+      governanceBadge: 'රාජ්‍ය අධීක්ෂණය',
+      governanceTitle: 'නිල පරිපාලනය සහ රාජ්‍ය අනුග්‍රහය',
+      governanceP1: 'මෙම වේදිකාව කාන්තා, ළමා කටයුතු සහ සමාජ සවිබලගැන්වීම් අමාත්‍යාංශයේ පූර්ණ අධීක්ෂණය යටතේ ක්‍රියාත්මක වන ජාතික වැඩසටහනකි.',
+      governanceP2: 'දිවයින පුරා ප්‍රාදේශීය ලේකම් කාර්යාල හා සම්බන්ධ කාන්තා සංවර්ධන නිලධාරිනියන්ගේ මඟපෙන්වීම යටතේ සෑම ගමකම නිෂ්පාදිකාවන් මෙහෙයවනු ලැබේ.',
+      governanceOffice: 'සෙත්සිරිපාය II අදියර, බත්තරමුල්ල, ශ්‍රී ලංකාව',
+      faqBadge: 'පොදු ගැටලු',
+      faqTitle: 'වැඩසටහන පිළිබඳ නිතර අසන ප්‍රශ්න',
       faqs: [
         {
-          q: 'இலங்கை மகளிர் இ-சந்தை முற்றிலும் இலாப நோக்கற்றதா?',
-          a: 'ஆம். இது அமைச்சினால் நிர்வகிக்கப்படும் 100% இலவச பொதுச் சேவையாகும். எந்தவிதப் பதிவு கட்டணமோ, மாதச் சந்தாவோ அல்லது விற்பனை கமிஷனோ வசூலிக்கப்படுவதில்லை.',
+          q: 'ලංකා කාන්තා ඊ-වෙළඳපොළ සම්පූර්ණයෙන්ම ලාභ නොලබන සේවාවක්ද?',
+          a: 'ඔව්. මෙය කාන්තා හා ළමා කටයුතු අමාත්‍යාංශය විසින් නොමිලේ පවත්වාගෙන යනු ලබන ජාතික සේවාවකි. ව්‍යවසායිකාවන්ගෙන් හෝ පාරිභෝගිකයන්ගෙන් කිසිදු ලියාපදිංචි ගාස්තුවක් හෝ කොමිස් මුදලක් අය නොකෙරේ.',
         },
         {
-          q: 'விற்பனையாளராகப் பதிவு செய்ய யாருக்குத் தகுதி உண்டு?',
-          a: 'செல்லுபடியாகும் தேசிய அடையாள அட்டை (NIC) கொண்ட, கைவினைப்பொருட்கள், விவசாயம், துணி வகைகள், உணவுப் பொருட்கள் தயாரிக்கும் எந்தவொரு இலங்கைப் பெண் தொழில்முனைவோரும் பதிவு செய்யலாம்.',
+          q: 'මෙහි අලෙවි කිරීමට සුදුසුකම් ලබන්නේ කවුරුන්ද?',
+          a: 'වලංගු ජාතික හැඳුනුම්පතක් (NIC) සහිත, ක්ෂුද්‍ර හෝ සුළු පරිමාණ අත්කම්, රෙදිපිළි, කෘෂි නිෂ්පාදන, ආහාර හෝ දේශීය ඖෂධ නිෂ්පාදනය කරන ඕනෑම ශ්‍රී ලාංකික කාන්තා ව්‍යවසායිකාවකට ලියාපදිංචි විය හැක.',
         },
         {
-          q: 'பணம் செலுத்துதல் மற்றும் டெலிவரி எவ்வாறு நடைபெறும்?',
-          a: 'வாடிக்கையாளரும் உற்பத்தியாளரும் WhatsApp மூலம் நேரடியாகப் பேசி (வங்கிப் பரிமாற்றம் அல்லது COD) பணம் மற்றும் டெலிவரி முறையைத் தீர்மானிக்கின்றனர். இணையதளம் நிதிப் பரிவர்த்தனைகளைக் கையாளுவதில்லை.',
+          q: 'ගෙවීම් සහ බෙදාහැරීම් සිදු වන්නේ කෙසේද?',
+          a: 'පාරිභෝගිකයා සහ ව්‍යවසායිකාව WhatsApp හරහා කෙලින්ම කතාබස් කර (බැංකු තැන්පතු හෝ Cash on Delivery) ගෙවීම් සහ ප්‍රවාහන ක්‍රමය තීරණය කරති. වෙබ් අඩවිය මුදල් ගනුදෙනුවලට මැදිහත් නොවේ.',
         },
         {
-          q: 'வெளிநாட்டு வாடிக்கையாளர்கள் ஆர்டர் செய்ய முடியுமா?',
-          a: 'ஆம். உலகம் முழுவதிலுமிருந்து எவரும் பொருட்களைப் பார்வையிட்டு, சர்வதேச அஞ்சல் அல்லது கூரியர் மூலம் டெலிவரி பெற கைவினைஞருடன் WhatsApp-ல் பேசலாம்.',
+          q: 'විදෙස්ගත පාරිභෝගිකයන්ට භාණ්ඩ ඇණවුම් කළ හැකිද?',
+          a: 'ඔව්. ලොව ඕනෑම රටක සිටින අයෙකුට වෙළඳසැල නරඹා, ව්‍යවසායිකාවගේ WhatsApp අංකයට පණිවිඩයක් යවා ජාත්‍යන්තර තැපැල් හෝ කූරියර් මගින් භාණ්ඩ ගෙන්වා ගැනීමට එකඟ විය හැක.',
         },
       ],
-      ctaBadge: 'இணைந்திடுங்கள்',
-      ctaTitle: 'பொருளாதார சமத்துவ இயக்கத்தில் இணையுங்கள்',
-      ctaText: 'உள்நாட்டு பெண் படைப்பாளிகளின் சிறந்த தயாரிப்புகளை வாங்கி அவர்களை வலுப்படுத்துங்கள், அல்லது ஒரு தொழில்முனைவோராக இன்றே இணையுங்கள்.',
-      exploreStore: 'கடையைப் பார்வையிடுக',
-      registerSeller: 'விற்பனையாளராகப் பதிவு செய்க',
-      elearnHub: 'இலவச மின்-கற்றல் மையம்',
-      supportGuide: 'பயனர் வழிகாட்டி',
+      ctaBadge: 'අත්වැල් බැඳගන්න',
+      ctaTitle: 'ජාතික ආර්ථික බලවේගයට එක්වන්න',
+      ctaText: 'දේශීය කාන්තා නිර්මාණකරුවන්ගේ අගනා නිෂ්පාදන මිලදී ගෙන ඔවුන් සවිබලගන්වන්න, නැතහොත් ව්‍යවසායිකාවක ලෙස නොමිලේ ලියාපදිංචි වන්න.',
+      exploreStore: 'වෙළඳසැලට පිවිසෙන්න',
+      registerSeller: 'ව්‍යවසායිකාවක් ලෙස ලියාපදිංචි වන්න',
+      elearnHub: 'නොමිලේ ඊ-ඉගෙනුම් පීඨිකාව',
+      supportGuide: 'පරිශීලක මාර්ගෝපදේශය',
     },
     support: {
       title: 'උදව් සහ සහාය',
@@ -2165,35 +2165,116 @@ export const translations = {
       ],
     },
     about: {
-      badge: 'An Initiative by the Ministry of Women & Child Affairs',
+      badge: 'National Initiative • Ministry of Women & Child Affairs',
       title: 'About Lanka Women E-Market',
-      subtitle: 'The national platform empowering rural women entrepreneurs across all 25 districts of Sri Lanka by directly connecting them with conscious buyers.',
-      storyBadge: 'Our Purpose',
-      storyTitle: 'A Fair Marketplace Free from Middlemen',
-      storyP1: 'Lanka Women E-Market is a flagship national initiative by the Ministry of Women, Child Affairs and Social Empowerment. Our mission is to dismantle barriers and eliminate exploitative intermediaries, giving grassroots women artisans a dignified, zero-commission digital storefront to sell directly to buyers nationwide and across the globe.',
-      storyP2: 'From handlooms and heritage handicrafts to organic agriculture, Ceylon spices, and Ayurvedic wellness, we equip women producers with digital tools, training, and financial independence, uplifting families and rural village economies.',
+      subtitle: 'The official digital marketplace empowering grassroots women entrepreneurs across all 25 districts of Sri Lanka.',
+      stats: [
+        { value: 25, suffix: '', label: 'Districts Connected', desc: 'Islandwide rural reach across all 9 provinces' },
+        { value: 100, suffix: '%', label: 'Direct to Maker', desc: 'Proceeds go entirely to the women artisans' },
+        { value: 0, suffix: '%', label: 'Platform Commission', desc: 'Completely free service provided by the Ministry' },
+        { value: 3, suffix: '', label: 'National Languages', desc: 'Native support in Sinhala, Tamil & English' },
+      ],
+      storyBadge: 'Our National Mandate',
+      storyTitle: 'Eliminating Exploitative Middlemen Through Direct Digital Commerce',
+      storyP1: 'Lanka Women E-Market is a flagship national initiative spearheaded by the Ministry of Women, Child Affairs and Social Empowerment. In traditional commerce, rural female creators often surrender 30% to 50% of their earnings to intermediaries and lack direct market access. Our mission is to dismantle these barriers by providing every artisan a verified, zero-cost digital storefront.',
+      storyP2: 'Whether producing traditional handlooms, brassware, cane work, organic Ceylon spices, or wellness herbs, our platform bridges village artisans directly with conscious buyers across Sri Lanka and the diaspora — fostering financial independence and preserving national cultural heritage.',
+      modelBadge: 'The Direct Difference',
+      modelTitle: 'Conventional Markets vs Lanka Women E-Market',
+      modelSubtitle: 'How our direct model transforms rural livelihoods compared to traditional intermediaries',
+      traditionalLabel: 'Conventional Markets',
+      traditionalPoints: [
+        'Exploitative intermediaries taking up to 50% cuts',
+        'Delayed payments and uncertain settlements',
+        'Producers remain anonymous without customer relationships',
+        'High cost of travel to urban exhibition centers',
+      ],
+      platformLabel: 'Lanka Women E-Market',
+      platformPoints: [
+        '0% platform commission — 100% retained earnings',
+        'Direct payment to artisan via bank transfer or cash',
+        'Direct WhatsApp contact for customized orders',
+        'Free islandwide digital reach from home village',
+      ],
+      howBadge: 'Platform Operation',
+      howTitle: 'How the Platform Works',
+      howSubtitle: 'A structured, transparent four-step process connecting artisans and conscious buyers',
+      steps: [
+        {
+          step: '01',
+          title: 'Artisan Onboarding & Verification',
+          desc: 'Women entrepreneurs register with their NIC and business details, verified by Ministry development officers.',
+        },
+        {
+          step: '02',
+          title: 'Storefront Setup & Free Training',
+          desc: 'Sellers list authentic creations while accessing our free E-Learning Academy for digital marketing and pricing skills.',
+        },
+        {
+          step: '03',
+          title: 'Direct WhatsApp Connection',
+          desc: 'Buyers browse the catalog and initiate direct, encrypted WhatsApp conversations with the creator.',
+        },
+        {
+          step: '04',
+          title: 'Fulfillment & Community Trust',
+          desc: 'Terms, payment, and delivery are arranged directly, followed by verified customer ratings and reviews.',
+        },
+      ],
+      missionBadge: 'Purpose',
       missionTitle: 'Our Mission',
       missionText: 'To democratize digital commerce for micro and small-scale women entrepreneurs in every Sri Lankan village, providing free market access, capacity building, and sustainable livelihoods.',
+      visionBadge: 'Future',
       visionTitle: 'Our Vision',
       visionText: 'An inclusive, thriving national digital economy where every Sri Lankan woman entrepreneur has equal opportunities to prosper with pride and autonomy.',
+      valuesBadge: 'Guiding Values',
       valuesTitle: 'Our Core Principles',
+      valuesSubtitle: 'Core values shaping every decision across the platform',
       values: [
         { title: 'Direct Empowerment', desc: 'Zero commission or intermediary fees — 100% of proceeds go directly to the artisan.' },
         { title: 'Preserving Cultural Heritage', desc: 'Protecting and promoting centuries of traditional craftsmanship, batik, handloom, and organic farming.' },
         { title: 'Verified Trust & Authenticity', desc: 'Ministry-supported verification ensuring genuine makers, ethical production, and authentic goods.' },
         { title: 'Transparent Communication', desc: 'Direct WhatsApp conversations between customers and artisans for customized orders and clear terms.' },
       ],
+      pillarsBadge: 'National Infrastructure',
       pillarsTitle: 'Pillars of the Platform',
+      pillarsSubtitle: 'Key national infrastructure built into the ecosystem',
       pillars: [
-        { title: 'Free E-Learning Academy', desc: 'Curated courses in financial literacy, digital marketing, packaging, and business growth.' },
+        { title: 'Free E-Learning Academy', desc: 'Comprehensive online courses covering digital sales, branding, photography, and financial management.' },
         { title: 'All 25 Districts Connected', desc: 'An inclusive islandwide network spanning Jaffna to Hambantota, Matara to Batticaloa.' },
-        { title: 'Trilingual Accessibility', desc: 'Full native support in Sinhala, Tamil, and English for inclusive digital adoption.' },
+        { title: 'Trilingual Accessibility', desc: 'Full native support in Sinhala, Tamil, and English for inclusive digital adoption across all communities.' },
         { title: 'Genuine Community Reviews', desc: 'Transparent rating and review system celebrating artisan quality and buyer satisfaction.' },
       ],
-      ctaTitle: 'Be Part of the Movement',
-      ctaText: 'Support rural women entrepreneurs by shopping authentic Ceylon creations, or join the platform as a seller today.',
+      governanceBadge: 'Institutional Backing',
+      governanceTitle: 'Official Governance & Institutional Backing',
+      governanceP1: 'Administered under the auspices of the Ministry of Women, Child Affairs and Social Empowerment.',
+      governanceP2: 'Supported by Women Development Officers across Divisional Secretariats nationwide to assist grassroots makers.',
+      governanceOffice: 'Sethsiripaya Stage II, Battaramulla, Sri Lanka',
+      faqBadge: 'Key Facts',
+      faqTitle: 'Frequently Asked Questions About the Initiative',
+      faqs: [
+        {
+          q: 'Is Lanka Women E-Market completely non-profit?',
+          a: 'Yes. The platform is a 100% public service operated by the Ministry. No listing fees, monthly subscriptions, or sales commissions are ever charged to artisans or customers.',
+        },
+        {
+          q: 'Who is eligible to register as a seller?',
+          a: 'Any Sri Lankan woman running a micro, small, or home-based enterprise producing handicrafts, agriculture, textiles, food products, or local remedies with a valid National Identity Card (NIC).',
+        },
+        {
+          q: 'How does payment and delivery work?',
+          a: 'Customers and artisans negotiate delivery methods and payment directly via WhatsApp (e.g., bank transfer or cash on delivery). The platform never touches financial transactions.',
+        },
+        {
+          q: 'Can international buyers place orders?',
+          a: 'Yes. Anyone worldwide can browse the catalog and message sellers directly on WhatsApp to arrange international postal or courier delivery.',
+        },
+      ],
+      ctaBadge: 'Get Involved',
+      ctaTitle: 'Join the Movement for Economic Equality',
+      ctaText: 'Support rural women entrepreneurs by purchasing authentic Ceylon creations, or enroll as a registered artisan today.',
       exploreStore: 'Explore the Store',
       registerSeller: 'Register as an Artisan',
+      elearnHub: 'Free E-Learning Hub',
       supportGuide: 'User Guide & Manual',
     },
     support: {
@@ -3752,35 +3833,116 @@ export const translations = {
       ],
     },
     about: {
-      badge: 'மகளிர் மற்றும் சிறுவர் அலுவல்கள் அமைச்சின் தேசிய திட்டம்',
+      badge: 'தேசிய திட்டம் • மகளிர் மற்றும் சிறுவர் அலுவல்கள் அமைச்சு',
       title: 'இலங்கை மகளிர் இ-சந்தை பற்றி',
-      subtitle: 'இலங்கையின் 25 மாவட்டங்களிலும் உள்ள கிராமப்புற பெண் தொழில்முனைவோரை நுகர்வோருடன் நேரடியாக இணைத்து அவர்களை வலுவூட்டும் தேசிய தளம்.',
-      storyBadge: 'எங்கள் நோக்கம்',
-      storyTitle: 'இடைத்தரகர்கள் இல்லாத நியாயமான சந்தை',
-      storyP1: 'இலங்கை மகளிர் இ-சந்தை என்பது மகளிர், சிறுவர் அலுவல்கள் மற்றும் சமூக வலுவூட்டல் அமைச்சு முன்னெடுத்துள்ள ஒரு முதன்மை தேசிய திட்டமாகும். பாரம்பரிய சந்தைகளில் இடைத்தரகர்களின் சுரண்டலைத் தவிர்த்து, கிராமப்புற பெண் கைவினைஞர்கள் தங்கள் அரிய தயாரிப்புகளை நாடு முழுவதும் உள்ள வாடிக்கையாளர்களுக்கு நேரடியாக விற்க இலவச டிஜிட்டல் இடத்தை வழங்குவதே எங்கள் நோக்கமாகும்.',
-      storyP2: 'கைவினைப்பொருட்கள், கைத்தறி ஆடைகள், இயற்கை விவசாய விளைபொருட்கள், வாசனைப் பொருட்கள் மற்றும் ஆயுர்வேதப் பொருட்களை உற்பத்தி செய்யும் பெண்களுக்கு தொழில்நுட்பம், டிஜிட்டல் அறிவு மற்றும் நிலையான வருமானத்தை வழங்கி அவர்களது பொருளாதாரத்தை வலுப்படுத்துகிறோம்.',
+      subtitle: 'இலங்கையின் 25 மாவட்டங்களிலும் உள்ள கிராமப்புற பெண் தொழில்முனைவோரை நுகர்வோருடன் நேரடியாக இணைத்து அவர்களை வலுவூட்டும் அதிகாரபூர்வ தேசிய தளம்.',
+      stats: [
+        { value: 25, suffix: '', label: 'இணைக்கப்பட்ட மாவட்டங்கள்', desc: '9 மாகாணங்களையும் உள்ளடக்கிய நாடு தழுவிய கிராமப்புற நெட்வொர்க்' },
+        { value: 100, suffix: '%', label: 'நேரடியாக கைவினைஞருக்கு', desc: 'முழு வருமானமும் இடைத்தரகர்கள் இன்றி உற்பத்தியாளருக்கே செல்கிறது' },
+        { value: 0, suffix: '%', label: 'தள கமிஷன்', desc: 'அமைச்சினால் வழங்கப்படும் முற்றிலும் இலவசமான பொதுச் சேவை' },
+        { value: 3, suffix: '', label: 'தேசிய மொழிகள்', desc: 'சிங்களம், தமிழ் மற்றும் ஆங்கிலம் ஆகிய மூன்று மொழிகளிலும் பயன்பாடு' },
+      ],
+      storyBadge: 'எங்கள் தேசிய நோக்கம்',
+      storyTitle: 'இடைத்தரகர்களின் சுரண்டலை நீக்கி நேரடி டிஜிட்டல் சந்தை',
+      storyP1: 'இலங்கை மகளிர் இ-சந்தை என்பது மகளிர், சிறுவர் அலுவல்கள் மற்றும் சமூக வலுவூட்டல் அமைச்சு முன்னெடுத்துள்ள ஒரு முதன்மை தேசிய திட்டமாகும். பாரம்பரிய சந்தைகளில் கிராமப்புற பெண் கைவினைஞர்கள் தங்கள் வருமானத்தில் 30% முதல் 50% வரை இடைத்தரகர்களிடம் இழக்க நேரிடுகிறது. இந்த தடைகளைத் தகர்த்து, ஒவ்வொரு கைவினைஞருக்கும் இலவசமான, சரிபார்க்கப்பட்ட டிஜிட்டல் சந்தையை வழங்குவதே எங்கள் நோக்கமாகும்.',
+      storyP2: 'கைத்தறி, பித்தளைப் பொருட்கள், பிரம்பு வேலைப்பாடுகள், இயற்கை விவசாயப் பொருட்கள் மற்றும் ஆயுர்வேதப் பொருட்களை உற்பத்தி செய்யும் கிராமப்புற பெண்களை நாடு முழுவதிலும் உள்ள வாடிக்கையாளர்களுடன் நேரடியாக இணைத்து, அவர்களது பொருளாதார சுதந்திரத்தை மேம்படுத்துகிறோம்.',
+      modelBadge: 'நேரடி சந்தையின் வித்தியாசம்',
+      modelTitle: 'பாரம்பரிய சந்தை மற்றும் இலங்கை மகளிர் இ-சந்தை ஒப்பீடு',
+      modelSubtitle: 'எங்கள் நேரடி அணுகுமுறை எவ்வாறு பெண் தொழில்முனைவோரின் வாழ்வாதாரத்தை மாற்றுகிறது',
+      traditionalLabel: 'பாரம்பரிய சந்தை',
+      traditionalPoints: [
+        '50% வரை சுரண்டப்படும் இடைத்தரகர் கமிஷன்',
+        'தாமதமான கொடுப்பனவுகள் மற்றும் நிச்சயமற்ற வருமானம்',
+        'உற்பத்தியாளரின் அடையாளம் மறைக்கப்பட்டு வாடிக்கையாளர் தொடர்பு இழக்கப்படல்',
+        'நகரங்களுக்குச் சென்று கண்காட்சிகளில் பங்கேற்பதற்கான அதிக போக்குவரத்துச் செலவு',
+      ],
+      platformLabel: 'இலங்கை மகளிர் இ-சந்தை',
+      platformPoints: [
+        '0% கமிஷன் — 100% வருமானம் பெண் கைவினைஞருக்கே',
+        'வங்கிப் பரிமாற்றம் அல்லது COD மூலம் நேரடியாக கைவினைஞருக்குப் பணம்',
+        'விருப்பப்படி ஆர்டர் செய்ய நேரடி WhatsApp தொடர்பு',
+        'கிராமத்திலிருந்தே நாடு தழுவிய இலவச டிஜிட்டல் சந்தை வாய்ப்பு',
+      ],
+      howBadge: 'செயல்முறை',
+      howTitle: 'தளம் செயல்படும் விதம்',
+      howSubtitle: 'கைவினைஞர்களையும் நுகர்வோரையும் இணைக்கும் நான்கு படிநிலைகள் கொண்ட வெளிப்படையான முறை',
+      steps: [
+        {
+          step: '01',
+          title: 'பதிவு மற்றும் அமைச்சு மூலம் சரிபார்ப்பு',
+          desc: 'பெண் தொழில்முனைவோர் தங்கள் தேசிய அடையாள அட்டை (NIC) மூலம் பதிவு செய்கிறார்கள், அமைச்சு அதிகாரிகள் விபரங்களைச் சரிபார்க்கின்றனர்.',
+        },
+        {
+          step: '02',
+          title: 'தயாரிப்புப் பட்டியல் மற்றும் இலவசக் கல்வி',
+          desc: 'தயாரிப்புகளைப் பதிவேற்றி, டிஜிட்டல் சந்தைப்படுத்தல் மற்றும் நிதி மேலாண்மை குறித்த இலவச ஆன்லைன் படிப்புகளைக் கற்கலாம்.',
+        },
+        {
+          step: '03',
+          title: 'நேரடி WhatsApp தொடர்பு',
+          desc: 'வாடிக்கையாளர்கள் தயாரிப்புகளைப் பார்த்து, கைவினைஞருடன் நேரடியாக பாதுகாப்பான WhatsApp உரையாடலைத் தொடங்கலாம்.',
+        },
+        {
+          step: '04',
+          title: 'டெலிவரி மற்றும் சமூக நம்பிக்கை',
+          desc: 'விலை, பணம் மற்றும் விநியோகம் நேரடியாகத் தீர்மானிக்கப்பட்டு, வாடிக்கையாளர் மதிப்பாய்வுகள் மூலம் நம்பிக்கை வளர்க்கப்படுகிறது.',
+        },
+      ],
+      missionBadge: 'நோக்கம்',
       missionTitle: 'எங்கள் பணி',
       missionText: 'நாடு முழுவதும் உள்ள ஒவ்வொரு கிராமத்திலும் உள்ள சிறு மற்றும் குறு பெண் தொழில்முனைவோருக்கு டிஜிட்டல் தொழில்நுட்பம், இலவச சந்தை வாய்ப்புகள் மற்றும் தொழில்முனைவோர் பயிற்சிகளை வழங்கி அவர்களை பெருமைமிக்க பொருளாதார சக்தியாக மாற்றுதல்.',
+      visionBadge: 'எதிர்காலம்',
       visionTitle: 'எங்கள் தொலைநோக்கு',
       visionText: 'ஒவ்வொரு இலங்கை பெண்ணுக்கும் தனது சொந்த தொழிலை வெற்றிகரமாக நடத்துவதற்கு சம வாய்ப்புகள் உள்ள ஒரு நியாயமான மற்றும் நிலையான தேசிய டிஜிட்டல் பொருளாதாரத்தை உருவாக்குதல்.',
+      valuesBadge: 'கொள்கைகள்',
       valuesTitle: 'எங்கள் அடிப்படைக் கொள்கைகள்',
+      valuesSubtitle: 'தளத்தின் ஒவ்வொரு முடிவையும் வழிநடத்தும் அடிப்படைக் கொள்கைகள்',
       values: [
         { title: 'நேரடி வலுவூட்டல்', desc: 'இடைத்தரகர் கட்டணம் இன்றி 100% பலன் பெண் கைவினைஞரையே சென்றடைகிறது.' },
         { title: 'பாரம்பரிய மரபைப் பாதுகாத்தல்', desc: 'தலைமுறை தலைமுறையாக வந்த பாரம்பரிய கைவினை மற்றும் அறிவைப் பாதுகாத்து ஊக்குவித்தல்.' },
         { title: 'நம்பகத்தன்மை மற்றும் சரிபார்ப்பு', desc: 'அமைச்சு அதிகாரிகள் மூலம் ஒவ்வொரு தொழில்முனைவோரின் விபரங்களும் சரிபார்க்கப்படுகின்றன.' },
         { title: 'வெளிப்படையான தொடர்பு', desc: 'வாடிக்கையாளர் நேரடியாக WhatsApp மூலம் கைவினைஞருடன் பேசி ஆர்டர் செய்யும் வசதி.' },
       ],
+      pillarsBadge: 'தேசிய உள்கட்டமைப்பு',
       pillarsTitle: 'தளத்தின் முக்கிய தூண்கள்',
+      pillarsSubtitle: 'கட்டமைப்பை பலப்படுத்தும் முக்கிய தூண்கள்',
       pillars: [
         { title: 'இலவச மின்-கற்றல் தளம்', desc: 'டிஜிட்டல் அறிவு, சந்தைப்படுத்தல் மற்றும் நிதி மேலாண்மை குறித்த ஆன்லைன் படிப்புகள்.' },
         { title: '25 மாவட்டங்களையும் இணைத்தல்', desc: 'யாழ்ப்பாணம் முதல் அம்பாந்தோட்டை வரை அனைத்து பகுதி பெண்களும் ஒரே வலையமைப்பில்.' },
         { title: 'மும்மொழி வசதி', desc: 'சிங்களம், தமிழ் மற்றும் ஆங்கிலம் ஆகிய மூன்று மொழிகளிலும் பயன்படுத்தும் சுதந்திரம்.' },
         { title: 'உண்மையான மதிப்பாய்வுகள்', desc: 'கைவினைஞர்களின் தரம் மற்றும் வாடிக்கையாளர் திருப்தியை வெளிப்படுத்தும் மதிப்பாய்வு முறை.' },
       ],
-      ctaTitle: 'எங்கள் சமூகத்துடன் கைகோருங்கள்',
+      governanceBadge: 'அரச நிர்வாகம்',
+      governanceTitle: 'அதிகாரபூர்வ நிர்வாகம் மற்றும் அமைச்சின் ஆதரவு',
+      governanceP1: 'மகளிர், சிறுவர் அலுவல்கள் மற்றும் சமூக வலுவூட்டல் அமைச்சின் நேரடி வழிகாட்டலின் கீழ் செயல்படுத்தப்படும் தேசிய திட்டமாகும்.',
+      governanceP2: 'நாடளாவிய ரீதியில் உள்ள பிரதேச செயலகங்களின் மகளிர் அபிவிருத்தி உத்தியோகத்தர்கள் கிராமப்புற உற்பத்தியாளர்களுக்கு ஆதரவளிக்கின்றனர்.',
+      governanceOffice: 'செத்சிறிபாய இரண்டாம் கட்டம், பத்தரமுல்ல, இலங்கை',
+      faqBadge: 'பொதுவான வினாக்கள்',
+      faqTitle: 'திட்டம் குறித்த அடிக்கடி கேட்கப்படும் கேள்விகள்',
+      faqs: [
+        {
+          q: 'இலங்கை மகளிர் இ-சந்தை முற்றிலும் இலாப நோக்கற்றதா?',
+          a: 'ஆம். இது அமைச்சினால் நிர்வகிக்கப்படும் 100% இலவச பொதுச் சேவையாகும். எந்தவிதப் பதிவு கட்டணமோ, மாதச் சந்தாவோ அல்லது விற்பனை கமிஷனோ வசூலிக்கப்படுவதில்லை.',
+        },
+        {
+          q: 'விற்பனையாளராகப் பதிவு செய்ய யாருக்குத் தகுதி உண்டு?',
+          a: 'செல்லுபடியாகும் தேசிய அடையாள அட்டை (NIC) கொண்ட, கைவினைப்பொருட்கள், விவசாயம், துணி வகைகள், உணவுப் பொருட்கள் தயாரிக்கும் எந்தவொரு இலங்கைப் பெண் தொழில்முனைவோரும் பதிவு செய்யலாம்.',
+        },
+        {
+          q: 'பணம் செலுத்துதல் மற்றும் டெலிவரி எவ்வாறு நடைபெறும்?',
+          a: 'வாடிக்கையாளரும் உற்பத்தியாளரும் WhatsApp மூலம் நேரடியாகப் பேசி (வங்கிப் பரிமாற்றம் அல்லது COD) பணம் மற்றும் டெலிவரி முறையைத் தீர்மானிக்கின்றனர். இணையதளம் நிதிப் பரிவர்த்தனைகளைக் கையாளுவதில்லை.',
+        },
+        {
+          q: 'வெளிநாட்டு வாடிக்கையாளர்கள் ஆர்டர் செய்ய முடியுமா?',
+          a: 'ஆம். உலகம் முழுவதிலுமிருந்து எவரும் பொருட்களைப் பார்வையிட்டு, சர்வதேச அஞ்சல் அல்லது கூரியர் மூலம் டெலிவரி பெற கைவினைஞருடன் WhatsApp-ல் பேசலாம்.',
+        },
+      ],
+      ctaBadge: 'இணைந்திடுங்கள்',
+      ctaTitle: 'பொருளாதார சமத்துவ இயக்கத்தில் இணையுங்கள்',
       ctaText: 'உள்நாட்டு பெண் படைப்பாளிகளின் சிறந்த தயாரிப்புகளை வாங்கி அவர்களை வலுப்படுத்துங்கள், அல்லது ஒரு தொழில்முனைவோராக இன்றே இணையுங்கள்.',
       exploreStore: 'கடையைப் பார்வையிடுக',
       registerSeller: 'விற்பனையாளராகப் பதிவு செய்க',
+      elearnHub: 'இலவச மின்-கற்றல் மையம்',
       supportGuide: 'பயனர் வழிகாட்டி',
     },
     support: {
@@ -4866,9 +5028,7 @@ export const fill = (template, values) => template.replace(/\{(\w+)\}/g, (_, key
 const DEFAULT_LANG = 'en';
 const STORAGE_KEY = 'lang';
 
-// The website always opens in English by default.
-// Temporary session choice is kept in sessionStorage so page navigation during a session
-// respects manual changes, but reopening or launching the website always starts fresh in English.
+// Cached active language and subscriber listeners for useSyncExternalStore
 let current = null;
 const listeners = new Set();
 
@@ -4876,19 +5036,22 @@ function readLang() {
   if (current) return current;
   try {
     if (typeof window !== 'undefined') {
-      // Clean up any legacy localStorage entry that forced non-English across visits
-      if (window.localStorage && window.localStorage.getItem(STORAGE_KEY)) {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
       const params = new URLSearchParams(window.location.search);
       const urlLang = params.get('lang');
       if (urlLang && translations[urlLang]) {
         current = urlLang;
-        if (window.sessionStorage) window.sessionStorage.setItem(STORAGE_KEY, urlLang);
+        try {
+          if (window.sessionStorage) window.sessionStorage.setItem(STORAGE_KEY, urlLang);
+          if (window.localStorage) window.localStorage.setItem(STORAGE_KEY, urlLang);
+        } catch {}
         return urlLang;
       }
-      const saved = window.sessionStorage ? window.sessionStorage.getItem(STORAGE_KEY) : null;
-      if (saved && translations[saved]) return saved;
+      const saved = (window.localStorage ? window.localStorage.getItem(STORAGE_KEY) : null) ||
+                    (window.sessionStorage ? window.sessionStorage.getItem(STORAGE_KEY) : null);
+      if (saved && translations[saved]) {
+        current = saved;
+        return saved;
+      }
     }
   } catch {}
   return DEFAULT_LANG;
@@ -4896,8 +5059,20 @@ function readLang() {
 
 function subscribe(callback) {
   listeners.add(callback);
+  const onStorage = (event) => {
+    if (event.key === STORAGE_KEY && event.newValue && translations[event.newValue]) {
+      current = event.newValue;
+      callback();
+    }
+  };
+  if (typeof window !== 'undefined') {
+    window.addEventListener('storage', onStorage);
+  }
   return () => {
     listeners.delete(callback);
+    if (typeof window !== 'undefined') {
+      window.removeEventListener('storage', onStorage);
+    }
   };
 }
 
@@ -4906,11 +5081,18 @@ function setLang(code) {
   current = code;
   try {
     if (typeof window !== 'undefined') {
+      if (window.localStorage) window.localStorage.setItem(STORAGE_KEY, code);
       if (window.sessionStorage) window.sessionStorage.setItem(STORAGE_KEY, code);
-      if (window.localStorage) window.localStorage.removeItem(STORAGE_KEY);
+      if (document.documentElement) document.documentElement.lang = code;
     }
   } catch {}
-  listeners.forEach((listener) => listener());
+  listeners.forEach((listener) => {
+    try {
+      listener();
+    } catch (e) {
+      console.error('Language listener error:', e);
+    }
+  });
 }
 
 const LanguageContext = createContext(null);
@@ -4919,11 +5101,13 @@ export function LanguageProvider({ children }) {
   const lang = useSyncExternalStore(subscribe, readLang, () => DEFAULT_LANG);
 
   useEffect(() => {
-    document.documentElement.lang = lang;
+    if (document.documentElement) {
+      document.documentElement.lang = lang;
+    }
   }, [lang]);
 
   return (
-    <LanguageContext.Provider value={{ lang, setLang, t: translations[lang] }}>
+    <LanguageContext.Provider value={{ lang, setLang, t: translations[lang] || translations[DEFAULT_LANG] }}>
       {children}
     </LanguageContext.Provider>
   );
