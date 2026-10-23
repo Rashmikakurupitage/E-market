@@ -4,13 +4,14 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   CalendarDays, CircleAlert, CircleCheck, Clock, Flag, LoaderCircle, MapPin, MessageSquareText, Package, PackageCheck, Phone,
-  RotateCw, ShoppingBag, Store, Truck, UserRound, XCircle,
+  RotateCw, ShoppingBag, Star, Store, Truck, UserRound, XCircle,
 } from 'lucide-react';
 import API from '../lib/api';
 import { useLanguage, fill } from '../lib/i18n';
 import { formatDate, formatPhone, formatPrice, toWhatsAppNumber } from '../lib/catalog';
 import ConfirmDialog from './ConfirmDialog';
 import { ComplaintDialog, ComplaintStatusBadge, useMyComplaints } from './Complaints';
+import ReviewModal from './ReviewModal';
 import Reveal from './Reveal';
 import WhatsAppIcon from './WhatsAppIcon';
 
@@ -74,25 +75,40 @@ function Progress({ status }) {
   );
 }
 
-function ItemList({ items }) {
+function ItemList({ items, isDelivered, onReviewProduct }) {
+  const { t } = useLanguage();
   return (
     <ul className="mt-4 space-y-2.5">
       {items.map((item) => (
-        <li key={item.id} className="flex items-center gap-3">
-          <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-sand">
-            {item.image ? (
-              <img src={item.image} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <Package className="m-3 h-6 w-6 text-ink/25" />
-            )}
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-semibold text-ink">{item.title}</span>
-            <span className="text-xs text-ink/50">
-              {item.quantity} × {formatPrice(item.price)}
+        <li key={item.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-white/70 p-2.5 ring-1 ring-ink/5">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-sand">
+              {item.image ? (
+                <img src={item.image} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <Package className="m-3 h-6 w-6 text-ink/25" />
+              )}
             </span>
-          </span>
-          <span className="shrink-0 text-sm font-bold tabular-nums text-ink">{formatPrice(Number(item.price) * item.quantity)}</span>
+            <span className="min-w-0">
+              <span className="block truncate text-sm font-semibold text-ink">{item.title}</span>
+              <span className="text-xs text-ink/50">
+                {item.quantity} × {formatPrice(item.price)}
+              </span>
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            {isDelivered && item.productId && onReviewProduct && (
+              <button
+                type="button"
+                onClick={() => onReviewProduct(item)}
+                className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50/90 px-3 py-1 text-xs font-semibold text-amber-900 transition hover:bg-amber-100"
+              >
+                <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                <span>{t.orders?.reviewProduct || 'Review Product'}</span>
+              </button>
+            )}
+            <span className="shrink-0 text-sm font-bold tabular-nums text-ink">{formatPrice(Number(item.price) * item.quantity)}</span>
+          </div>
         </li>
       ))}
     </ul>
@@ -162,6 +178,7 @@ export function CustomerOrders({ onAuthError }) {
   const { orders, status, retry, replace } = useOrders('/orders/mine', onAuthError);
   const [toCancel, setToCancel] = useState(null);
   const [toReport, setToReport] = useState(null);
+  const [reviewTarget, setReviewTarget] = useState(null);
   // The newest complaint about each order, so an order with an open complaint shows its status instead of the button
   const { complaints } = useMyComplaints();
   const complaintFor = (orderId) => complaints.find((complaint) => complaint.orderId === orderId);
@@ -220,13 +237,41 @@ export function CustomerOrders({ onAuthError }) {
                 </p>
 
                 <Progress status={order.status} />
-                <ItemList items={order.items} />
+                <ItemList
+                  items={order.items}
+                  isDelivered={order.status === 'DELIVERED'}
+                  onReviewProduct={(item) =>
+                    setReviewTarget({
+                      type: 'product',
+                      id: item.productId,
+                      title: item.title,
+                      subtitle: order.seller?.businessName ? `Sold by ${order.seller.businessName}` : null
+                    })
+                  }
+                />
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-4">
                   <p className="text-sm text-ink/60">
                     {o.total} <span className="ml-1 text-lg font-bold tabular-nums text-ink">{formatPrice(order.total)}</span>
                   </p>
                   <div className="flex flex-wrap items-center gap-2">
+                    {order.status === 'DELIVERED' && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setReviewTarget({
+                            type: 'seller',
+                            id: order.sellerId || order.seller?.id,
+                            title: order.seller?.businessName || 'Seller',
+                            subtitle: order.seller?.district
+                          })
+                        }
+                        className="inline-flex items-center gap-1.5 rounded-full border border-amber-300 bg-amber-50 px-4 py-2 text-xs font-bold text-amber-900 shadow-xs transition-colors hover:border-amber-400 hover:bg-amber-100"
+                      >
+                        <Star className="h-3.5 w-3.5 fill-amber-400 text-amber-500" />
+                        {t.orders?.reviewSeller || 'Review Seller'}
+                      </button>
+                    )}
                     {complaintFor(order.id) && ['OPEN', 'IN_REVIEW'].includes(complaintFor(order.id).status) ? (
                       <span className="inline-flex items-center gap-2 text-xs font-semibold text-ink/60">
                         <Flag className="h-3.5 w-3.5 text-magenta" />
@@ -266,6 +311,18 @@ export function CustomerOrders({ onAuthError }) {
       )}
 
       {toReport && <ComplaintDialog order={toReport} onClose={() => setToReport(null)} />}
+
+      {reviewTarget && (
+        <ReviewModal
+          isOpen={Boolean(reviewTarget)}
+          onClose={() => setReviewTarget(null)}
+          type={reviewTarget.type}
+          targetId={reviewTarget.id}
+          title={reviewTarget.title}
+          subtitle={reviewTarget.subtitle}
+          session={{ user: { role: 'CUSTOMER' } }}
+        />
+      )}
     </section>
   );
 }

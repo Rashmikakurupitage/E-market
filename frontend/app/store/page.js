@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   BadgeCheck, BookOpen, Info, LayoutDashboard, MapPin, Package, PackageSearch, PackagePlus,
-  Scissors, Search, Shirt, SlidersHorizontal, Soup, Sparkles, Sprout, Store, Tag, X, ArrowRight,
+  Palette, Search, Layers, SlidersHorizontal, CookingPot, Flower2, Sparkles, Wheat, Star, Store, Tag, X, ArrowRight,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -23,16 +23,18 @@ import { DotGrid, PageArt, Sparkle, Squiggle } from '../../src/components/Art';
 import { inputClass } from '../../src/components/form';
 import Portal from '../../src/components/Portal';
 import ProductReviews from '../../src/components/ProductReviews';
+import ReviewModal from '../../src/components/ReviewModal';
+import CustomerGateModal from '../../src/components/CustomerGateModal';
 
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
 
 // Icon and logo colour for each category
 const CATEGORY_LOOK = {
-  Handicrafts: { icon: Scissors, tile: 'bg-magenta text-white' },
-  Textiles: { icon: Shirt, tile: 'bg-saffron text-white' },
-  'Agri-Products': { icon: Sprout, tile: 'bg-leaf text-white' },
-  'Food & Spices': { icon: Soup, tile: 'bg-turmeric text-ink' },
-  'Beauty & Personal Care': { icon: Sparkles, tile: 'bg-ink text-white' },
+  Handicrafts: { icon: Palette, tile: 'bg-rose-500 text-white' },
+  Textiles: { icon: Layers, tile: 'bg-indigo-600 text-white' },
+  'Agri-Products': { icon: Wheat, tile: 'bg-emerald-600 text-white' },
+  'Food & Spices': { icon: CookingPot, tile: 'bg-amber-600 text-white' },
+  'Beauty & Personal Care': { icon: Flower2, tile: 'bg-purple-600 text-white' },
 };
 const DEFAULT_LOOK = { icon: Tag, tile: 'bg-ink text-white' };
 
@@ -59,7 +61,15 @@ function SellerLine({ product }) {
         {initials(seller.businessName) || '?'}
       </span>
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-semibold text-ink">{seller.businessName || '—'}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="truncate text-sm font-semibold text-ink">{seller.businessName || '—'}</p>
+          {seller.reviewCount > 0 && (
+            <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+              <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-500" />
+              {seller.averageRating.toFixed(1)}
+            </span>
+          )}
+        </div>
         {seller.district && (
           <p className="flex items-center gap-1 text-xs text-ink/55">
             <MapPin className="h-3 w-3" />
@@ -81,6 +91,8 @@ function QuickView({ product, onClose }) {
   const { t } = useLanguage();
   const s = t.store;
   const example = isExample(product);
+  const seller = getSeller(product);
+  const [showSellerReviews, setShowSellerReviews] = useState(false);
   const photos = (product.images || []).filter(Boolean);
   const [photoIndex, setPhotoIndex] = useState(0);
   const image = photos[photoIndex] || photos[0];
@@ -163,11 +175,39 @@ function QuickView({ product, onClose }) {
           <p className="mt-4 text-sm leading-relaxed text-ink/70">{product.description}</p>
 
           <div className="mt-6 rounded-[22px] bg-cream p-4 ring-1 ring-ink/5">
-            <p className="mb-3 text-xs font-semibold text-ink/50">{s.soldBy}</p>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-xs font-semibold text-ink/50">{s.soldBy}</p>
+              {seller.id && (
+                <button
+                  type="button"
+                  onClick={() => setShowSellerReviews(true)}
+                  className="inline-flex items-center gap-1 rounded-full bg-amber-500/10 px-2.5 py-0.5 text-xs font-semibold text-amber-900 transition hover:bg-amber-500/20"
+                >
+                  <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                  <span>
+                    {seller.reviewCount > 0
+                      ? `${seller.averageRating.toFixed(1)} (${seller.reviewCount})`
+                      : t.store?.sellerReviews?.title || 'Seller Reviews'}
+                  </span>
+                </button>
+              )}
+            </div>
             <SellerLine product={product} />
           </div>
 
           {!example && <ProductReviews productId={product.id} session={session} />}
+
+          {showSellerReviews && seller.id && (
+            <ReviewModal
+              isOpen={showSellerReviews}
+              onClose={() => setShowSellerReviews(false)}
+              type="seller"
+              targetId={seller.id}
+              title={seller.businessName}
+              subtitle={seller.district}
+              session={session}
+            />
+          )}
 
           <div className="mt-auto pt-6">
             <div className="flex flex-col gap-2.5 sm:flex-row">
@@ -240,12 +280,12 @@ export default function StorePage() {
   const [sort, setSort] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [selected, setSelected] = useState(null);
+  const [gateProduct, setGateProduct] = useState(null);
 
-  // Products open for registered users. Visitors are sent to the customer sign-up form first,
-  // and come back to this product once they have registered (or logged in).
+  // Products open for registered users. Visitors see the CustomerGateModal prompt to register as a customer.
   const openProduct = (product) => {
     if (!session) {
-      router.push(`/register?as=customer&next=${encodeURIComponent(`/store?product=${product.id}`)}`);
+      setGateProduct(product);
       return;
     }
     setSelected(product);
@@ -253,6 +293,11 @@ export default function StorePage() {
 
   const closeProduct = () => {
     setSelected(null);
+    if (new URLSearchParams(window.location.search).has('product')) window.history.replaceState(null, '', window.location.pathname);
+  };
+
+  const closeGate = () => {
+    setGateProduct(null);
     if (new URLSearchParams(window.location.search).has('product')) window.history.replaceState(null, '', window.location.pathname);
   };
 
@@ -291,7 +336,7 @@ export default function StorePage() {
     /* eslint-enable react-hooks/set-state-in-effect */
   }, []);
 
-  // A link like /store?product=<id> (from the home page) opens that product straight away
+  // A link like /store?product=<id> (from the home page or direct link) opens that product straight away
   useEffect(() => {
     if (!hydrated || status === 'loading') return;
     const id = new URLSearchParams(window.location.search).get('product');
@@ -300,8 +345,8 @@ export default function StorePage() {
     if (!found) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (session) setSelected(found);
-    else router.replace(`/register?as=customer&next=${encodeURIComponent(`/store?product=${id}`)}`);
-  }, [hydrated, status, products, session, router]);
+    else setGateProduct(found);
+  }, [hydrated, status, products, session]);
 
   const districts = useMemo(
     () => [...new Set(products.map((p) => getSeller(p).district).filter(Boolean))].sort(),
@@ -577,6 +622,13 @@ export default function StorePage() {
       </div>
 
       {selected && <QuickView key={selected.id} product={selected} onClose={closeProduct} />}
+      {gateProduct && (
+        <CustomerGateModal
+          isOpen={Boolean(gateProduct)}
+          onClose={closeGate}
+          product={gateProduct}
+        />
+      )}
     </main>
   );
 }

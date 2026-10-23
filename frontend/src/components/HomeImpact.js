@@ -78,18 +78,14 @@ export default function HomeImpact() {
   return (
     <section className="relative isolate mx-auto w-full max-w-7xl px-4 pb-16 pt-8 sm:px-6">
       {/* Community in numbers hero box */}
-      <Reveal className="relative overflow-hidden rounded-[40px] bg-linear-to-br from-ink via-[#241733] to-magenta-dark p-6 text-white shadow-2xl shadow-ink/20 sm:p-10">
-        <span aria-hidden="true" className="pointer-events-none absolute -right-10 -top-14 h-64 w-64 animate-float rounded-full bg-saffron/30 blur-3xl" />
-        <span aria-hidden="true" className="pointer-events-none absolute -bottom-20 left-10 h-64 w-64 animate-float rounded-full bg-magenta/40 blur-3xl [animation-delay:-4s]" />
-        <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-72 w-72 rounded-full bg-turmeric/10 blur-3xl" />
-
+      <Reveal className="relative overflow-hidden rounded-3xl bg-slate-900 p-6 text-white shadow-xl sm:p-10 border border-slate-800">
         <div className="relative text-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-bold uppercase tracking-wider text-turmeric ring-1 ring-white/20 backdrop-blur-md">
-            <Sparkles className="h-3.5 w-3.5" />
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-slate-200 ring-1 ring-white/20 backdrop-blur-md">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
             {h.spotlightKicker}
           </span>
-          <h2 className="mt-3 text-2xl font-extrabold sm:text-4xl">{h.title}</h2>
-          <p className="mx-auto mt-2 max-w-xl text-xs text-white/75 sm:text-sm">
+          <h2 className="mt-3 text-2xl font-extrabold sm:text-4xl text-white">{h.title}</h2>
+          <p className="mx-auto mt-2 max-w-xl text-xs text-slate-300 sm:text-sm">
             {t.home?.trustPillars?.[0]?.sub || 'Direct trade platform connecting Sri Lankan women makers to conscious shoppers'}
           </p>
         </div>
@@ -98,16 +94,16 @@ export default function HomeImpact() {
           {numbers.map(({ icon: Icon, value, suffix, label }) => (
             <li
               key={label}
-              className="flex flex-col items-center rounded-[26px] bg-white/10 px-3 py-5 text-center ring-1 ring-white/15 backdrop-blur-md transition-transform duration-300 hover:-translate-y-1 sm:py-7"
+              className="flex flex-col items-center rounded-2xl bg-white/5 px-3 py-5 text-center ring-1 ring-white/10 backdrop-blur-md transition-all duration-200 hover:bg-white/10 sm:py-7"
             >
-              <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/10 text-turmeric ring-1 ring-white/20">
+              <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/10 text-amber-400 ring-1 ring-white/15">
                 <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
               </span>
-              <span className="mt-3 text-2xl font-extrabold tabular-nums sm:text-4xl">
+              <span className="mt-3 text-2xl font-extrabold tabular-nums sm:text-4xl text-white">
                 <CountUp value={value} duration={1400} />
                 {suffix || ''}
               </span>
-              <span className="mt-1 line-clamp-1 text-[11px] font-semibold text-white/75 sm:text-xs">{label}</span>
+              <span className="mt-1 line-clamp-1 text-[11px] font-semibold text-slate-300 sm:text-xs">{label}</span>
             </li>
           ))}
         </ul>
@@ -121,8 +117,8 @@ export default function HomeImpact() {
               <BadgeCheck className="h-4 w-4" />
               {h.spotlightKicker}
             </span>
-            <h2 className="mt-1 text-2xl font-extrabold text-ink sm:text-3xl">{h.spotlightTitle}</h2>
-            <p className="mt-1 text-sm text-ink/60">{h.spotlightSub}</p>
+            <h2 className="mt-1 text-2xl font-extrabold text-slate-900 sm:text-3xl">{h.spotlightTitle}</h2>
+            <p className="mt-1 text-sm text-slate-600">{h.spotlightSub}</p>
           </div>
           <Link
             href="/store"
@@ -138,24 +134,22 @@ export default function HomeImpact() {
             <Reveal as="li" key={seller.id || index} delay={index * 80} className="w-[82%] shrink-0 snap-start sm:w-auto">
               <Link
                 href={`/store?seller=${encodeURIComponent(seller.businessName)}`}
-                className="group flex h-full flex-col rounded-[28px] border border-ink/8 bg-white p-5 shadow-sm ring-1 ring-ink/5 transition-all duration-300 hover:-translate-y-1.5 hover:border-magenta/30 hover:shadow-xl hover:shadow-ink/10"
+                className="group flex h-full flex-col rounded-2xl border border-slate-200/90 bg-white p-5 shadow-2xs transition-all duration-200 hover:-translate-y-1 hover:border-magenta/40 hover:shadow-md"
               >
                 <div className="flex items-center gap-3">
                   <span
-                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br text-lg font-extrabold text-white shadow-md transition-transform duration-300 group-hover:scale-105 ${
-                      TONES[index % TONES.length]
-                    }`}
+                    className="flex h-13 w-13 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-base font-extrabold text-white shadow-2xs transition-transform duration-200 group-hover:scale-105"
                   >
                     {initials(seller.businessName) || '?'}
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
-                      <p className="truncate font-bold text-ink transition-colors group-hover:text-magenta">{seller.businessName}</p>
+                      <p className="truncate font-bold text-slate-900 transition-colors group-hover:text-magenta">{seller.businessName}</p>
                       <BadgeCheck className="h-4 w-4 shrink-0 text-magenta" />
                     </div>
                     {seller.district && (
-                      <p className="flex items-center gap-1 text-xs font-medium text-ink/55">
-                        <MapPin className="h-3.5 w-3.5 text-leaf" />
+                      <p className="flex items-center gap-1 text-xs font-medium text-slate-500">
+                        <MapPin className="h-3.5 w-3.5 text-magenta" />
                         {seller.district}
                       </p>
                     )}
@@ -163,17 +157,17 @@ export default function HomeImpact() {
                 </div>
 
                 {seller.description && (
-                  <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-ink/65 sm:text-sm">
+                  <p className="mt-3 line-clamp-2 text-xs leading-relaxed text-slate-600 sm:text-sm">
                     {seller.description}
                   </p>
                 )}
 
-                <div className="mt-auto flex items-center justify-between border-t border-ink/5 pt-4">
+                <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
                   <span className="inline-flex items-center gap-1.5 text-xs font-bold text-magenta">
                     <Store className="h-3.5 w-3.5" />
                     {fill(h.productCount, { count: seller.productCount || 12 })}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-ink/40 transition-colors group-hover:text-magenta">
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-slate-400 transition-colors group-hover:text-magenta">
                     <span>{t.store?.details || 'Explore'}</span>
                     <ArrowRight className="h-3 w-3 transition-transform group-hover:translate-x-1" />
                   </span>

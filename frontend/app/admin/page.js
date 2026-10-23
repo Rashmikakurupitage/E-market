@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import {
   BadgeCheck, Package, Search, MapPin, Mail, Phone, IdCard, ArrowLeft,
   ChevronDown, ChevronUp, Eye, EyeOff, Trash2, CircleCheck, CircleAlert, LoaderCircle,
-  Users, UserRound, CalendarDays, ShieldCheck, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw, BookOpen, X,
+  Users, UserRound, CalendarDays, ShieldCheck, Star, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw, BookOpen, X,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -718,6 +718,12 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-bold text-slate-900">{seller.businessName}</p>
+                        {seller.reviewCount > 0 && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-800 ring-1 ring-amber-200">
+                            <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+                            {seller.averageRating.toFixed(1)} ({seller.reviewCount})
+                          </span>
+                        )}
                         <SellerStatusBadge status={seller.status} />
                       </div>
                       <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">

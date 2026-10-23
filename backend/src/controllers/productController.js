@@ -149,32 +149,61 @@ exports.getAllProducts = async (req, res) => {
       include: {
         seller: {
           select: {
+            id: true,
             businessName: true,
             district: true,
             status: true,
             whatsappNo: true,
             facebookUrl: true,
-            messengerUrl: true
+            messengerUrl: true,
+            reviews: { select: { rating: true } }
           }
-        }
+        },
+        reviews: { select: { rating: true } }
       },
       orderBy: { createdAt: 'desc' }
     });
 
-    // Contact options are for registered customers only, so nobody else ever receives them
-    if (!isCustomer(req)) {
-      return res.json(
-        products.map((product) =>
-          withDiscount({
-            ...product,
-            messengerUrl: null,
-            seller: product.seller && { ...product.seller, whatsappNo: null, facebookUrl: null, messengerUrl: null }
-          })
-        )
-      );
-    }
+    const isCust = isCustomer(req);
+    const transformed = products.map((product) => {
+      const pReviews = product.reviews || [];
+      const pReviewCount = pReviews.length;
+      const pAverageRating = pReviewCount
+        ? Math.round((pReviews.reduce((sum, r) => sum + r.rating, 0) / pReviewCount) * 10) / 10
+        : 0;
 
-    res.json(products.map(withDiscount));
+      let formattedSeller = null;
+      if (product.seller) {
+        const sReviews = product.seller.reviews || [];
+        const sReviewCount = sReviews.length;
+        const sAverageRating = sReviewCount
+          ? Math.round((sReviews.reduce((sum, r) => sum + r.rating, 0) / sReviewCount) * 10) / 10
+          : 0;
+
+        formattedSeller = {
+          id: product.seller.id,
+          businessName: product.seller.businessName,
+          district: product.seller.district,
+          status: product.seller.status,
+          whatsappNo: isCust ? product.seller.whatsappNo : null,
+          facebookUrl: isCust ? product.seller.facebookUrl : null,
+          messengerUrl: isCust ? product.seller.messengerUrl : null,
+          reviewCount: sReviewCount,
+          averageRating: sAverageRating
+        };
+      }
+
+      const { reviews: _r, ...rest } = product;
+      return withDiscount({
+        ...rest,
+        messengerUrl: isCust ? rest.messengerUrl : null,
+        averageRating: pAverageRating,
+        reviewCount: pReviewCount,
+        seller: formattedSeller
+      });
+    });
+
+    res.json(transformed);
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });
@@ -198,7 +227,7 @@ exports.getSellerOverview = async (req, res) => {
     start.setHours(0, 0, 0, 0);
     start.setDate(start.getDate() - (DAYS - 1));
 
-    const [clicks, ordersByStatus, delivered, topRaw, recentOrders] = await Promise.all([
+    const [clicks, ordersByStatus, delivered, topRaw, recentOrders, allSellerReviews, reviewAgg] = await Promise.all([
       prisma.clickAnalytics.findMany({ where: { sellerId: seller.id, timestamp: { gte: start } }, select: { timestamp: true }, take: 20000 }),
       prisma.order.groupBy({ by: ['status'], where: { sellerId: seller.id }, _count: { _all: true } }),
       prisma.order.aggregate({ where: { sellerId: seller.id, status: 'DELIVERED' }, _sum: { total: true } }),
@@ -208,6 +237,17 @@ exports.getSellerOverview = async (req, res) => {
         orderBy: { createdAt: 'desc' },
         take: 5,
         select: { id: true, reference: true, status: true, total: true, createdAt: true, deliveryName: true, items: { select: { quantity: true } } }
+      }),
+      prisma.sellerReview.findMany({
+        where: { sellerId: seller.id },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+        select: { id: true, rating: true, comment: true, createdAt: true, customer: { select: { fullName: true } } }
+      }),
+      prisma.sellerReview.aggregate({
+        where: { sellerId: seller.id },
+        _count: { id: true },
+        _avg: { rating: true }
       })
     ]);
 
@@ -232,11 +272,25 @@ exports.getSellerOverview = async (req, res) => {
       byStatus[row.status] = row._count._all;
     });
 
+    const sReviewCount = reviewAgg._count.id || 0;
+    const sAverageRating = sReviewCount ? Math.round((reviewAgg._avg.rating || 0) * 10) / 10 : 0;
+
     res.json({
       clicksByDay,
       topProducts,
       orders: { byStatus, total: Object.values(byStatus).reduce((a, b) => a + b, 0), deliveredValue: Number(delivered._sum.total || 0) },
-      recentOrders: recentOrders.map(({ items, total, ...order }) => ({ ...order, total: Number(total), itemCount: items.reduce((sum, item) => sum + item.quantity, 0) }))
+      recentOrders: recentOrders.map(({ items, total, ...order }) => ({ ...order, total: Number(total), itemCount: items.reduce((sum, item) => sum + item.quantity, 0) })),
+      reviews: {
+        averageRating: sAverageRating,
+        reviewCount: sReviewCount,
+        recent: allSellerReviews.map((r) => ({
+          id: r.id,
+          rating: r.rating,
+          comment: r.comment,
+          createdAt: r.createdAt,
+          reviewerName: r.customer?.fullName || 'Verified Buyer'
+        }))
+      }
     });
   } catch (error) {
     console.error('SELLER_OVERVIEW_ERROR:', error);

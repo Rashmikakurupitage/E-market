@@ -437,21 +437,32 @@ exports.listSellers = async (req, res) => {
       },
       include: {
         user: { select: { email: true, phone: true } },
-        _count: { select: { products: true, analytics: true } }
+        _count: { select: { products: true, analytics: true, reviews: true } },
+        reviews: { select: { rating: true } }
       },
       orderBy: { createdAt: 'desc' },
       take: 200
     });
 
     res.json(
-      sellers.map(({ user, _count, nicNumber, nicHash, nicEncrypted, nicLast5, ...seller }) => ({
-        ...seller,
-        nicMasked: nicVault.mask(nicLast5),
-        email: user.email,
-        phone: user.phone,
-        productCount: _count.products,
-        clickCount: _count.analytics
-      }))
+      sellers.map(({ user, _count, reviews, nicNumber, nicHash, nicEncrypted, nicLast5, ...seller }) => {
+        const sReviews = reviews || [];
+        const reviewCount = _count.reviews || sReviews.length;
+        const averageRating = sReviews.length
+          ? Math.round((sReviews.reduce((sum, r) => sum + r.rating, 0) / sReviews.length) * 10) / 10
+          : 0;
+
+        return {
+          ...seller,
+          nicMasked: nicVault.mask(nicLast5),
+          email: user.email,
+          phone: user.phone,
+          productCount: _count.products,
+          clickCount: _count.analytics,
+          reviewCount,
+          averageRating
+        };
+      })
     );
   } catch (error) {
     serverError(res, 'ADMIN_SELLERS_ERROR:', error);

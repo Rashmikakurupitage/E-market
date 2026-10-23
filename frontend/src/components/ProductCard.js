@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BadgeCheck, MapPin, Package } from 'lucide-react';
+import { BadgeCheck, MapPin, Package, Star } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import MessengerIcon from './MessengerIcon';
 import { useCanContact } from './ContactGate';
@@ -12,6 +12,7 @@ import API from '../lib/api';
 import { useLanguage } from '../lib/i18n';
 import { useHydrated, useSession } from '../lib/auth';
 import { getSeller, messengerLink, toWhatsAppNumber, formatPhone, initials } from '../lib/catalog';
+import CustomerGateModal from './CustomerGateModal';
 
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
 
@@ -26,22 +27,27 @@ export const trackWhatsAppClick = (product) => trackContactClick(product, 'WHATS
 export default function ProductCard({ product, onOpen }) {
   const { t } = useLanguage();
   const [imageFailed, setImageFailed] = useState(false);
+  const [showGate, setShowGate] = useState(false);
   const { canContact } = useCanContact();
   const router = useRouter();
   const session = useSession();
   const hydrated = useHydrated();
 
-  // Opens this product in the Store or triggers onOpen callback. Visitors who are not registered land on the customer sign-up form first,
-  // and come back to the product once they have registered (or logged in).
+  // Opens this product in the Store or triggers onOpen callback. Visitors who are not registered
+  // see the CustomerGateModal prompt to register or log in.
   const openInStore = (event) => {
     if (event.target.closest('a, button')) return; // the contact buttons keep their own action
+    if (!hydrated) return;
+    if (!session) {
+      setShowGate(true);
+      return;
+    }
     if (onOpen) {
       onOpen(product);
       return;
     }
-    if (!hydrated) return;
     const target = `/store?product=${encodeURIComponent(product.id)}`;
-    router.push(session ? target : `/register?as=customer&next=${encodeURIComponent(target)}`);
+    router.push(target);
   };
   const onKey = (event) => {
     if (event.key === 'Enter' && event.target === event.currentTarget) openInStore(event);
@@ -59,10 +65,11 @@ export default function ProductCard({ product, onOpen }) {
     : null;
 
   return (
-    <article
-      role="link"
-      tabIndex={0}
-      aria-label={product.title}
+    <>
+      <article
+        role="link"
+        tabIndex={0}
+        aria-label={product.title}
       onClick={openInStore}
       onKeyDown={onKey}
       className="group flex h-full cursor-pointer flex-col rounded-[22px] border border-ink/8 bg-white p-2 shadow-sm sm:rounded-[28px] sm:p-3 shadow-ink/5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-ink/10 hover:border-ink/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-magenta">
@@ -99,7 +106,15 @@ export default function ProductCard({ product, onOpen }) {
 
       {/* Details */}
       <div className="flex flex-1 flex-col px-2 pb-1 pt-4">
-        <h3 className="line-clamp-1 font-semibold text-ink transition-colors duration-200 group-hover:text-magenta">{product.title}</h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="line-clamp-1 font-semibold text-ink transition-colors duration-200 group-hover:text-magenta">{product.title}</h3>
+          {product.reviewCount > 0 ? (
+            <div className="flex shrink-0 items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-800">
+              <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
+              <span>{product.averageRating.toFixed(1)}</span>
+            </div>
+          ) : null}
+        </div>
         <p className="mt-1 line-clamp-1 text-xs leading-5 text-ink/55 sm:line-clamp-2 sm:min-h-[2.5rem] sm:text-sm">
           {product.description}
         </p>
@@ -119,7 +134,15 @@ export default function ProductCard({ product, onOpen }) {
             {initials(seller.businessName) || '?'}
           </span>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-semibold text-ink">{seller.businessName || '—'}</p>
+            <div className="flex items-center gap-1.5">
+              <p className="truncate text-sm font-semibold text-ink">{seller.businessName || '—'}</p>
+              {seller.reviewCount > 0 && (
+                <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-50 px-1.5 py-0.5 text-[10px] font-bold text-amber-800">
+                  <Star className="h-2.5 w-2.5 fill-amber-400 text-amber-500" />
+                  {seller.averageRating.toFixed(1)}
+                </span>
+              )}
+            </div>
             {seller.district && (
               <p className="flex items-center gap-1 text-xs text-ink/55">
                 <MapPin className="h-3 w-3" />
@@ -170,5 +193,13 @@ export default function ProductCard({ product, onOpen }) {
         )}
       </div>
     </article>
+    {showGate && (
+      <CustomerGateModal
+        isOpen={showGate}
+        onClose={() => setShowGate(false)}
+        product={product}
+      />
+    )}
+  </>
   );
 }

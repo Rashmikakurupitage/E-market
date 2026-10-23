@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, CircleCheck, Circle, Package, RefreshCw, ShoppingBag, Wallet } from 'lucide-react';
+import { ArrowRight, CircleCheck, Circle, MessageSquare, Package, RefreshCw, ShoppingBag, Star, Wallet } from 'lucide-react';
 import API from '../lib/api';
 import { fill, useLanguage } from '../lib/i18n';
 import { formatPrice, formatDate } from '../lib/catalog';
@@ -190,6 +190,74 @@ export default function SellerInsights({ profile, productCount, onAddProduct, on
             )
           ) : (
             failed ? <Empty>{o.loadError}</Empty> :
+            <div className="skeleton h-32 rounded-2xl" />
+          )}
+        </Card>
+
+        <Card title={d.customerReviews || 'Customer Reviews & Rating'} className="md:col-span-2">
+          {data ? (
+            !data.reviews || data.reviews.reviewCount === 0 ? (
+              <Empty>{d.noCustomerReviews || 'No customer reviews yet. Customers can review your shop after their orders are delivered.'}</Empty>
+            ) : (
+              <div>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-amber-50/70 p-4 ring-1 ring-amber-200/60">
+                  <div className="flex items-center gap-3">
+                    <span className="text-3xl font-extrabold tabular-nums text-amber-900">
+                      {data.reviews.averageRating.toFixed(1)}
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Star
+                            key={star}
+                            className={`h-4 w-4 ${
+                              star <= Math.round(data.reviews.averageRating)
+                                ? 'fill-amber-400 text-amber-500'
+                                : 'text-ink/20'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <p className="mt-0.5 text-xs font-semibold text-ink/60">
+                        {data.reviews.reviewCount} {t.store?.sellerReviews?.reviewCount || 'reviews'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-leaf/15 px-3 py-1 text-xs font-bold text-leaf">
+                    {t.store?.sellerReviews?.verifiedOnly || 'Verified buyers only'}
+                  </span>
+                </div>
+
+                <ul className="space-y-3">
+                  {data.reviews.recent.map((rev) => (
+                    <li key={rev.id} className="rounded-2xl bg-cream p-3.5 ring-1 ring-ink/5">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Star
+                                key={s}
+                                className={`h-3 w-3 ${
+                                  s <= rev.rating ? 'fill-amber-400 text-amber-500' : 'text-ink/20'
+                                }`}
+                              />
+                            ))}
+                          </div>
+                          <span className="text-xs font-bold text-ink">{rev.reviewerName}</span>
+                        </div>
+                        <time className="text-xs text-ink/45" dateTime={rev.createdAt}>
+                          {formatDate(rev.createdAt, lang)}
+                        </time>
+                      </div>
+                      <p className="mt-2 text-xs leading-relaxed text-ink/75">{rev.comment}</p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          ) : failed ? (
+            <Empty>{o.loadError}</Empty>
+          ) : (
             <div className="skeleton h-32 rounded-2xl" />
           )}
         </Card>

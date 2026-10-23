@@ -114,7 +114,7 @@ exports.placeOrder = async (req, res) => {
             note: cleanNote || null,
             items: { create: lines }
           },
-          include: { ...ITEMS, seller: { select: { businessName: true, district: true, whatsappNo: true } } }
+          include: { ...ITEMS, seller: { select: { id: true, businessName: true, district: true, whatsappNo: true } } }
         });
       })
     );
@@ -134,7 +134,7 @@ exports.getMyOrders = async (req, res) => {
 
     const orders = await prisma.order.findMany({
       where: { customerId: customer.id },
-      include: { ...ITEMS, seller: { select: { businessName: true, district: true, whatsappNo: true } } },
+      include: { ...ITEMS, seller: { select: { id: true, businessName: true, district: true, whatsappNo: true } } },
       orderBy: { createdAt: 'desc' }
     });
     res.json(orders);

@@ -10,6 +10,7 @@ const complaintRoutes = require('./routes/complaintRoutes');
 const siteRoutes = require('./routes/siteRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const learningRoutes = require('./routes/learningRoutes');
+const sellerRoutes = require('./routes/sellerRoutes');
 const { getEmailProvider, isEmailConfigured } = require('./utils/mailer');
 
 const app = express();
@@ -22,6 +23,7 @@ app.use(express.json({ limit: '6mb' }));
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use('/api/sellers', sellerRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/complaints', complaintRoutes);
