@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   BadgeCheck, BookOpen, Info, LayoutDashboard, MapPin, Package, PackageSearch, PackagePlus,
@@ -267,7 +266,6 @@ export default function StorePage() {
   const s = t.store;
   const session = useSession();
   const hydrated = useHydrated();
-  const router = useRouter();
   const isSeller = session?.user?.role === 'SELLER';
 
   const [products, setProducts] = useState([]);

@@ -2,10 +2,10 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserPlus, X, ShieldCheck, ArrowRight, Package, MapPin, Sparkles, LogIn } from 'lucide-react';
+import { UserPlus, X, ShieldCheck, ArrowRight, Package, Sparkles } from 'lucide-react';
 import Portal from './Portal';
 import { useLanguage } from '../lib/i18n';
-import { formatPrice, getSeller } from '../lib/catalog';
+import { getSeller } from '../lib/catalog';
 import PriceTag from './DiscountBadge';
 
 export default function CustomerGateModal({ isOpen, onClose, product }) {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowRight, CircleCheck, Circle, MessageSquare, Package, RefreshCw, ShoppingBag, Star, Wallet } from 'lucide-react';
+import { ArrowRight, CircleCheck, Circle, Package, RefreshCw, ShoppingBag, Star, Wallet } from 'lucide-react';
 import API from '../lib/api';
 import { fill, useLanguage } from '../lib/i18n';
 import { formatPrice, formatDate } from '../lib/catalog';

@@ -8,16 +8,6 @@ import { fill, useLanguage } from '../lib/i18n';
 import { initials } from '../lib/catalog';
 import CountUp from './CountUp';
 import Reveal from './Reveal';
-
-const TONES = [
-  'from-magenta to-saffron shadow-magenta/25',
-  'from-leaf to-emerald-400 shadow-leaf/25',
-  'from-blue-500 to-cyan-400 shadow-blue-500/25',
-  'from-amber-500 to-yellow-400 shadow-amber-500/25',
-  'from-rose-500 to-orange-400 shadow-rose-500/25',
-  'from-violet-500 to-fuchsia-400 shadow-violet-500/25',
-];
-
 const DEFAULT_SPOTLIGHT = [
   {
     id: 'spotlight-1',

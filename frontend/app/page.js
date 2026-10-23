@@ -5,14 +5,13 @@ import Link from 'next/link';
 import {
   Search, ArrowRight, Megaphone, HandCoins, Laptop, PackageSearch, ChevronDown, ShieldCheck, HandHeart, MapPin,
   Palette, Layers, Wheat, CookingPot, Flower2, Sparkles, PackageCheck, Store, BookOpen, Tag, Plus, CircleHelp,
-  HeartHandshake, Star, Quote, GraduationCap, Flame, SlidersHorizontal, ChevronUp, Check,
-  Award, BadgeCheck, X, Users, Truck, MessageCircle, ExternalLink
+  HeartHandshake, Star, Quote, GraduationCap, Flame, SlidersHorizontal, ChevronUp,
+  X, Users, Truck, MessageCircle
 } from 'lucide-react';
 import API from '../src/lib/api';
 import { useLanguage, fill } from '../src/lib/i18n';
-import { CATEGORIES, SAMPLE_PRODUCTS, getSeller, withSampleProducts, initials } from '../src/lib/catalog';
+import { CATEGORIES, SAMPLE_PRODUCTS, getSeller, withSampleProducts } from '../src/lib/catalog';
 import ProductCard from '../src/components/ProductCard';
-import PriceTag from '../src/components/DiscountBadge';
 import { useWallpapers } from '../src/lib/siteImage';
 import HeroSlideshow from '../src/components/HeroSlideshow';
 import HomeImpact from '../src/components/HomeImpact';
@@ -208,7 +207,7 @@ function HeroTitle() {
 }
 
 export default function Home() {
-  const { t, lang } = useLanguage();
+  const { t } = useLanguage();
   const wallpapers = useWallpapers();
   const h = t.home;
   const [products, setProducts] = useState(SAMPLE_PRODUCTS);

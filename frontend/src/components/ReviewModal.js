@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import Link from 'next/link';
 import { Star, X, Store, Package, CheckCircle2, ShieldCheck, MessageSquare, AlertCircle } from 'lucide-react';
 import Portal from './Portal';
 import API from '../lib/api';
-import { fill, useLanguage } from '../lib/i18n';
+import { useLanguage } from '../lib/i18n';
 import { formatDate } from '../lib/catalog';
 
 function StarPicker({ value, onSelect, readonly = false, size = 'md' }) {
@@ -64,7 +64,7 @@ export default function ReviewModal({
     ? `/sellers/${encodeURIComponent(targetId)}/reviews`
     : `/products/${encodeURIComponent(targetId)}/reviews`;
 
-  const fetchReviews = () => {
+  const fetchReviews = useCallback(() => {
     if (!targetId) return;
     setLoading(true);
     API.get(endpoint)
@@ -84,14 +84,16 @@ export default function ReviewModal({
       .finally(() => {
         setLoading(false);
       });
-  };
+  }, [endpoint, targetId]);
 
   useEffect(() => {
     if (isOpen && targetId) {
+      /* eslint-disable react-hooks/set-state-in-effect */
       setFeedback({ error: '', success: '' });
+      /* eslint-enable react-hooks/set-state-in-effect */
       fetchReviews();
     }
-  }, [isOpen, targetId, type]);
+  }, [isOpen, targetId, fetchReviews]);
 
   useEffect(() => {
     const handleKey = (e) => {
