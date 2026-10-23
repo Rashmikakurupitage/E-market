@@ -57,7 +57,7 @@ export default function SiteHeader() {
     { href: '/e-learning', label: t.navElearn, active: pathname.startsWith('/e-learning') },
     // One help link keeps the menu short in Sinhala and Tamil; the Support page links to the FAQ
     { href: '/support', label: t.navSupport, active: pathname.startsWith('/support') || pathname.startsWith('/faq') },
-    { href: '/#about', label: t.navAbout },
+    { href: '/about', label: t.navAbout, active: pathname.startsWith('/about') },
     { href: '/#contact', label: t.navContact },
   ];
 

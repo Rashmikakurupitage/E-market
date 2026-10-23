@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MapPin, Phone, Mail } from 'lucide-react';
+import { MapPin, Phone, Mail, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../lib/i18n';
 import { EMBLEM_URL } from './SiteHeader';
 import Reveal from './Reveal';
@@ -31,6 +31,7 @@ export default function SiteFooter() {
   const edge = usePathname() === '/' ? '-mt-12' : 'mt-auto';
 
   const usefulLinks = [
+    { href: '/about', label: t.navAbout },
     { href: '/privacy', label: t.privacy },
     { href: '/terms', label: t.terms },
     { href: '/register', label: t.sellerRegistration },
@@ -54,6 +55,10 @@ export default function SiteFooter() {
             <p className="text-xs font-semibold uppercase tracking-wider text-turmeric">Sri Lanka</p>
             <p className="mt-0.5 text-base font-bold leading-snug text-white">{t.ministry}</p>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/60">{t.footerAbout}</p>
+            <Link href="/about" className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-turmeric transition-colors hover:text-white hover:underline">
+              <span>{t.navAbout}</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
           </div>
         </div>
 
