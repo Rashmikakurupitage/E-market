@@ -2,21 +2,23 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { CircleAlert, CircleCheck, KeyRound, LoaderCircle, Mail, Terminal } from 'lucide-react';
 import API from '../../src/lib/api';
 import { fill, useLanguage } from '../../src/lib/i18n';
 import { isStrongPassword } from '../../src/lib/catalog';
 import AuthPanel from '../../src/components/AuthPanel';
+import AccountTypeTabs, { useAccountType } from '../../src/components/AccountTypeTabs';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
 import PasswordInput from '../../src/components/PasswordInput';
 import { PageArt } from '../../src/components/Art';
 
 function ForgotPassword() {
+  const router = useRouter();
   const { t } = useLanguage();
   const f = t.forgot;
   const r = t.register;
-  const as = useSearchParams().get('as') === 'customer' ? 'customer' : 'seller';
+  const as = useAccountType();
   const loginHref = as === 'customer' ? '/login?as=customer' : '/login';
 
   const [step, setStep] = useState('email'); // 'email' | 'reset' | 'done'
@@ -36,6 +38,14 @@ function ForgotPassword() {
     const timer = setTimeout(() => setResendIn((seconds) => seconds - 1), 1000);
     return () => clearTimeout(timer);
   }, [resendIn]);
+
+  useEffect(() => {
+    if (step !== 'done') return;
+    const timer = setTimeout(() => {
+      router.push(loginHref);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [step, loginHref, router]);
 
   const fail = (err) => {
     const data = err.response?.data;
@@ -92,6 +102,12 @@ function ForgotPassword() {
         <AuthPanel title={f.title} subtitle={f.subtitle} listTitle={f.stepsTitle} items={f.steps} numbered />
 
         <section className="flex flex-col justify-center px-6 py-8 sm:px-10 sm:py-12">
+          {step !== 'done' && (
+            <div className="mb-6">
+              <AccountTypeTabs basePath="/forgot-password" current={as} />
+            </div>
+          )}
+
           {step === 'done' ? (
             <div className="text-center">
               <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-leaf text-white shadow-lg shadow-leaf/30">
@@ -129,9 +145,29 @@ function ForgotPassword() {
                   value={email}
                   readOnly={step === 'reset'}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={inputClass(false)}
+                  className={`${inputClass(false)} ${step === 'reset' ? 'bg-slate-50 text-slate-600 cursor-not-allowed' : ''}`}
                   placeholder="name@example.com"
                 />
+                {step === 'reset' && (
+                  <div className="mt-1.5 flex items-center justify-between text-xs">
+                    <span className="text-slate-500">
+                      {f.resettingFor} <strong className="font-semibold text-slate-800">{email}</strong>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setStep('email');
+                        setCode('');
+                        setPassword('');
+                        setConfirm('');
+                        setError('');
+                      }}
+                      className="font-semibold text-brand-700 hover:underline"
+                    >
+                      {f.changeEmail}
+                    </button>
+                  </div>
+                )}
               </Field>
 
               {step === 'reset' && (
@@ -158,7 +194,7 @@ function ForgotPassword() {
                       maxLength={6}
                       value={code}
                       onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                      className={`${inputClass(errors.code)} tracking-[0.5em]`}
+                      className={`${inputClass(errors.code)} text-center text-xl tracking-[0.5em] font-mono`}
                       placeholder="••••••"
                     />
                   </Field>

@@ -79,6 +79,19 @@ const toPublicUser = (user) => ({
   photoVersion: user.profilePhoto ? user.profilePhoto.updatedAt.getTime() : null
 });
 
+// Auto-capitalize the first letter of each word in names (e.g. "kamal" -> "Kamal")
+const capitalizeName = (value) => {
+  if (!value) return '';
+  return String(value)
+    .trim()
+    .split(/(\s+|[-'])/)
+    .map((part) => {
+      if (!part || /^\s+$/.test(part) || part === '-' || part === "'") return part;
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    })
+    .join('');
+};
+
 // 1. User Registration
 exports.register = async (req, res) => {
   try {
@@ -98,9 +111,17 @@ exports.register = async (req, res) => {
     } = req.body;
     const role = req.body.role || 'CUSTOMER';
     const nicNumberInput = req.body.nicNumber?.trim().toUpperCase();
-    const profileFirstName = String(firstName || '').trim() || String(fullName || '').trim();
-    const profileLastName = String(lastName || '').trim();
-    const customerFullName = [profileFirstName, profileLastName].filter(Boolean).join(' ') || 'Customer';
+    const rawProvidedFullName = String(req.body.customerFullName || fullName || '').trim();
+    let rawFirstName = String(firstName || '').trim();
+    let rawLastName = String(lastName || '').trim();
+    if (!rawFirstName && !rawLastName && rawProvidedFullName) {
+      const parts = rawProvidedFullName.split(/\s+/);
+      rawFirstName = parts[0] || '';
+      rawLastName = parts.slice(1).join(' ') || '';
+    }
+    const profileFirstName = capitalizeName(rawFirstName);
+    const profileLastName = capitalizeName(rawLastName);
+    const customerFullName = [profileFirstName, profileLastName].filter(Boolean).join(' ') || (rawProvidedFullName ? capitalizeName(rawProvidedFullName) : 'Customer');
 
     if (!email || !phone) {
       return res.status(400).json({ message: 'Email සහ Phone අංකය අවශ්‍ය වේ.' });
@@ -229,7 +250,8 @@ exports.register = async (req, res) => {
       email: user.email,
       sentTo: maskEmail(user.email),
       expiresInMinutes: issued.expiresInMinutes,
-      resendAfterSeconds: issued.resendAfterSeconds
+      resendAfterSeconds: issued.resendAfterSeconds,
+      ...(process.env.EMAIL_DEV_LOG_CODES === 'true' ? { devCode: issued.code } : {})
     });
   } catch (error) {
     if (error.code === 'P2002') {
@@ -348,6 +370,14 @@ const requestLoginCode = (type) => async (req, res) => {
       return res.status(404).json(type.notFound);
     }
 
+    if (!user.emailVerifiedAt) {
+      return res.status(403).json({
+        code: 'EMAIL_NOT_VERIFIED',
+        email: user.email,
+        message: 'Please verify your email first.'
+      });
+    }
+
     if (!isEmailConfigured()) {
       return res.status(503).json({
         code: 'SMTP_NOT_CONFIGURED',
@@ -406,6 +436,14 @@ const verifyLoginCode = (type) => async (req, res) => {
       return res.status(404).json(type.notFound);
     }
 
+    if (!user.emailVerifiedAt) {
+      return res.status(403).json({
+        code: 'EMAIL_NOT_VERIFIED',
+        email: user.email,
+        message: 'Please verify your email first.'
+      });
+    }
+
     const result = otpStore.verify(user.id, code);
     if (result !== 'OK') {
       const messages = {
@@ -438,7 +476,7 @@ const findUnverifiedUser = (email) =>
     include: { sellerProfile: true, customerProfile: true }
   });
 
-// Check the code, mark the email as verified and log the new user in
+// Check the code, mark the email as verified, approve the account, and log the new user in
 exports.verifyEmail = async (req, res) => {
   try {
     const email = String(req.body?.email || '').trim();
@@ -458,12 +496,27 @@ exports.verifyEmail = async (req, res) => {
       return res.status(400).json({ code: result, message: 'The code is not valid. Please ask for a new one.' });
     }
 
+    const isSeller = user.role === 'SELLER';
+    const updateData = {
+      emailVerifiedAt: new Date(),
+      ...(isSeller && user.sellerProfile
+        ? { sellerProfile: { update: { status: 'APPROVED' } } }
+        : {})
+    };
+
     const verified = await prisma.user.update({
       where: { id: user.id },
-      data: { emailVerifiedAt: new Date() },
+      data: updateData,
       include: { sellerProfile: true, customerProfile: true, profilePhoto: { select: { updatedAt: true } } }
     });
-    res.json({ message: 'Your email is verified.', token: signToken(verified), user: toPublicUser(verified) });
+
+    res.json({
+      message: isSeller
+        ? 'Your email is verified and your seller account is approved!'
+        : 'Your email is verified and your customer account is approved!',
+      token: signToken(verified),
+      user: toPublicUser(verified)
+    });
   } catch (error) {
     console.error('VERIFY_EMAIL_ERROR:', error);
     res.status(500).json({ message: 'Server error.' });
@@ -544,10 +597,15 @@ exports.requestPasswordReset = async (req, res) => {
       }
 
       let delivery;
+      const recipientName =
+        [user.sellerProfile?.firstName, user.sellerProfile?.lastName].filter(Boolean).join(' ') ||
+        user.sellerProfile?.businessName ||
+        user.customerProfile?.fullName ||
+        (user.role === 'CUSTOMER' ? 'Customer' : 'Seller');
       try {
         delivery = await sendLoginCode({
           to: user.email,
-          businessName: user.sellerProfile?.businessName || user.customerProfile?.fullName,
+          businessName: recipientName,
           code: issued.code,
           minutes: issued.expiresInMinutes,
           purpose: 'password-reset'
@@ -561,10 +619,11 @@ exports.requestPasswordReset = async (req, res) => {
 
       return res.json({
         message: 'If this email is registered, a code has been sent to it.',
-        sentTo: delivery.emailed ? maskEmail(user.email) : null,
+        sentTo: maskEmail(user.email),
         emailed: delivery.emailed,
         expiresInMinutes: issued.expiresInMinutes,
-        resendAfterSeconds: issued.resendAfterSeconds
+        resendAfterSeconds: issued.resendAfterSeconds,
+        ...(process.env.EMAIL_DEV_LOG_CODES === 'true' ? { devCode: issued.code } : {})
       });
     }
 
@@ -595,7 +654,17 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ code: result, message: 'The code is not valid. Please ask for a new one.' });
     }
 
-    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(newPassword, 10), emailVerifiedAt: user.emailVerifiedAt || new Date() } });
+    const isSeller = user.role === 'SELLER';
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: await bcrypt.hash(newPassword, 10),
+        emailVerifiedAt: user.emailVerifiedAt || new Date(),
+        ...(isSeller && user.sellerProfile && user.sellerProfile.status === 'PENDING'
+          ? { sellerProfile: { update: { status: 'APPROVED' } } }
+          : {})
+      }
+    });
     res.json({ message: 'Your password was changed. You can log in now.' });
   } catch (error) {
     console.error('PASSWORD_RESET_ERROR:', error);

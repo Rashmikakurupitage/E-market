@@ -25,7 +25,7 @@ export default function AdminPortalShell({ children }) {
   return (
     <div className="admin-surface flex min-h-full flex-1 flex-col">
       <header className="border-b border-white/10 bg-slate-950 text-white shadow-lg">
-        <div className="mx-auto flex w-full max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
           <div className="flex items-center gap-3">
             <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 text-brand-300 ring-1 ring-white/15">
               <ShieldCheck className="h-5 w-5" />

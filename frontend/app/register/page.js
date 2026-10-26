@@ -29,6 +29,18 @@ const emailErrorText = (data, r) => {
 
 const cleanPhone = (value) => value.replace(/[\s-]/g, '');
 
+// Auto-capitalize first letter of each word (e.g. "kamal" -> "Kamal", "nimal perera" -> "Nimal Perera")
+const capitalizeName = (value) => {
+  if (!value) return '';
+  return String(value)
+    .split(/(\s+|[-'])/)
+    .map((part) => {
+      if (!part || /^\s+$/.test(part) || part === '-' || part === "'") return part;
+      return part.charAt(0).toUpperCase() + part.slice(1);
+    })
+    .join('');
+};
+
 function SectionTitle({ number, children }) {
   return (
     <h2 className="font-sans flex items-center gap-2.5 text-sm font-bold uppercase tracking-wider text-slate-800">
@@ -64,9 +76,17 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    if (name === 'firstName' || name === 'lastName') {
+      value = capitalizeName(value);
+    }
     setFormData({ ...formData, [name]: value });
     if (fieldErrors[name]) setFieldErrors({ ...fieldErrors, [name]: undefined });
+  };
+
+  const handleNameBlur = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: capitalizeName(value.trim()) }));
   };
 
   // The NIC number gives the gender and birth date: women only, and the birth date fills in by itself
@@ -106,8 +126,8 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
     try {
       const res = await API.post('/auth/register', {
         role: 'SELLER',
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
+        firstName: capitalizeName(formData.firstName.trim()),
+        lastName: capitalizeName(formData.lastName.trim()),
         email: formData.email.trim(),
         password: formData.password,
         nicNumber: formData.nicNumber.trim().toUpperCase(),
@@ -153,10 +173,32 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         <SectionTitle number={1}>{r.sectionPersonal}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="firstName" label={r.firstName} required>
-            <input id="firstName" name="firstName" type="text" required autoComplete="given-name" value={formData.firstName} onChange={handleChange} className={inputClass(false)} />
+            <input
+              id="firstName"
+              name="firstName"
+              type="text"
+              required
+              autoComplete="given-name"
+              autoCapitalize="words"
+              value={formData.firstName}
+              onChange={handleChange}
+              onBlur={handleNameBlur}
+              className={inputClass(false)}
+            />
           </Field>
           <Field id="lastName" label={r.lastName} required>
-            <input id="lastName" name="lastName" type="text" required autoComplete="family-name" value={formData.lastName} onChange={handleChange} className={inputClass(false)} />
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              required
+              autoComplete="family-name"
+              autoCapitalize="words"
+              value={formData.lastName}
+              onChange={handleChange}
+              onBlur={handleNameBlur}
+              className={inputClass(false)}
+            />
           </Field>
           <Field id="email" label={r.email} required>
             <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
@@ -273,9 +315,17 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
   const [error, setError] = useState('');
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    let { name, value } = e.target;
+    if (name === 'firstName' || name === 'lastName') {
+      value = capitalizeName(value);
+    }
     setFormData({ ...formData, [name]: value });
     if (fieldErrors[name]) setFieldErrors({ ...fieldErrors, [name]: undefined });
+  };
+
+  const handleNameBlur = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: capitalizeName(value.trim()) }));
   };
 
   const handleSubmit = async (e) => {
@@ -292,16 +342,17 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
       return;
     }
 
+    const phone = cleanPhone(formData.phone);
     setLoading(true);
     try {
       const res = await API.post('/auth/register', {
         role: 'CUSTOMER',
-        firstName: formData.firstName.trim(),
-        lastName: formData.lastName.trim(),
+        firstName: capitalizeName(formData.firstName.trim()),
+        lastName: capitalizeName(formData.lastName.trim()),
         email: formData.email.trim(),
         password: formData.password,
         nicNumber: '',
-        phone: cleanPhone(formData.phone),
+        phone,
       });
 
       // Log the new customer straight in
@@ -336,10 +387,32 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
         <SectionTitle number={1}>{r.sectionPersonal}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="firstName" label={r.firstName} required>
-            <input id="firstName" name="firstName" type="text" required autoComplete="given-name" value={formData.firstName} onChange={handleChange} className={inputClass(false)} />
+            <input
+              id="firstName"
+              name="firstName"
+              type="text"
+              required
+              autoComplete="given-name"
+              autoCapitalize="words"
+              value={formData.firstName}
+              onChange={handleChange}
+              onBlur={handleNameBlur}
+              className={inputClass(false)}
+            />
           </Field>
           <Field id="lastName" label={r.lastName} required>
-            <input id="lastName" name="lastName" type="text" required autoComplete="family-name" value={formData.lastName} onChange={handleChange} className={inputClass(false)} />
+            <input
+              id="lastName"
+              name="lastName"
+              type="text"
+              required
+              autoComplete="family-name"
+              autoCapitalize="words"
+              value={formData.lastName}
+              onChange={handleChange}
+              onBlur={handleNameBlur}
+              className={inputClass(false)}
+            />
           </Field>
           <div className="sm:col-span-2">
             <Field id="email" label={r.email} required>

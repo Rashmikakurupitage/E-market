@@ -26,6 +26,15 @@ const SRI_LANKA_DISTRICTS = [
   'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'
 ];
 
+const POPULAR_SEARCH_TAGS = [
+  { id: 'batik', en: 'Batik Sarees', si: 'බතික් සාරි', ta: 'பாடிக் சேலைகள்' },
+  { id: 'cinnamon', en: 'Pure Cinnamon', si: 'කුරුඳු', ta: 'இலவங்கப்பட்டை' },
+  { id: 'bags', en: 'Handloom Bags', si: 'අත්යන්ත්‍ර බෑග්', ta: 'கைத்தறி பைகள்' },
+  { id: 'pottery', en: 'Clay Pottery', si: 'මැටි භාණ්ඩ', ta: 'மண்பாண்டங்கள்' },
+  { id: 'spices', en: 'Ceylon Spices', si: 'කුළුබඩු', ta: 'மசாலா' },
+  { id: 'tea', en: 'Organic Tea', si: 'කාබනික තේ', ta: 'இயற்கை தேநீர்' },
+];
+
 // Advance standard category styling with rich dual-tone gradients & professional iconography
 const CATEGORY_LOOK = {
   Handicrafts: {
@@ -207,7 +216,7 @@ function HeroTitle() {
 }
 
 export default function Home() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const wallpapers = useWallpapers();
   const h = t.home;
   const [products, setProducts] = useState(SAMPLE_PRODUCTS);
@@ -217,6 +226,7 @@ export default function Home() {
   const [category, setCategory] = useState('all');
   const [selectedDistrict, setSelectedDistrict] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
+  const [onlyDeals, setOnlyDeals] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
   useEffect(() => {
@@ -248,10 +258,24 @@ export default function Home() {
 
   const query = search.trim().toLowerCase();
 
+  // Dynamic category and deals counts for fast user visual discovery
+  const categoryCounts = useMemo(() => {
+    const counts = { all: products.length };
+    CATEGORIES.forEach((cat) => {
+      counts[cat] = products.filter((p) => p.category === cat).length;
+    });
+    counts.deals = products.filter((p) => (p.discountPercent || p.discount?.percent || 0) > 0).length;
+    return counts;
+  }, [products]);
+
   // Filtered and sorted products
   const visibleProducts = useMemo(() => {
     let list = products.filter((product) => {
       if (category !== 'all' && product.category !== category) return false;
+      if (onlyDeals) {
+        const hasDiscount = (product.discountPercent || product.discount?.percent || 0) > 0;
+        if (!hasDiscount) return false;
+      }
       if (selectedDistrict !== 'all') {
         const s = getSeller(product);
         if (s.district?.toLowerCase() !== selectedDistrict.toLowerCase()) return false;
@@ -273,13 +297,12 @@ export default function Home() {
       list = [...list].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     }
     return list;
-  }, [products, category, selectedDistrict, query, sortBy]);
+  }, [products, category, onlyDeals, selectedDistrict, query, sortBy]);
 
   // Products with active discounts for Flash Deals section
   const dealsProducts = useMemo(() => {
     return products.filter((p) => (p.discountPercent || p.discount?.percent || 0) > 0).slice(0, 4);
   }, [products]);
-
 
   const scrollToProducts = () => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
 
@@ -293,6 +316,7 @@ export default function Home() {
 
   const chooseCategory = (value) => {
     setCategory(value);
+    setOnlyDeals(false);
     scrollToProducts();
   };
 
@@ -301,6 +325,7 @@ export default function Home() {
     setCategory('all');
     setSelectedDistrict('all');
     setSortBy('featured');
+    setOnlyDeals(false);
   };
 
   const learnTopics = [
@@ -404,6 +429,35 @@ export default function Home() {
                 <span>{t.searchBtn}</span>
               </button>
             </form>
+
+            {/* Quick Trending Searches */}
+            <div className="mt-3.5 flex animate-fade-up flex-wrap items-center gap-2 text-xs [animation-delay:450ms]">
+              <span className="flex items-center gap-1 font-bold text-slate-500">
+                <Flame className="h-3.5 w-3.5 text-magenta animate-pulse" />
+                {lang === 'si' ? 'ජනප්‍රිය සෙවුම්:' : lang === 'ta' ? 'பிரபலமானவை:' : 'Trending:'}
+              </span>
+              {POPULAR_SEARCH_TAGS.map((tag) => {
+                const label = tag[lang] || tag.en;
+                const isSelected = search.toLowerCase() === tag.en.toLowerCase();
+                return (
+                  <button
+                    key={tag.id}
+                    type="button"
+                    onClick={() => {
+                      setSearch(tag.en);
+                      scrollToProducts();
+                    }}
+                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition-all duration-200 active:scale-95 ${
+                      isSelected
+                        ? 'bg-magenta text-white shadow-xs'
+                        : 'border border-slate-200/90 bg-white/90 text-slate-700 shadow-2xs hover:border-magenta/50 hover:bg-magenta/5 hover:text-magenta'
+                    }`}
+                  >
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
 
 
             {/* Twin Action CTAs */}
@@ -641,36 +695,73 @@ export default function Home() {
           </Reveal>
 
           {/* Standard Product Controls Toolbar */}
-          <div className="mt-8 rounded-2xl bg-white border border-slate-200/90 p-4 shadow-xs">
+          <div className="mt-8 rounded-2xl bg-white border border-slate-200/90 p-4 sm:p-5 shadow-xs">
             <div className="flex flex-wrap items-center justify-between gap-4">
-              {/* Category Pills */}
-              <div className="no-scrollbar flex flex-wrap gap-2">
+              {/* Category Pills with Dynamic Counts */}
+              <div className="no-scrollbar flex flex-wrap items-center gap-2">
                 {['all', ...CATEGORIES].map((value) => {
-                  const active = category === value;
+                  const active = category === value && !onlyDeals;
                   const Icon = value === 'all' ? Sparkles : (CATEGORY_LOOK[value] || DEFAULT_LOOK).icon;
+                  const count = categoryCounts[value] || 0;
                   return (
                     <button
                       key={value}
                       type="button"
-                      onClick={() => setCategory(value)}
+                      onClick={() => {
+                        setCategory(value);
+                        setOnlyDeals(false);
+                      }}
                       aria-pressed={active}
-                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 ${
+                      className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95 ${
                         active
                           ? 'bg-slate-900 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-700 hover:bg-slate-200/80 shadow-2xs'
                       }`}
                     >
                       <Icon className={`h-3.5 w-3.5 ${active ? 'text-amber-300' : 'text-slate-500'}`} />
-                      {value === 'all' ? t.allCategories : t.categories[value]}
+                      <span>{value === 'all' ? t.allCategories : t.categories[value]}</span>
+                      <span
+                        className={`ml-0.5 rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                          active ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-600'
+                        }`}
+                      >
+                        {count}
+                      </span>
                     </button>
                   );
                 })}
+
+                {/* Deals / Discount Filter Pill */}
+                {categoryCounts.deals > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOnlyDeals(!onlyDeals);
+                      if (!onlyDeals) setCategory('all');
+                    }}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all duration-150 active:scale-95 ${
+                      onlyDeals
+                        ? 'bg-rose-600 text-white shadow-xs shadow-rose-600/30 ring-2 ring-rose-400'
+                        : 'border border-rose-200 bg-rose-50/80 text-rose-700 hover:bg-rose-100'
+                    }`}
+                  >
+                    <Flame className={`h-3.5 w-3.5 ${onlyDeals ? 'text-white' : 'text-rose-600'}`} />
+                    <span>{h.dealsBadge || 'Deals'}</span>
+                    <span
+                      className={`ml-0.5 rounded-full px-1.5 py-0.2 text-[10px] font-bold ${
+                        onlyDeals ? 'bg-white/25 text-white' : 'bg-rose-200 text-rose-800'
+                      }`}
+                    >
+                      {categoryCounts.deals}
+                    </span>
+                  </button>
+                )}
               </div>
 
               {/* District & Sort Dropdowns */}
               <div className="flex flex-wrap items-center gap-2.5">
                 {/* District Filter */}
-                <div className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-200 shadow-2xs">
+                <div className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors">
                   <MapPin className="h-3.5 w-3.5 text-magenta" />
                   <select
                     value={selectedDistrict}
@@ -686,7 +777,7 @@ export default function Home() {
                 </div>
 
                 {/* Sort Filter */}
-                <div className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-200 shadow-2xs">
+                <div className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors">
                   <SlidersHorizontal className="h-3.5 w-3.5 text-slate-400" />
                   <select
                     value={sortBy}
@@ -704,22 +795,87 @@ export default function Home() {
               </div>
             </div>
 
-            {/* Results Count & Active Filters Indicator */}
-            <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3 text-xs text-slate-500">
+            {/* Active Removable Filter Chips & Clear All */}
+            {(category !== 'all' || selectedDistrict !== 'all' || search || onlyDeals) && (
+              <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-3">
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="font-semibold text-slate-500">
+                    {lang === 'si' ? 'ක්‍රියාකාරී පෙරහන්:' : lang === 'ta' ? 'செயலில் உள்ள வடிகட்டிகள்:' : 'Active Filters:'}
+                  </span>
+                  {search && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-magenta/10 px-2.5 py-1 font-semibold text-magenta ring-1 ring-magenta/20">
+                      <span>&ldquo;{search}&rdquo;</span>
+                      <button
+                        type="button"
+                        onClick={() => setSearch('')}
+                        aria-label="Remove search filter"
+                        className="rounded-full p-0.5 hover:bg-magenta/20"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )}
+                  {category !== 'all' && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-900 px-2.5 py-1 font-semibold text-white">
+                      <span>{t.categories[category] || category}</span>
+                      <button
+                        type="button"
+                        onClick={() => setCategory('all')}
+                        aria-label="Remove category filter"
+                        className="rounded-full p-0.5 hover:bg-white/20"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )}
+                  {selectedDistrict !== 'all' && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-800">
+                      <MapPin className="h-3 w-3" />
+                      <span>{selectedDistrict}</span>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDistrict('all')}
+                        aria-label="Remove district filter"
+                        className="rounded-full p-0.5 hover:bg-emerald-200"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )}
+                  {onlyDeals && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 font-semibold text-rose-700">
+                      <Flame className="h-3 w-3" />
+                      <span>{h.dealsBadge || 'Deals'}</span>
+                      <button
+                        type="button"
+                        onClick={() => setOnlyDeals(false)}
+                        aria-label="Remove deals filter"
+                        className="rounded-full p-0.5 hover:bg-rose-200"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="text-xs font-bold text-magenta hover:text-magenta-dark hover:underline"
+                >
+                  {t.clearFilters || 'Clear all filters'}
+                </button>
+              </div>
+            )}
+
+            {/* Results Count Summary */}
+            <div className="mt-3 flex items-center justify-between text-xs text-slate-500">
               <p>
                 <span className="font-bold text-slate-800">{fill(h.productsFound, { count: visibleProducts.length })}</span>
                 {category !== 'all' ? ` in ${t.categories[category] || category}` : ''}
                 {selectedDistrict !== 'all' ? ` from ${selectedDistrict}` : ''}
+                {onlyDeals ? ` (Discounted)` : ''}
               </p>
-              {(category !== 'all' || selectedDistrict !== 'all' || search) && (
-                <button
-                  type="button"
-                  onClick={clearFilters}
-                  className="font-bold text-magenta hover:text-magenta-dark hover:underline"
-                >
-                  {t.clearFilters || 'Clear all filters'}
-                </button>
-              )}
             </div>
           </div>
 
@@ -750,17 +906,27 @@ export default function Home() {
               </div>
             </>
           ) : (
-            <div className="mt-8 animate-fade-up rounded-2xl border border-dashed border-slate-300 bg-white px-6 py-16 text-center shadow-xs">
+            <div className="mt-8 animate-fade-up rounded-2xl border border-dashed border-slate-300 bg-white p-8 sm:p-12 text-center shadow-xs">
               <PackageSearch className="mx-auto h-12 w-12 text-slate-300" />
-              <p className="mt-4 font-bold text-slate-900">{t.noResults}</p>
-              <p className="mt-1 text-sm text-slate-500">{t.noResultsSub}</p>
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="btn-shine mt-5 rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-magenta"
-              >
-                {t.clearFilters}
-              </button>
+              <p className="mt-4 text-lg font-bold text-slate-900">{t.noResults}</p>
+              <p className="mt-1 text-sm text-slate-500 max-w-md mx-auto">
+                {t.noResultsSub || 'Try searching with broader terms, switching to All Districts, or clearing active filters.'}
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="btn-shine rounded-full bg-slate-900 px-6 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-magenta shadow-md active:scale-95"
+                >
+                  {t.clearFilters || 'Clear all filters'}
+                </button>
+                <Link
+                  href="/store"
+                  className="rounded-full border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50 active:scale-95"
+                >
+                  {h.viewStoreCta || 'Browse Full Store'}
+                </Link>
+              </div>
             </div>
           )}
         </main>
@@ -917,17 +1083,27 @@ export default function Home() {
 
       </div>
 
-      {/* Floating Back to Top Button */}
-      {showScrollTop && (
-        <button
-          type="button"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          className="fixed bottom-6 right-6 z-40 flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl transition-all duration-300 hover:bg-magenta hover:scale-105 active:scale-95"
-          aria-label={h.backToTop || 'Back to top'}
+      {/* Floating Action Buttons: Back to Top & Quick Help */}
+      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5">
+        <Link
+          href="/support"
+          className="group flex h-11 items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-bold text-white shadow-xl shadow-emerald-600/30 transition-all duration-300 hover:bg-emerald-700 hover:scale-105 active:scale-95"
+          title="Need Help? Open Guide & FAQs"
         >
-          <ChevronUp className="h-5 w-5" />
-        </button>
-      )}
+          <WhatsAppIcon className="h-4 w-4" />
+          <span className="hidden sm:inline">{lang === 'si' ? 'උදව් සහ පැන' : lang === 'ta' ? 'உதவி & கேள்விகள்' : 'Help & FAQs'}</span>
+        </Link>
+        {showScrollTop && (
+          <button
+            type="button"
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="flex h-11 w-11 items-center justify-center rounded-full bg-slate-900 text-white shadow-xl shadow-slate-900/25 transition-all duration-300 hover:bg-magenta hover:scale-105 active:scale-95"
+            aria-label={h.backToTop || 'Back to top'}
+          >
+            <ChevronUp className="h-5 w-5" />
+          </button>
+        )}
+      </div>
 
 
     </>
