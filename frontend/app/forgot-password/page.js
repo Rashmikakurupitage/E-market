@@ -96,12 +96,12 @@ function ForgotPassword() {
   };
 
   return (
-    <main className="relative isolate flex-1 px-4 py-10 sm:py-14">
+    <main className="relative isolate flex-1 px-3 py-6 sm:px-6 sm:py-14 w-full max-w-full overflow-x-hidden">
       <PageArt />
-      <div className="mx-auto grid max-w-5xl animate-zoom-in overflow-hidden rounded-[32px] bg-white shadow-xl ring-1 ring-ink/5 lg:grid-cols-[2fr_3fr]">
+      <div className="mx-auto grid max-w-5xl animate-zoom-in overflow-hidden rounded-[24px] sm:rounded-[32px] bg-white shadow-xl ring-1 ring-ink/5 lg:grid-cols-[2fr_3fr]">
         <AuthPanel title={f.title} subtitle={f.subtitle} listTitle={f.stepsTitle} items={f.steps} numbered />
 
-        <section className="flex flex-col justify-center px-6 py-8 sm:px-10 sm:py-12">
+        <section className="flex flex-col justify-center px-4 py-6 sm:px-10 sm:py-12">
           {step !== 'done' && (
             <div className="mb-6">
               <AccountTypeTabs basePath="/forgot-password" current={as} />

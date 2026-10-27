@@ -12,6 +12,7 @@ import API from '../lib/api';
 import { useLanguage } from '../lib/i18n';
 import { useHydrated, useSession } from '../lib/auth';
 import { getSeller, messengerLink, toWhatsAppNumber, formatPhone, initials } from '../lib/catalog';
+import { profilePhotoUrl } from '../lib/profilePhoto';
 import CustomerGateModal from './CustomerGateModal';
 
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
@@ -54,6 +55,7 @@ export default function ProductCard({ product, onOpen }) {
   };
 
   const seller = getSeller(product);
+  const sellerPhoto = profilePhotoUrl(seller);
   const example = !product.sellerId;
   const image = product.images?.[0];
   const whatsapp = example ? '' : toWhatsAppNumber(seller.whatsappNo);
@@ -119,10 +121,10 @@ export default function ProductCard({ product, onOpen }) {
           {product.description}
         </p>
 
-        <div className="mt-3 flex items-center justify-between gap-2">
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-1.5">
           <PriceTag product={product} />
           {product.category && (
-            <span className="truncate rounded-full bg-sand/70 px-3 py-1 text-[11px] font-semibold text-ink/80">
+            <span className="truncate max-w-[110px] sm:max-w-[140px] rounded-full bg-sand/70 px-2.5 py-0.5 text-[10px] sm:text-[11px] font-semibold text-ink/80">
               {t.categories[product.category] || product.category}
             </span>
           )}
@@ -130,9 +132,13 @@ export default function ProductCard({ product, onOpen }) {
 
         {/* Seller */}
         <div className="mt-3 flex items-center gap-2.5 border-t border-ink/5 pt-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-magenta to-saffron text-xs font-bold text-white">
-            {initials(seller.businessName) || '?'}
-          </span>
+          {sellerPhoto ? (
+            <img src={sellerPhoto} alt="" className="h-9 w-9 shrink-0 rounded-full object-cover ring-2 ring-magenta/20 shadow-xs" />
+          ) : (
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-magenta to-saffron text-xs font-bold text-white">
+              {initials(seller.businessName) || '?'}
+            </span>
+          )}
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-1.5">
               <p className="truncate text-sm font-semibold text-ink">{seller.businessName || '—'}</p>

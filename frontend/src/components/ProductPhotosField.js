@@ -55,20 +55,21 @@ function shrink(file, max = 1200) {
 
 // Up to 5 photos for one product: upload pictures, or paste a link to a picture. The first photo is the main one.
 // value: array of picture sources (data URLs or links); onChange gets the new array.
-export default function ProductPhotosField({ value, onChange }) {
+export default function ProductPhotosField({ value, photos, onChange }) {
   const { t } = useLanguage();
   const p = t.productPhotos;
+  const currentPhotos = Array.isArray(value) ? value : Array.isArray(photos) ? photos : [];
   const [link, setLink] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const full = value.length >= MAX_PHOTOS;
+  const full = currentPhotos.length >= MAX_PHOTOS;
 
   const addFiles = async (event) => {
     const files = [...(event.target.files || [])];
     event.target.value = '';
     if (files.length === 0) return;
     setError('');
-    const room = MAX_PHOTOS - value.length;
+    const room = MAX_PHOTOS - currentPhotos.length;
     const picked = files.slice(0, room);
     if (files.length > room) setError(fill(p.onlyRoom, { count: room }));
     setBusy(true);
@@ -85,7 +86,7 @@ export default function ProductPhotosField({ value, onChange }) {
       }
     }
     setBusy(false);
-    if (added.length > 0) onChange([...value, ...added]);
+    if (added.length > 0) onChange?.([...currentPhotos, ...added]);
   };
 
   const addLink = () => {
@@ -98,28 +99,28 @@ export default function ProductPhotosField({ value, onChange }) {
       setError(p.errors.link);
       return;
     }
-    if (value.includes(text)) {
+    if (currentPhotos.includes(text)) {
       setError(p.errors.duplicate);
       return;
     }
     setError('');
     setLink('');
-    onChange([...value, text]);
+    onChange?.([...currentPhotos, text]);
   };
 
-  const makeMain = (index) => onChange([value[index], ...value.filter((_, i) => i !== index)]);
-  const remove = (index) => onChange(value.filter((_, i) => i !== index));
+  const makeMain = (index) => onChange?.([currentPhotos[index], ...currentPhotos.filter((_, i) => i !== index)]);
+  const remove = (index) => onChange?.(currentPhotos.filter((_, i) => i !== index));
 
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
         <span className="text-sm font-semibold text-slate-700">{p.title}</span>
-        <span className="text-xs font-semibold text-slate-500">{fill(p.count, { count: value.length, max: MAX_PHOTOS })}</span>
+        <span className="text-xs font-semibold text-slate-500">{fill(p.count, { count: currentPhotos.length, max: MAX_PHOTOS })}</span>
       </div>
 
-      {value.length > 0 && (
+      {currentPhotos.length > 0 && (
         <ul className="mt-2 grid grid-cols-3 gap-2.5 sm:grid-cols-5">
-          {value.map((src, index) => (
+          {currentPhotos.map((src, index) => (
             <li key={src.slice(-40) + index} className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={src} alt="" className="aspect-square w-full rounded-xl object-cover ring-1 ring-ink/10" />

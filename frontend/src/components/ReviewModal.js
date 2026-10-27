@@ -7,6 +7,7 @@ import Portal from './Portal';
 import API from '../lib/api';
 import { useLanguage } from '../lib/i18n';
 import { formatDate } from '../lib/catalog';
+import { profilePhotoUrl } from '../lib/profilePhoto';
 
 function StarPicker({ value, onSelect, readonly = false, size = 'md' }) {
   const [hovered, setHovered] = useState(0);
@@ -126,35 +127,35 @@ export default function ReviewModal({
 
   return (
     <Portal>
-      <div className="fixed inset-0 z-[70] flex items-center justify-center p-4 sm:p-6" role="dialog" aria-modal="true">
+      <div className="fixed inset-0 z-[70] flex items-center justify-center p-3 sm:p-6" role="dialog" aria-modal="true">
         {/* Backdrop */}
         <div className="absolute inset-0 bg-ink/60 backdrop-blur-sm transition-opacity" onClick={onClose} />
 
         {/* Modal Window */}
-        <div className="relative flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl ring-1 ring-ink/10">
+        <div className="relative flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-[22px] sm:rounded-[28px] bg-white shadow-2xl ring-1 ring-ink/10">
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-ink/10 bg-linear-to-r from-cream via-white to-cream px-6 py-4.5 sm:px-8">
+          <div className="flex items-center justify-between border-b border-ink/10 bg-linear-to-r from-cream via-white to-cream px-4 py-3 sm:px-8 sm:py-4.5">
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-magenta to-saffron text-white shadow-md">
+              <span className="flex h-10 w-10 sm:h-11 sm:w-11 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-magenta to-saffron text-white shadow-md">
                 {isSeller ? <Store className="h-5 w-5" /> : <Package className="h-5 w-5" />}
               </span>
               <div className="min-w-0">
-                <h3 className="truncate text-lg font-bold text-ink sm:text-xl">{title || copy.title}</h3>
+                <h3 className="truncate text-base sm:text-xl font-bold text-ink">{title || copy.title}</h3>
                 {subtitle && <p className="truncate text-xs font-medium text-ink/55">{subtitle}</p>}
               </div>
             </div>
             <button
               type="button"
               onClick={onClose}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-ink/5 text-ink/70 transition-colors hover:bg-ink hover:text-white"
+              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-ink/5 text-ink/70 transition-colors hover:bg-ink hover:text-white"
               aria-label={t.store?.close || 'Close'}
             >
-              <X className="h-5 w-5" />
+              <X className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-6 sm:px-8">
+          <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-8 sm:py-6">
             {/* Summary Rating Banner */}
             <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-linear-to-br from-sand/40 to-cream p-4 ring-1 ring-ink/5">
               <div className="flex items-center gap-4">
@@ -241,6 +242,11 @@ export default function ReviewModal({
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
                 <p>{copy.purchaseRequired}</p>
               </div>
+            ) : !isCustomer && session ? (
+              <div className="mt-6 flex items-start gap-3 rounded-2xl bg-amber-500/10 p-4 text-xs leading-relaxed text-amber-900 ring-1 ring-amber-500/20">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" />
+                <p>{copy.errors?.NOT_CUSTOMER || 'Only customer accounts can submit reviews.'}</p>
+              </div>
             ) : !session ? (
               <div className="mt-6 flex items-center justify-between gap-3 rounded-2xl bg-sand/40 p-4 text-xs text-ink/70">
                 <p>
@@ -272,26 +278,49 @@ export default function ReviewModal({
                 </div>
               ) : (
                 <div className="mt-4 space-y-3">
-                  {data.reviews.map((rev) => (
-                    <article key={rev.id} className="rounded-2xl bg-cream/70 p-4 ring-1 ring-ink/5 transition hover:bg-cream">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <StarPicker value={rev.rating} readonly size="sm" />
-                          <span className="text-xs font-bold text-ink">{rev.reviewerName || copy.verifiedBuyer}</span>
-                          <span className="inline-flex items-center gap-0.5 rounded bg-leaf/15 px-1.5 py-0.5 text-[10px] font-semibold text-leaf">
-                            <ShieldCheck className="h-3 w-3" />
-                            {copy.verifiedBuyer}
-                          </span>
+                  {data.reviews.map((rev) => {
+                    const reviewerPhoto = profilePhotoUrl(rev.reviewerUserId, rev.reviewerPhotoVersion);
+                    return (
+                      <article key={rev.id} className="rounded-2xl bg-cream/70 p-4 ring-1 ring-ink/5 transition hover:bg-cream">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2.5">
+                            {reviewerPhoto ? (
+                              <img src={reviewerPhoto} alt="" className="h-7 w-7 rounded-full object-cover ring-1 ring-magenta/25 shadow-2xs" />
+                            ) : (
+                              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-linear-to-br from-magenta to-saffron text-[10px] font-bold text-white shadow-2xs">
+                                {rev.reviewerName?.charAt(0) || 'C'}
+                              </span>
+                            )}
+                            <div className="flex flex-col">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-xs font-bold text-ink">{rev.reviewerName}</span>
+                                {rev.isVerifiedBuyer ? (
+                                  <span className="inline-flex items-center gap-0.5 rounded bg-leaf/15 px-1.5 py-0.5 text-[10px] font-semibold text-leaf">
+                                    <ShieldCheck className="h-3 w-3" />
+                                    {copy.verifiedBuyer}
+                                  </span>
+                                ) : (
+                                  <span className="inline-flex items-center gap-0.5 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] font-semibold text-slate-600">
+                                    <MessageSquare className="h-3 w-3" />
+                                    {lang === 'si' ? 'පාරිභෝගිකයා' : lang === 'ta' ? 'வாடிக்கையாளர்' : 'Customer'}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="mt-0.5 flex items-center gap-2">
+                                <StarPicker value={rev.rating} readonly size="sm" />
+                              </div>
+                            </div>
+                          </div>
+                          <time className="text-xs text-ink/40" dateTime={rev.createdAt}>
+                            {formatDate(rev.createdAt, lang)}
+                          </time>
                         </div>
-                        <time className="text-xs text-ink/40" dateTime={rev.createdAt}>
-                          {formatDate(rev.createdAt, lang)}
-                        </time>
-                      </div>
-                      <p className="mt-2.5 whitespace-pre-wrap text-sm leading-relaxed text-ink/80">
-                        {rev.comment}
-                      </p>
-                    </article>
-                  ))}
+                        <p className="mt-2.5 whitespace-pre-wrap text-sm leading-relaxed text-ink/80">
+                          {rev.comment}
+                        </p>
+                      </article>
+                    );
+                  })}
                 </div>
               )}
             </div>

@@ -41,17 +41,17 @@ export default function SiteFooter() {
   ];
 
   return (
-    <footer id="contact" className={`relative isolate overflow-hidden rounded-t-[48px] bg-ink text-white/70 ${edge}`}>
+    <footer id="contact" className={`relative isolate overflow-hidden rounded-t-[32px] sm:rounded-t-[48px] bg-ink text-white/70 ${edge}`}>
       <div aria-hidden="true" className="pointer-events-none absolute -left-24 -top-24 -z-10 h-80 w-80 rounded-full bg-magenta/30 blur-3xl" />
       <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 -right-16 -z-10 h-72 w-72 rounded-full bg-saffron/20 blur-3xl" />
 
-      <Reveal className="mx-auto grid max-w-7xl gap-10 px-4 pb-12 pt-14 sm:grid-cols-2 sm:px-6 lg:grid-cols-[1.5fr_1fr_1fr]">
+      <Reveal className="mx-auto grid max-w-7xl gap-8 sm:gap-10 px-4 pb-10 pt-12 sm:grid-cols-2 sm:px-6 lg:grid-cols-[1.5fr_1fr_1fr]">
         {/* About */}
-        <div id="about" className="flex gap-4">
-          <span className="flex h-20 w-20 shrink-0 items-center justify-center rounded-full bg-white shadow-lg shadow-black/20 ring-4 ring-white/10">
-            <img src={EMBLEM_URL} alt="State Emblem of Sri Lanka" className="h-14 w-14 object-contain" />
+        <div id="about" className="flex flex-col xs:flex-row gap-4 items-start">
+          <span className="flex h-16 w-16 sm:h-20 sm:w-20 shrink-0 items-center justify-center rounded-full bg-white shadow-lg shadow-black/20 ring-4 ring-white/10">
+            <img src={EMBLEM_URL} alt="State Emblem of Sri Lanka" className="h-11 w-11 sm:h-14 sm:w-14 object-contain" />
           </span>
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-semibold uppercase tracking-wider text-turmeric">Sri Lanka</p>
             <p className="mt-0.5 text-base font-bold leading-snug text-white">{t.ministry}</p>
             <p className="mt-3 max-w-sm text-sm leading-relaxed text-white/60">{t.footerAbout}</p>

@@ -122,6 +122,10 @@ model SellerProfile {
   nicLast5     String? // the only part an admin can see
   status       ApplicationStatus @default(PENDING)
 
+  // NIC photos for identity verification (front and back sides)
+  nicFront     String?           @db.Text
+  nicBack      String?           @db.Text
+
   // Direct Social Media Redirection Links
   whatsappNo   String?
   facebookUrl  String?

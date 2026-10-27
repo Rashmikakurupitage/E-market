@@ -61,7 +61,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${geistSans.variable} ${geistMono.variable} ${notoSinhala.variable} ${notoTamil.variable} ${playfair.variable} h-full antialiased`}
     >
       {/* Browser extensions (e.g. converters, translators) add attributes to <body>; don't treat that as a hydration error */}
-      <body className="bg-mesh flex min-h-full flex-col text-ink" suppressHydrationWarning>
+      <body className="bg-mesh flex min-h-full flex-col text-ink w-full max-w-full overflow-x-hidden" suppressHydrationWarning>
         {/* Apply saved colors before hydration without an inline script in the React tree */}
         <Script src="/theme-init.js" strategy="beforeInteractive" />
         <LanguageProvider>

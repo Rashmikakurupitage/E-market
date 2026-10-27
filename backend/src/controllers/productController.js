@@ -78,6 +78,20 @@ exports.createProduct = async (req, res) => {
       return res.status(403).json({ message: 'භාණ්ඩ එකතු කළ හැක්කේ ලියාපදිංචි අලෙවිකරුවන්ට පමණි.' });
     }
 
+    if (sellerProfile.status === 'REJECTED') {
+      return res.status(403).json({
+        code: 'SELLER_REJECTED',
+        message: 'ඔබේ අලෙවිකරු ගිණුම ප්‍රතික්ෂේප කර ඇත. ඔබට නව භාණ්ඩ එකතු කළ නොහැක.'
+      });
+    }
+
+    if (sellerProfile.status !== 'APPROVED') {
+      return res.status(403).json({
+        code: 'SELLER_NOT_APPROVED',
+        message: 'ඔබේ අලෙවිකරු ගිණුම තවමත් අනුමත වී නොමැත. අනුමැතිය ලැබීමෙන් පසු භාණ්ඩ එකතු කළ හැකිය.'
+      });
+    }
+
     const product = await prisma.product.create({
       data: {
         sellerId: sellerProfile.id,
@@ -137,7 +151,7 @@ exports.getAllProducts = async (req, res) => {
     const products = await prisma.product.findMany({
       where: {
         isPublished: true,
-        seller: { status: { not: 'REJECTED' }, removedAt: null },
+        seller: { status: 'APPROVED', removedAt: null },
         ...(category && { category }),
         ...(search && {
           OR: [
@@ -150,13 +164,15 @@ exports.getAllProducts = async (req, res) => {
         seller: {
           select: {
             id: true,
+            userId: true,
             businessName: true,
             district: true,
             status: true,
             whatsappNo: true,
             facebookUrl: true,
             messengerUrl: true,
-            reviews: { select: { rating: true } }
+            reviews: { select: { rating: true } },
+            user: { select: { profilePhoto: { select: { updatedAt: true } } } }
           }
         },
         reviews: { select: { rating: true } }
@@ -182,6 +198,7 @@ exports.getAllProducts = async (req, res) => {
 
         formattedSeller = {
           id: product.seller.id,
+          userId: product.seller.userId,
           businessName: product.seller.businessName,
           district: product.seller.district,
           status: product.seller.status,
@@ -189,7 +206,8 @@ exports.getAllProducts = async (req, res) => {
           facebookUrl: isCust ? product.seller.facebookUrl : null,
           messengerUrl: isCust ? product.seller.messengerUrl : null,
           reviewCount: sReviewCount,
-          averageRating: sAverageRating
+          averageRating: sAverageRating,
+          photoVersion: product.seller.user?.profilePhoto ? product.seller.user.profilePhoto.updatedAt.getTime() : null
         };
       }
 
@@ -347,6 +365,9 @@ exports.setDiscount = async (req, res) => {
     const sellerProfile = await prisma.sellerProfile.findUnique({ where: { userId: req.user.userId } });
     if (!sellerProfile) {
       return res.status(403).json({ message: 'Only seller accounts can set a discount.' });
+    }
+    if (sellerProfile.status !== 'APPROVED') {
+      return res.status(403).json({ code: 'SELLER_NOT_APPROVED', message: 'Only approved sellers can set a discount.' });
     }
 
     const product = await prisma.product.findFirst({ where: { id: String(req.params.id), sellerId: sellerProfile.id } });

@@ -32,20 +32,20 @@ export function Kpi({ icon: Icon, label, value, sub, tone, delay, onClick }) {
     rose: 'from-rose-500 to-orange-400',
   };
   return (
-    <Reveal delay={delay} className="group relative overflow-hidden rounded-[26px] border border-ink/8 bg-white p-5 shadow-sm shadow-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/10 hover:border-ink/15">
-      <span aria-hidden="true" className={`absolute -right-6 -top-6 h-24 w-24 rounded-full bg-linear-to-br opacity-15 transition-transform duration-500 group-hover:scale-125 ${tones[tone]}`} />
-      <span className={`flex h-11 w-11 items-center justify-center rounded-2xl bg-linear-to-br text-white shadow-md shadow-ink/10 transition-transform duration-300 group-hover:scale-105 ${tones[tone]}`}>
-        <Icon className="h-5 w-5" />
+    <Reveal delay={delay} className="group relative overflow-hidden rounded-[22px] sm:rounded-[26px] border border-ink/8 bg-white p-3.5 sm:p-5 shadow-sm shadow-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/10 hover:border-ink/15">
+      <span aria-hidden="true" className={`absolute -right-6 -top-6 h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-linear-to-br opacity-15 transition-transform duration-500 group-hover:scale-125 ${tones[tone]}`} />
+      <span className={`flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl sm:rounded-2xl bg-linear-to-br text-white shadow-md shadow-ink/10 transition-transform duration-300 group-hover:scale-105 ${tones[tone]}`}>
+        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
       </span>
-      <p className="mt-3.5 text-3xl font-extrabold tabular-nums tracking-tight text-ink">{typeof value === 'number' ? <CountUp value={value} /> : value ?? '–'}</p>
-      <p className="mt-1 text-sm font-semibold text-ink/75">{label}</p>
-      {sub && <p className="mt-0.5 text-xs font-medium text-ink/50">{sub}</p>}
+      <p className="mt-2.5 sm:mt-3.5 text-2xl sm:text-3xl font-extrabold tabular-nums tracking-tight text-ink">{typeof value === 'number' ? <CountUp value={value} /> : value ?? '–'}</p>
+      <p className="mt-1 text-xs sm:text-sm font-semibold text-ink/75">{label}</p>
+      {sub && <p className="mt-0.5 text-[11px] sm:text-xs font-medium text-ink/50">{sub}</p>}
       {onClick && (
         <button
           type="button"
           onClick={onClick}
           aria-label={`${label}: ${value ?? ''}`}
-          className="absolute inset-0 z-10 rounded-[26px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-magenta"
+          className="absolute inset-0 z-10 rounded-[22px] sm:rounded-[26px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-magenta"
         >
           <span className="sr-only">{label}</span>
         </button>
@@ -56,8 +56,8 @@ export function Kpi({ icon: Icon, label, value, sub, tone, delay, onClick }) {
 
 export function Card({ title, action, children, className = '', id }) {
   return (
-    <section id={id} className={`scroll-mt-24 rounded-[28px] border border-ink/8 bg-white p-5 sm:p-6 shadow-sm shadow-ink/5 transition-all duration-300 hover:shadow-md hover:border-ink/12 ${className}`}>
-      <div className="mb-4 flex items-center justify-between gap-3 border-b border-ink/5 pb-3">
+    <section id={id} className={`scroll-mt-24 rounded-[22px] sm:rounded-[28px] border border-ink/8 bg-white p-4 sm:p-6 shadow-sm shadow-ink/5 transition-all duration-300 hover:shadow-md hover:border-ink/12 ${className}`}>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2 sm:gap-3 border-b border-ink/5 pb-3">
         <h3 className="font-sans text-xs font-extrabold uppercase tracking-wider text-slate-700">{title}</h3>
         {action}
       </div>
@@ -471,7 +471,7 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
   return (
     <div className="space-y-6">
       {/* Greeting */}
-      <Reveal animation="fade-down" className="relative isolate overflow-hidden rounded-[28px] bg-linear-to-br from-ink via-[#2a1d3a] to-magenta-dark p-6 text-white shadow-lg">
+      <Reveal animation="fade-down" className="relative isolate overflow-hidden rounded-[22px] sm:rounded-[28px] bg-linear-to-br from-ink via-[#2a1d3a] to-magenta-dark p-4 sm:p-6 text-white shadow-lg">
         <span aria-hidden="true" className="pointer-events-none absolute -right-10 -top-12 -z-10 h-44 w-44 animate-float rounded-full bg-saffron/30 blur-3xl" />
         <span aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 -z-10 h-40 w-40 animate-float rounded-full bg-magenta/40 blur-3xl [animation-delay:-3s]" />
         <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-turmeric">

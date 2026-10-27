@@ -17,6 +17,7 @@ import {
 import { useLanguage, SITE_TITLES } from '../lib/i18n';
 import { useSession, clearSession, homePathFor, loginPathFor } from '../lib/auth';
 import { openCart, useCart } from '../lib/cart';
+import { profilePhotoUrl } from '../lib/profilePhoto';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 import LanguageSelect from './LanguageSelect';
@@ -84,6 +85,9 @@ export default function SiteHeader() {
     router.push(loginPathFor(role));
   };
 
+  const userPhoto = profilePhotoUrl(session?.user);
+  const displayName = session?.user?.name || session?.user?.profile?.fullName || session?.user?.profile?.businessName || (isAdmin ? 'Admin' : isCustomer ? 'Customer' : 'Seller');
+
   // Account presentation: Profile capsule + Logout when logged in; Register + Login when logged out.
   const accountButtons = session ? (
     <div className="flex items-center gap-1.5">
@@ -93,11 +97,15 @@ export default function SiteHeader() {
         className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-white/90 py-1 pl-1.5 pr-2.5 text-xs font-semibold text-ink shadow-sm transition-all duration-200 hover:border-magenta hover:bg-white dark:border-white/20 dark:bg-slate-800/90 dark:text-white dark:hover:border-white/40"
         title={isCustomer ? t.myAccount : t.dashboardBtn}
       >
-        <span className="flex h-6 w-6 items-center justify-center rounded-full bg-magenta text-[10px] font-bold uppercase text-white shadow-sm">
-          {session.user?.name?.charAt(0) || (isAdmin ? 'A' : 'U')}
-        </span>
+        {userPhoto ? (
+          <img src={userPhoto} alt="" className="h-6 w-6 rounded-full object-cover ring-1 ring-magenta/30 shadow-sm" />
+        ) : (
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-magenta text-[10px] font-bold uppercase text-white shadow-sm">
+            {displayName?.charAt(0) || (isAdmin ? 'A' : 'U')}
+          </span>
+        )}
         <span className="max-w-[70px] truncate text-[11px] font-bold text-ink dark:text-white 2xl:max-w-[95px] 2xl:text-xs">
-          {session.user?.name || (isAdmin ? 'Admin' : isCustomer ? 'Customer' : 'Seller')}
+          {displayName}
         </span>
         <span className="rounded-full bg-magenta/10 px-1.5 py-0.5 text-[8.5px] font-bold uppercase tracking-wider text-magenta dark:bg-magenta/20 dark:text-magenta-light">
           {isAdmin ? 'Admin' : isCustomer ? 'Buyer' : 'Seller'}
@@ -161,27 +169,27 @@ export default function SiteHeader() {
         </div>
 
         {/* Main Navigation Bar */}
-        <div className="w-full px-3 sm:px-5 lg:px-6 2xl:px-8">
-          <div className="flex h-14 items-center justify-between gap-2 lg:gap-3 2xl:gap-4">
+        <div className="w-full px-2.5 sm:px-5 lg:px-6 2xl:px-8">
+          <div className="flex h-14 items-center justify-between gap-1.5 sm:gap-2 lg:gap-3 2xl:gap-4">
             {/* Brand Identity: Logo, State Emblem, Trilingual Titles */}
             <Link
               href="/"
-              className="group flex min-w-0 shrink-0 items-center gap-2 sm:gap-2.5"
+              className="group flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2.5"
               onClick={() => setMenuOpen(false)}
             >
-              <Logo preload className="h-8 w-auto shrink-0 transition-transform duration-300 group-hover:scale-105 sm:h-10" />
-              <span aria-hidden="true" className="h-6 w-px shrink-0 bg-ink/10 dark:bg-white/15 sm:h-7" />
+              <Logo preload className="h-7 w-auto shrink-0 transition-transform duration-300 group-hover:scale-105 sm:h-10" />
+              <span aria-hidden="true" className="h-5 w-px shrink-0 bg-ink/10 dark:bg-white/15 sm:h-7" />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={EMBLEM_URL}
                 alt="State Emblem of Sri Lanka"
-                className="h-7 w-7 shrink-0 object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-110 sm:h-8 sm:w-8"
+                className="h-6 w-6 shrink-0 object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-110 sm:h-8 sm:w-8"
               />
-              <div className="min-w-0 leading-tight">
-                <span className="block text-xs font-extrabold tracking-tight text-magenta-dark dark:text-magenta-light sm:text-sm">
+              <div className="min-w-0 leading-tight max-w-[105px] xs:max-w-[155px] sm:max-w-none">
+                <span className="block truncate text-[11px] font-extrabold tracking-tight text-magenta-dark dark:text-magenta-light sm:text-sm">
                   {SITE_TITLES.en}
                 </span>
-                <span className="block text-[10px] font-bold text-ink dark:text-white sm:text-[11px]">
+                <span className="block truncate text-[9.5px] font-bold text-ink dark:text-white sm:text-[11px]">
                   {SITE_TITLES.si}
                 </span>
                 <span className="hidden text-[9px] font-semibold text-ink/65 dark:text-slate-400 2xl:block">
@@ -215,16 +223,16 @@ export default function SiteHeader() {
             </nav>
 
             {/* Right Controls & Actions: Clearly Grouped Pods */}
-            <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <div className="flex shrink-0 items-center gap-1 sm:gap-2">
               {/* Pod 1: Commerce Actions (Search + Shopping Bag) */}
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 sm:gap-1.5">
                 <Link
                   href="/store"
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 text-ink/75 transition-all duration-200 hover:border-magenta hover:bg-magenta/5 hover:text-magenta dark:border-white/20 dark:text-slate-200 dark:hover:border-magenta dark:hover:bg-magenta/10 2xl:h-10 2xl:w-10"
+                  className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 text-ink/75 transition-all duration-200 hover:border-magenta hover:bg-magenta/5 hover:text-magenta dark:border-white/20 dark:text-slate-200 dark:hover:border-magenta dark:hover:bg-magenta/10 2xl:h-10 2xl:w-10"
                   title="Search Products & Artisans"
                   aria-label="Search Products & Artisans"
                 >
-                  <Search className="h-4 w-4" />
+                  <Search className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Link>
 
                 <button
@@ -232,9 +240,9 @@ export default function SiteHeader() {
                   onClick={openCart}
                   aria-label={t.cart?.title || 'Shopping Cart'}
                   title={t.cart?.title || 'Shopping Cart'}
-                  className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 text-ink transition-all duration-200 hover:border-magenta hover:bg-magenta/5 hover:text-magenta dark:border-white/20 dark:text-slate-200 dark:hover:border-magenta dark:hover:bg-magenta/10 2xl:h-10 2xl:w-10"
+                  className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full border border-ink/15 text-ink transition-all duration-200 hover:border-magenta hover:bg-magenta/5 hover:text-magenta dark:border-white/20 dark:text-slate-200 dark:hover:border-magenta dark:hover:bg-magenta/10 2xl:h-10 2xl:w-10"
                 >
-                  <ShoppingBag className="h-4 w-4" />
+                  <ShoppingBag className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   {cartCount > 0 && (
                     <span className="absolute -right-1 -top-1 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-magenta px-1 text-[9px] font-extrabold text-white shadow-sm ring-1 ring-white dark:ring-slate-900 animate-scale-in">
                       {cartCount > 99 ? '99+' : cartCount}
@@ -261,8 +269,8 @@ export default function SiteHeader() {
               </div>
 
               {/* Mobile & Tablet Hamburger Toggle (< xl) */}
-              <div className="flex items-center gap-1.5 xl:hidden">
-                <ThemeToggle className="!h-9 !w-9" />
+              <div className="flex items-center gap-1 sm:gap-1.5 xl:hidden">
+                <ThemeToggle className="!h-8 !w-8 sm:!h-9 sm:!w-9" />
                 <button
                   type="button"
                   onClick={() => {
@@ -272,9 +280,9 @@ export default function SiteHeader() {
                   aria-expanded={menuOpen}
                   aria-controls="mobile-menu"
                   aria-label={t.menu}
-                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-magenta"
+                  className="flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-magenta"
                 >
-                  {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+                  {menuOpen ? <X className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Menu className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                 </button>
               </div>
             </div>

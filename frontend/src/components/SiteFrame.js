@@ -7,16 +7,22 @@ import ScrollExtras from './ScrollExtras';
 
 export default function SiteFrame({ children }) {
   const pathname = usePathname();
-  const isAdminRoute = pathname === '/admin' || pathname.startsWith('/admin/');
+  const isDashboardRoute =
+    pathname === '/admin' ||
+    pathname.startsWith('/admin/') ||
+    pathname === '/dashboard' ||
+    pathname.startsWith('/dashboard/') ||
+    pathname === '/account' ||
+    pathname.startsWith('/account/');
 
-  if (isAdminRoute) {
-    return <div className="flex flex-1 flex-col">{children}</div>;
+  if (isDashboardRoute) {
+    return <div className="flex min-h-screen flex-1 flex-col w-full max-w-full min-w-0 overflow-x-hidden">{children}</div>;
   }
 
   return (
     <>
       <SiteHeader />
-      <div className="flex flex-1 flex-col">{children}</div>
+      <div className="flex flex-1 flex-col w-full max-w-full min-w-0 overflow-x-hidden">{children}</div>
       <SiteFooter />
       <ScrollExtras />
     </>

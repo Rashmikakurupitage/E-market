@@ -8,7 +8,7 @@ const getCustomer = (userId) => prisma.customerProfile.findUnique({
   select: { id: true }
 });
 
-// Reviews are public; an authenticated buyer also receives their review eligibility and existing review.
+// Reviews are public; an authenticated customer receives their review eligibility and existing review.
 exports.getProductReviews = async (req, res) => {
   try {
     const productId = String(req.params.id);
@@ -17,11 +17,18 @@ exports.getProductReviews = async (req, res) => {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
+        customerId: true,
         rating: true,
         comment: true,
         createdAt: true,
         updatedAt: true,
-        customer: { select: { fullName: true } }
+        customer: {
+          select: {
+            fullName: true,
+            userId: true,
+            user: { select: { profilePhoto: { select: { updatedAt: true } } } }
+          }
+        }
       }
     });
     const reviewCount = reviews.length;
@@ -38,17 +45,11 @@ exports.getProductReviews = async (req, res) => {
         if (decoded.role === 'CUSTOMER') {
           const customer = await getCustomer(decoded.userId);
           if (customer) {
-            const [deliveredPurchase, savedReview] = await Promise.all([
-              prisma.orderItem.findFirst({
-                where: { productId, order: { customerId: customer.id, status: 'DELIVERED' } },
-                select: { id: true }
-              }),
-              prisma.productReview.findUnique({
-                where: { productId_customerId: { productId, customerId: customer.id } },
-                select: { id: true, rating: true, comment: true, createdAt: true, updatedAt: true }
-              })
-            ]);
-            canReview = Boolean(deliveredPurchase);
+            const savedReview = await prisma.productReview.findUnique({
+              where: { productId_customerId: { productId, customerId: customer.id } },
+              select: { id: true, rating: true, comment: true, createdAt: true, updatedAt: true }
+            });
+            canReview = true;
             myReview = savedReview;
           }
         }
@@ -57,12 +58,31 @@ exports.getProductReviews = async (req, res) => {
       }
     }
 
+    const deliveredCustomerIds = new Set(
+      (await prisma.orderItem.findMany({
+        where: {
+          productId,
+          order: { status: 'DELIVERED' }
+        },
+        select: { order: { select: { customerId: true } } }
+      })).map((item) => item.order?.customerId).filter(Boolean)
+    );
+
     res.json({
-      reviews: reviews.map((r) => ({
-        ...r,
-        reviewerName: r.customer?.fullName || 'Verified Buyer',
-        customer: undefined
-      })),
+      reviews: reviews.map((r) => {
+        const isVerifiedBuyer = deliveredCustomerIds.has(r.customerId);
+        return {
+          id: r.id,
+          rating: r.rating,
+          comment: r.comment,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+          isVerifiedBuyer,
+          reviewerName: r.customer?.fullName || (isVerifiedBuyer ? 'Verified Buyer' : 'Customer'),
+          reviewerUserId: r.customer?.userId || null,
+          reviewerPhotoVersion: r.customer?.user?.profilePhoto ? r.customer.user.profilePhoto.updatedAt.getTime() : null
+        };
+      }),
       reviewCount,
       averageRating,
       canReview,
@@ -74,7 +94,7 @@ exports.getProductReviews = async (req, res) => {
   }
 };
 
-// Only a customer with a delivered order containing this product can create or update a review.
+// Any customer can create or update a review for a product.
 exports.saveProductReview = async (req, res) => {
   try {
     const customer = await getCustomer(req.user.userId);
@@ -92,13 +112,6 @@ exports.saveProductReview = async (req, res) => {
     }
 
     const productId = String(req.params.id);
-    const deliveredPurchase = await prisma.orderItem.findFirst({
-      where: { productId, order: { customerId: customer.id, status: 'DELIVERED' } },
-      select: { id: true }
-    });
-    if (!deliveredPurchase) {
-      return res.status(403).json({ code: 'PURCHASE_REQUIRED', message: 'A delivered purchase is required to review this product.' });
-    }
 
     const review = await prisma.productReview.upsert({
       where: { productId_customerId: { productId, customerId: customer.id } },
@@ -113,7 +126,7 @@ exports.saveProductReview = async (req, res) => {
   }
 };
 
-// Reviews of a seller are public; an authenticated buyer also receives their review eligibility and existing review.
+// Reviews of a seller are public; an authenticated customer also receives their review eligibility and existing review.
 exports.getSellerReviews = async (req, res) => {
   try {
     const sellerId = String(req.params.id);
@@ -122,11 +135,18 @@ exports.getSellerReviews = async (req, res) => {
       orderBy: { createdAt: 'desc' },
       select: {
         id: true,
+        customerId: true,
         rating: true,
         comment: true,
         createdAt: true,
         updatedAt: true,
-        customer: { select: { fullName: true } }
+        customer: {
+          select: {
+            fullName: true,
+            userId: true,
+            user: { select: { profilePhoto: { select: { updatedAt: true } } } }
+          }
+        }
       }
     });
 
@@ -144,17 +164,11 @@ exports.getSellerReviews = async (req, res) => {
         if (decoded.role === 'CUSTOMER') {
           const customer = await getCustomer(decoded.userId);
           if (customer) {
-            const [deliveredOrder, savedReview] = await Promise.all([
-              prisma.order.findFirst({
-                where: { sellerId, customerId: customer.id, status: 'DELIVERED' },
-                select: { id: true }
-              }),
-              prisma.sellerReview.findUnique({
-                where: { sellerId_customerId: { sellerId, customerId: customer.id } },
-                select: { id: true, rating: true, comment: true, createdAt: true, updatedAt: true }
-              })
-            ]);
-            canReview = Boolean(deliveredOrder);
+            const savedReview = await prisma.sellerReview.findUnique({
+              where: { sellerId_customerId: { sellerId, customerId: customer.id } },
+              select: { id: true, rating: true, comment: true, createdAt: true, updatedAt: true }
+            });
+            canReview = true;
             myReview = savedReview;
           }
         }
@@ -163,12 +177,28 @@ exports.getSellerReviews = async (req, res) => {
       }
     }
 
+    const deliveredCustomerIds = new Set(
+      (await prisma.order.findMany({
+        where: { sellerId, status: 'DELIVERED' },
+        select: { customerId: true }
+      })).map((o) => o.customerId).filter(Boolean)
+    );
+
     res.json({
-      reviews: reviews.map((r) => ({
-        ...r,
-        reviewerName: r.customer?.fullName || 'Verified Buyer',
-        customer: undefined
-      })),
+      reviews: reviews.map((r) => {
+        const isVerifiedBuyer = deliveredCustomerIds.has(r.customerId);
+        return {
+          id: r.id,
+          rating: r.rating,
+          comment: r.comment,
+          createdAt: r.createdAt,
+          updatedAt: r.updatedAt,
+          isVerifiedBuyer,
+          reviewerName: r.customer?.fullName || (isVerifiedBuyer ? 'Verified Buyer' : 'Customer'),
+          reviewerUserId: r.customer?.userId || null,
+          reviewerPhotoVersion: r.customer?.user?.profilePhoto ? r.customer.user.profilePhoto.updatedAt.getTime() : null
+        };
+      }),
       reviewCount,
       averageRating,
       canReview,
@@ -180,7 +210,7 @@ exports.getSellerReviews = async (req, res) => {
   }
 };
 
-// Only a customer with a delivered order from this seller can create or update a review.
+// Any customer can create or update a review for a seller.
 exports.saveSellerReview = async (req, res) => {
   try {
     const customer = await getCustomer(req.user.userId);
@@ -198,13 +228,6 @@ exports.saveSellerReview = async (req, res) => {
     }
 
     const sellerId = String(req.params.id);
-    const deliveredOrder = await prisma.order.findFirst({
-      where: { sellerId, customerId: customer.id, status: 'DELIVERED' },
-      select: { id: true }
-    });
-    if (!deliveredOrder) {
-      return res.status(403).json({ code: 'PURCHASE_REQUIRED', message: 'A delivered order is required to review this seller.' });
-    }
 
     const review = await prisma.sellerReview.upsert({
       where: { sellerId_customerId: { sellerId, customerId: customer.id } },
@@ -250,7 +273,7 @@ exports.getMySellerReviews = async (req, res) => {
     res.json({
       reviews: reviews.map((r) => ({
         ...r,
-        reviewerName: r.customer?.fullName || 'Verified Buyer',
+        reviewerName: r.customer?.fullName || 'Customer',
         customer: undefined
       })),
       reviewCount,

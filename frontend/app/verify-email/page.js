@@ -92,12 +92,12 @@ function VerifyEmail() {
   const masked = email ? email.replace(/^(.{2})(.*)(@.*)$/, (m, a, b, c) => `${a}${'*'.repeat(Math.max(b.length, 2))}${c}`) : '';
 
   return (
-    <main className="relative isolate flex-1 px-4 py-10 sm:py-14">
+    <main className="relative isolate flex-1 px-3 py-6 sm:px-6 sm:py-14 w-full max-w-full overflow-x-hidden">
       <PageArt />
-      <div className="mx-auto grid max-w-5xl animate-zoom-in overflow-hidden rounded-[32px] bg-white shadow-xl ring-1 ring-ink/5 lg:grid-cols-[2fr_3fr]">
+      <div className="mx-auto grid max-w-5xl animate-zoom-in overflow-hidden rounded-[24px] sm:rounded-[32px] bg-white shadow-xl ring-1 ring-ink/5 lg:grid-cols-[2fr_3fr]">
         <AuthPanel title={v.title} subtitle={v.subtitle} listTitle={v.stepsTitle} items={v.steps} numbered />
 
-        <section className="flex flex-col justify-center px-6 py-8 sm:px-10 sm:py-12">
+        <section className="flex flex-col justify-center px-4 py-6 sm:px-10 sm:py-12">
           {done ? (
             <div className="text-center">
               <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-leaf text-white shadow-lg shadow-leaf/30">

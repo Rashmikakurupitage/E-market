@@ -10,7 +10,10 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "nodemonConfig": {
-    "watch": ["src", ".env"],
+    "watch": [
+      "src",
+      ".env"
+    ],
     "ext": "js,json,env",
     "delay": 500
   },
@@ -25,7 +28,8 @@
     "dotenv": "^18.0.5",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "nodemailer": "^10.0.14"
+    "nodemailer": "^10.0.14",
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",

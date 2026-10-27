@@ -29,14 +29,14 @@ export default function ConfirmDialog({ title, text, confirmLabel, busyLabel, ca
 
   return (
     <Portal>
-<div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-4" onClick={() => !busy && onClose()}>
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        aria-labelledby="confirm-title"
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-[28px] bg-white p-6 shadow-2xl"
-      >
+      <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/50 p-3 sm:p-4" onClick={() => !busy && onClose()}>
+        <div
+          role="alertdialog"
+          aria-modal="true"
+          aria-labelledby="confirm-title"
+          onClick={(e) => e.stopPropagation()}
+          className="w-full max-w-md rounded-[22px] sm:rounded-[28px] bg-white p-4 sm:p-6 shadow-2xl"
+        >
         <div className="flex items-start gap-4">
           <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-50 text-red-600">
             <Trash2 className="h-5 w-5" />

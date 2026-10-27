@@ -14,12 +14,15 @@ import PasswordInput from '../../src/components/PasswordInput';
 import { PageArt } from '../../src/components/Art';
 import { DISTRICTS, isStrongPassword } from '../../src/lib/catalog';
 import { parseNic } from '../../src/lib/nicInfo';
+import NicPhotoUpload, { shrinkImage } from '../../src/components/NicPhotoUpload';
 
 // Same rules as the backend (authController.js)
 const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 
-// A clear message when the server says the email address is wrong
+// A clear message when the server says the email address or NIC is wrong
 const emailErrorText = (data, r) => {
+  if (data?.code === 'NIC_FRONT_REQUIRED') return r.nicFrontRequired || 'Front side photo of your NIC is essential.';
+  if (data?.code === 'NIC_BACK_REQUIRED') return r.nicBackRequired || 'Back side photo of your NIC is essential.';
   if (data?.code === 'WOMEN_ONLY') return r.nicWomenOnly;
   if (data?.code === 'INVALID_NIC') return r.nicIncorrect;
   if (data?.code === 'EMAIL_TYPO') return fill(r.emailTypo, { suggestion: data.suggestion });
@@ -71,9 +74,114 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
   });
   const [whatsappSameAsPhone, setWhatsappSameAsPhone] = useState(true);
   const [nicTouched, setNicTouched] = useState(false);
+  const [nicFront, setNicFront] = useState('');
+  const [nicBack, setNicBack] = useState('');
+  const [scanningNic, setScanningNic] = useState(false);
+  const [scanFeedback, setScanFeedback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleResetPhotos = () => {
+    setNicFront('');
+    setNicBack('');
+    setScanFeedback(null);
+    setFormData((prev) => ({ ...prev, nicNumber: '' }));
+    setFieldErrors((prev) => ({ ...prev, nic: undefined, nicFront: undefined, nicBack: undefined }));
+  };
+
+  const triggerBothPhotosScan = async (front, back) => {
+    if (!front || !back) return;
+    setScanningNic(true);
+    setScanFeedback(null);
+    try {
+      const res = await API.post('/auth/scan-nic', { frontImage: front, backImage: back });
+      if (res.data?.success && res.data.nicNumber) {
+        const scannedNic = res.data.nicNumber;
+        setFormData((prev) => ({ ...prev, nicNumber: scannedNic }));
+        setNicTouched(false);
+
+        const parsed = parseNic(scannedNic);
+        const isMale = res.data.gender === 'male' || (parsed.valid && parsed.gender === 'male');
+
+        if (isMale) {
+          setFieldErrors((prev) => ({ ...prev, nic: r.nicWomenOnly }));
+          setScanFeedback({
+            type: 'male_rejected',
+            gender: 'male',
+            nic: scannedNic,
+            title: r.womenOnlyTitle || 'Only Female Entrepreneurs Can Register as Sellers',
+            text: r.nicWomenOnly
+          });
+        } else {
+          setFieldErrors((prev) => ({ ...prev, nic: undefined }));
+          const dob = res.data.birthDate ? res.data.birthDate.split('-').reverse().join('/') : '';
+          setScanFeedback({
+            type: 'success',
+            text: (r.bothPhotosAutofilled ? fill(r.bothPhotosAutofilled, { nic: scannedNic, dob: dob || '—' }) : '') ||
+              `Both photos uploaded! NIC Number (${scannedNic}) and Date of Birth (${dob || '—'}) auto-filled.`
+          });
+        }
+      } else {
+        setScanFeedback({
+          type: 'warning',
+          text: r.scanFailed || 'Could not auto-detect NIC number from the photos. Please upload a clearer photo or retake.'
+        });
+      }
+    } catch (err) {
+      console.error('OCR Error:', err);
+      setScanFeedback({
+        type: 'warning',
+        text: r.scanFailed || 'Could not auto-detect NIC number from the photos. Please upload a clearer photo or retake.'
+      });
+    } finally {
+      setScanningNic(false);
+    }
+  };
+
+  const handleFrontChange = async (fileOrDataUrl) => {
+    try {
+      const dataUrl = await shrinkImage(fileOrDataUrl, 1400);
+      setNicFront(dataUrl);
+      setFieldErrors((prev) => ({ ...prev, nicFront: undefined }));
+
+      setNicBack((currentBack) => {
+        if (currentBack) {
+          triggerBothPhotosScan(dataUrl, currentBack);
+        } else {
+          setScanFeedback({
+            type: 'info',
+            text: r.frontDoneNextBack || r.frontUploadedNeedBack || 'Front photo added. Now capture the Back side photo to auto-fill your details.'
+          });
+        }
+        return currentBack;
+      });
+    } catch (err) {
+      console.error('Front photo error:', err);
+    }
+  };
+
+  const handleBackChange = async (fileOrDataUrl) => {
+    try {
+      const dataUrl = await shrinkImage(fileOrDataUrl, 1400);
+      setNicBack(dataUrl);
+      setFieldErrors((prev) => ({ ...prev, nicBack: undefined }));
+
+      setNicFront((currentFront) => {
+        if (currentFront) {
+          triggerBothPhotosScan(currentFront, dataUrl);
+        } else {
+          setScanFeedback({
+            type: 'info',
+            text: r.backUploadedNeedFront || 'Back photo added. Please upload the Front side photo to auto-fill your NIC number and Date of Birth.'
+          });
+        }
+        return currentFront;
+      });
+    } catch (err) {
+      console.error('Back photo error:', err);
+    }
+  };
 
   const handleChange = (e) => {
     let { name, value } = e.target;
@@ -99,8 +207,22 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
 
   const validate = () => {
     const errors = {};
-    if (!nicInfo.valid) errors.nic = r.nicIncorrect;
-    else if (nicInfo.gender === 'male') errors.nic = r.nicWomenOnly;
+    if (!nicFront) errors.nicFront = r.nicFrontRequired || 'Front side photo of your NIC is essential.';
+    if (!nicBack) errors.nicBack = r.nicBackRequired || 'Back side photo of your NIC is essential.';
+    if (!formData.nicNumber) {
+      errors.nic = r.nicHint || 'NIC number is required (auto-filled from photos).';
+    } else if (!nicInfo.valid) {
+      errors.nic = r.nicIncorrect;
+    } else if (nicInfo.gender === 'male') {
+      errors.nic = r.nicWomenOnly;
+      setScanFeedback({
+        type: 'male_rejected',
+        gender: 'male',
+        nic: formData.nicNumber,
+        title: r.womenOnlyTitle || 'Only Female Entrepreneurs Can Register as Sellers',
+        text: r.nicWomenOnly
+      });
+    }
     if (!isStrongPassword(formData.password)) errors.password = r.passwordRule;
     if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match.';
     if (!PHONE_PATTERN.test(cleanPhone(formData.phone))) errors.phone = r.phoneInvalid;
@@ -117,7 +239,16 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
     const errors = validate();
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
-      document.getElementById(Object.keys(errors)[0])?.focus();
+      if (errors.nicFront || errors.nicBack || (errors.nic && nicInfo?.gender === 'male')) {
+        document.getElementById('nicPhotosSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else {
+        const firstKey = Object.keys(errors)[0];
+        const el = document.getElementById(firstKey);
+        if (el) {
+          el.focus();
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
       return;
     }
 
@@ -138,6 +269,8 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         whatsappNo: whatsappSameAsPhone ? phone : cleanPhone(formData.whatsappNo),
         messengerUrl: formData.messengerUrl.trim(),
         facebookUrl: formData.facebookUrl.trim(),
+        nicFront: nicFront || null,
+        nicBack: nicBack || null,
       });
 
       // Log the new seller straight in
@@ -152,7 +285,25 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
       if (!err.response) {
         setError(r.networkError);
       } else {
-        setError(emailErrorText(err.response.data, r) || err.response.data?.message || r.genericError);
+        const respData = err.response.data;
+        if (respData?.code === 'NIC_FRONT_REQUIRED') {
+          setFieldErrors((prev) => ({ ...prev, nicFront: r.nicFrontRequired || 'Front side photo of your NIC is essential.' }));
+          document.getElementById('nicPhotosSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (respData?.code === 'NIC_BACK_REQUIRED') {
+          setFieldErrors((prev) => ({ ...prev, nicBack: r.nicBackRequired || 'Back side photo of your NIC is essential.' }));
+          document.getElementById('nicPhotosSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (respData?.code === 'WOMEN_ONLY') {
+          setFieldErrors((prev) => ({ ...prev, nic: r.nicWomenOnly }));
+          setScanFeedback({
+            type: 'male_rejected',
+            gender: 'male',
+            nic: formData.nicNumber,
+            title: r.womenOnlyTitle || 'Only Female Entrepreneurs Can Register as Sellers',
+            text: r.nicWomenOnly
+          });
+          document.getElementById('nicPhotosSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        setError(emailErrorText(respData, r) || respData?.message || r.genericError);
       }
     } finally {
       setLoading(false);
@@ -200,15 +351,51 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
               className={inputClass(false)}
             />
           </Field>
-          <Field id="email" label={r.email} required>
+          <Field id="email" label={r.email} required className="sm:col-span-2">
             <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
           </Field>
+
+          {/* Front & Back NIC Photos with OCR Scanning & Autofill */}
+          <NicPhotoUpload
+            frontImage={nicFront}
+            backImage={nicBack}
+            onFrontChange={handleFrontChange}
+            onBackChange={handleBackChange}
+            onFrontRemove={() => {
+              setNicFront('');
+              setScanFeedback(null);
+              setFormData((prev) => ({ ...prev, nicNumber: '' }));
+              setFieldErrors((prev) => ({ ...prev, nic: undefined, nicFront: undefined }));
+            }}
+            onBackRemove={() => {
+              setNicBack('');
+              setScanFeedback(null);
+              setFormData((prev) => ({ ...prev, nicNumber: '' }));
+              setFieldErrors((prev) => ({ ...prev, nic: undefined, nicBack: undefined }));
+            }}
+            onResetAll={handleResetPhotos}
+            scanning={scanningNic}
+            scanFeedback={scanFeedback}
+            errors={fieldErrors}
+            r={r}
+          />
+
           <Field id="nicNumber" label={r.nic} required hint={r.nicHint} error={fieldErrors.nic || nicProblem}>
-            <input id="nicNumber" name="nicNumber" type="text" required autoComplete="off" maxLength={14} value={formData.nicNumber} onChange={(e) => { setNicTouched(false); handleChange(e); }} onBlur={() => setNicTouched(true)} className={inputClass(!!(fieldErrors.nic || nicProblem))} aria-invalid={!!(fieldErrors.nic || nicProblem)} />
+            <input
+              id="nicNumber"
+              name="nicNumber"
+              type="text"
+              readOnly
+              tabIndex={-1}
+              placeholder={r.nicPlaceholderAuto || "Auto-filled from photos"}
+              value={formData.nicNumber}
+              className={`${inputClass(!!(fieldErrors.nic || nicProblem))} cursor-not-allowed bg-slate-50 font-mono tracking-wider`}
+              aria-invalid={!!(fieldErrors.nic || nicProblem)}
+            />
           </Field>
-          <div className="sm:col-span-2"><Field id="dateOfBirth" label={r.dateOfBirth} hint={r.dateOfBirthHint}>
+          <Field id="dateOfBirth" label={r.dateOfBirth} hint={r.dateOfBirthHint}>
             <input id="dateOfBirth" name="dateOfBirth" type="text" readOnly tabIndex={-1} placeholder="dd/mm/yyyy" value={birthDate ? birthDate.split("-").reverse().join("/") : ""} className={`${inputClass(false)} cursor-not-allowed bg-slate-50`} />
-          </Field></div>
+          </Field>
           <Field id="password" label={r.password || 'Password'} required hint={r.passwordRule} error={fieldErrors.password}>
             <PasswordInput id="password" name="password" autoComplete="new-password" value={formData.password} onChange={handleChange} hasError={!!fieldErrors.password} placeholder="" showLabel={r.showPassword} hideLabel={r.hidePassword} />
           </Field>
@@ -480,12 +667,12 @@ function Register() {
       : { title: r.title, subtitle: r.subtitle, listTitle: r.benefitsTitle, items: r.benefits };
 
   return (
-    <main className="relative isolate flex-1 px-4 py-10 sm:py-14">
+    <main className="relative isolate flex-1 px-3 py-6 sm:px-6 sm:py-14 w-full max-w-full overflow-x-hidden">
       <PageArt />
-      <div className="mx-auto grid max-w-6xl animate-zoom-in overflow-hidden rounded-[32px] bg-white shadow-xl ring-1 ring-ink/5 lg:grid-cols-[2fr_3fr]">
+      <div className="mx-auto grid max-w-6xl animate-zoom-in overflow-hidden rounded-[24px] sm:rounded-[32px] bg-white shadow-xl ring-1 ring-ink/5 lg:grid-cols-[2fr_3fr]">
         <AuthPanel {...panel} />
 
-        <section className="px-6 py-8 sm:px-10 sm:py-10">
+        <section className="px-4 py-6 sm:px-10 sm:py-10">
           {registered ? (
             <div className="flex h-full flex-col items-center justify-center py-16 text-center" role="status">
               <span className="flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 ring-8 ring-brand-50/50">

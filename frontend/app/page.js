@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
   Search, ArrowRight, Megaphone, HandCoins, Laptop, PackageSearch, ChevronDown, ShieldCheck, HandHeart, MapPin,
   Palette, Layers, Wheat, CookingPot, Flower2, Sparkles, PackageCheck, Store, BookOpen, Tag, Plus, CircleHelp,
-  HeartHandshake, Star, Quote, GraduationCap, Flame, SlidersHorizontal, ChevronUp,
+  HeartHandshake, Star, GraduationCap, Flame, SlidersHorizontal, ChevronUp,
   X, Users, Truck, MessageCircle
 } from 'lucide-react';
 import API from '../src/lib/api';
@@ -26,14 +26,6 @@ const SRI_LANKA_DISTRICTS = [
   'Puttalam', 'Ratnapura', 'Trincomalee', 'Vavuniya'
 ];
 
-const POPULAR_SEARCH_TAGS = [
-  { id: 'batik', en: 'Batik Sarees', si: 'බතික් සාරි', ta: 'பாடிக் சேலைகள்' },
-  { id: 'cinnamon', en: 'Pure Cinnamon', si: 'කුරුඳු', ta: 'இலவங்கப்பட்டை' },
-  { id: 'bags', en: 'Handloom Bags', si: 'අත්යන්ත්‍ර බෑග්', ta: 'கைத்தறி பைகள்' },
-  { id: 'pottery', en: 'Clay Pottery', si: 'මැටි භාණ්ඩ', ta: 'மண்பாண்டங்கள்' },
-  { id: 'spices', en: 'Ceylon Spices', si: 'කුළුබඩු', ta: 'மசாலா' },
-  { id: 'tea', en: 'Organic Tea', si: 'කාබනික තේ', ta: 'இயற்கை தேநீர்' },
-];
 
 // Advance standard category styling with rich dual-tone gradients & professional iconography
 const CATEGORY_LOOK = {
@@ -379,14 +371,14 @@ export default function Home() {
             <form
               onSubmit={handleSearch}
               role="search"
-              className="mt-7 flex max-w-2xl animate-fade-up flex-wrap items-center gap-1.5 rounded-full border border-slate-300/80 bg-white p-2 shadow-md shadow-slate-900/5 transition-all duration-300 [animation-delay:360ms] focus-within:border-magenta focus-within:ring-4 focus-within:ring-magenta/15 sm:flex-nowrap"
+              className="mt-7 flex max-w-2xl animate-fade-up flex-col sm:flex-row items-stretch sm:items-center gap-1.5 rounded-2xl sm:rounded-full border border-slate-300/80 bg-white p-2 shadow-md shadow-slate-900/5 transition-all duration-300 [animation-delay:360ms] focus-within:border-magenta focus-within:ring-4 focus-within:ring-magenta/15"
             >
               {/* Category Dropdown */}
-              <div className="relative shrink-0 border-r border-slate-200 pr-2 pl-3 hidden sm:block">
+              <div className="relative shrink-0 border-b pb-2 sm:border-b-0 sm:pb-0 sm:border-r border-slate-200 pr-2 pl-3">
                 <select
                   value={searchCategory}
                   onChange={(e) => setSearchCategory(e.target.value)}
-                  className="bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer pr-4 hover:text-slate-900"
+                  className="w-full sm:w-auto bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer pr-4 hover:text-slate-900"
                   aria-label={h.searchAllCategories}
                 >
                   <option value="all">{h.searchAllCategories}</option>
@@ -398,15 +390,15 @@ export default function Home() {
                 </select>
               </div>
 
-              <div className="flex flex-1 items-center gap-2 min-w-[200px]">
-                <Search className="ml-2 h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+              <div className="flex flex-1 items-center gap-2 min-w-0 px-2 sm:px-0">
+                <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
                 <input
                   id="product-search"
                   type="search"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   placeholder={t.searchPlaceholder}
-                  className="w-full bg-transparent py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                  className="w-full min-w-0 bg-transparent py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
                 />
                 {search && (
                   <button
@@ -423,49 +415,20 @@ export default function Home() {
               <button
                 type="submit"
                 aria-label={t.searchBtn}
-                className="btn-shine flex h-11 shrink-0 items-center justify-center gap-2 rounded-full bg-magenta px-6 text-sm font-bold text-white shadow-md shadow-magenta/25 transition-all duration-200 hover:bg-magenta-dark active:scale-95"
+                className="btn-shine flex h-11 w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-xl sm:rounded-full bg-magenta px-6 text-sm font-bold text-white shadow-md shadow-magenta/25 transition-all duration-200 hover:bg-magenta-dark active:scale-95"
               >
                 <Search className="h-4 w-4" />
                 <span>{t.searchBtn}</span>
               </button>
             </form>
 
-            {/* Quick Trending Searches */}
-            <div className="mt-3.5 flex animate-fade-up flex-wrap items-center gap-2 text-xs [animation-delay:450ms]">
-              <span className="flex items-center gap-1 font-bold text-slate-500">
-                <Flame className="h-3.5 w-3.5 text-magenta animate-pulse" />
-                {lang === 'si' ? 'ජනප්‍රිය සෙවුම්:' : lang === 'ta' ? 'பிரபலமானவை:' : 'Trending:'}
-              </span>
-              {POPULAR_SEARCH_TAGS.map((tag) => {
-                const label = tag[lang] || tag.en;
-                const isSelected = search.toLowerCase() === tag.en.toLowerCase();
-                return (
-                  <button
-                    key={tag.id}
-                    type="button"
-                    onClick={() => {
-                      setSearch(tag.en);
-                      scrollToProducts();
-                    }}
-                    className={`inline-flex items-center gap-1 rounded-full px-3 py-1 font-semibold transition-all duration-200 active:scale-95 ${
-                      isSelected
-                        ? 'bg-magenta text-white shadow-xs'
-                        : 'border border-slate-200/90 bg-white/90 text-slate-700 shadow-2xs hover:border-magenta/50 hover:bg-magenta/5 hover:text-magenta'
-                    }`}
-                  >
-                    <span>{label}</span>
-                  </button>
-                );
-              })}
-            </div>
-
 
             {/* Twin Action CTAs */}
-            <div className="mt-7 flex animate-fade-up flex-wrap items-center gap-3 [animation-delay:550ms]">
+            <div className="mt-7 flex animate-fade-up flex-col sm:flex-row items-stretch sm:items-center gap-3 [animation-delay:550ms]">
               <button
                 type="button"
                 onClick={scrollToProducts}
-                className="btn-shine inline-flex items-center gap-2 rounded-full bg-magenta px-6 py-3 text-sm font-bold text-white shadow-md shadow-magenta/20 transition-all hover:bg-magenta-dark active:scale-95"
+                className="btn-shine inline-flex items-center justify-center gap-2 rounded-full bg-magenta px-6 py-3 text-sm font-bold text-white shadow-md shadow-magenta/20 transition-all hover:bg-magenta-dark active:scale-95"
               >
                 <span>{h.heroCtaShop}</span>
                 <ChevronDown className="h-4 w-4 animate-bounce-soft" />
@@ -473,7 +436,7 @@ export default function Home() {
 
               <Link
                 href="/register"
-                className="group inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-2xs transition-all hover:bg-slate-50 hover:border-slate-400"
+                className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-2xs transition-all hover:bg-slate-50 hover:border-slate-400"
               >
                 <Store className="h-4 w-4 text-magenta" />
                 <span>{h.heroCtaSell}</span>
@@ -964,41 +927,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* 11. Customer Testimonials & Social Proof */}
-        <section className="mx-auto w-full max-w-7xl px-4 pb-20 pt-4 sm:px-6">
-          <SectionTitle title={h.testimonialsTitle} sub={h.testimonialsSub} />
-          <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3">
-            {h.testimonials?.map((item, index) => (
-              <Reveal key={item.author} delay={index * 120} className="grid">
-                <div className="relative flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-6 shadow-2xs transition-all duration-200 hover:-translate-y-1 hover:border-slate-300 hover:shadow-md">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 text-amber-500">
-                        {Array.from({ length: 5 }, (_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-amber-400 text-amber-400" />
-                        ))}
-                      </div>
-                      <Quote className="h-6 w-6 text-slate-300" />
-                    </div>
-                    <p className="mt-4 text-sm leading-relaxed text-slate-700 italic">
-                      &ldquo;{item.quote}&rdquo;
-                    </p>
-                  </div>
-                  <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-4">
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">{item.author}</p>
-                      <p className="text-xs text-slate-500 font-medium">{item.location}</p>
-                    </div>
-                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[11px] font-bold text-emerald-700 ring-1 ring-emerald-200">
-                      <ShieldCheck className="h-3.5 w-3.5" />
-                      {item.verified}
-                    </span>
-                  </div>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </section>
 
         {/* 12. Invite Women Entrepreneurs */}
         <section className="mx-auto w-full max-w-7xl px-4 pb-8 sm:px-6">

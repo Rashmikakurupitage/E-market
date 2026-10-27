@@ -17,8 +17,8 @@ const app = express();
 
 // Middlewares
 app.use(cors());
-// 3 MB: the admin's home page picture is sent as an image in the request
-app.use(express.json({ limit: '6mb' }));
+// 15 MB: support NIC card photos and home page media
+app.use(express.json({ limit: '15mb' }));
 
 // Routes
 app.use('/api/auth', authRoutes);

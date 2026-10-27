@@ -12,10 +12,10 @@ export default function LegalDocument({ type }) {
   const Icon = type === 'privacy' ? ShieldCheck : Scale;
 
   return (
-    <main className="relative isolate flex-1 px-4 py-10 sm:px-6 sm:py-14">
+    <main className="relative isolate flex-1 px-3 py-6 sm:px-6 sm:py-14 w-full max-w-full overflow-x-hidden">
       <PageArt />
-      <article className="mx-auto max-w-4xl overflow-hidden rounded-[32px] bg-white shadow-xl ring-1 ring-ink/5">
-        <header className="bg-ink px-6 py-8 text-white sm:px-10 sm:py-10">
+      <article className="mx-auto max-w-4xl overflow-hidden rounded-[24px] sm:rounded-[32px] bg-white shadow-xl ring-1 ring-ink/5">
+        <header className="bg-ink px-4 py-6 text-white sm:px-10 sm:py-10">
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-sm font-semibold text-white/70 transition-colors hover:text-white"
@@ -23,21 +23,21 @@ export default function LegalDocument({ type }) {
             <ArrowLeft className="h-4 w-4" />
             {lang === 'si' ? 'මුල් පිටුවට' : lang === 'ta' ? 'முகப்புக்குத் திரும்பு' : 'Back to home'}
           </Link>
-          <div className="mt-7 flex items-center gap-3">
-            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 text-turmeric ring-1 ring-white/15">
-              <Icon className="h-6 w-6" />
+          <div className="mt-5 sm:mt-7 flex items-center gap-3">
+            <span className="flex h-11 w-11 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-white/10 text-turmeric ring-1 ring-white/15 shrink-0">
+              <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
             </span>
-            <div>
-              <h1 className="text-3xl font-extrabold sm:text-4xl">{content.title}</h1>
-              <p className="mt-1 text-sm text-white/60">{legalContent[lang].updated}</p>
+            <div className="min-w-0">
+              <h1 className="text-2xl font-extrabold sm:text-4xl break-words">{content.title}</h1>
+              <p className="mt-1 text-xs sm:text-sm text-white/60">{legalContent[lang].updated}</p>
             </div>
           </div>
-          <p className="mt-6 max-w-3xl text-sm leading-relaxed text-white/80 sm:text-base">
+          <p className="mt-5 sm:mt-6 max-w-3xl text-sm leading-relaxed text-white/80 sm:text-base">
             {content.intro}
           </p>
         </header>
 
-        <div className="space-y-8 px-6 py-7 sm:px-10 sm:py-10">
+        <div className="space-y-6 sm:space-y-8 px-4 py-6 sm:px-10 sm:py-10">
           <aside className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-950">
             {legalContent[lang].draftNotice}
           </aside>

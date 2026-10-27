@@ -58,7 +58,7 @@ export default function SellerDiscountDialog({ product, onClose, onSaved, onAuth
           e.preventDefault();
           if (valid) save();
         }}
-        className="max-h-[92vh] w-full max-w-md animate-zoom-in space-y-4 overflow-y-auto rounded-t-[28px] bg-white p-6 shadow-2xl sm:rounded-[28px]"
+        className="max-h-[92vh] w-full max-w-md animate-zoom-in space-y-4 overflow-y-auto rounded-t-[28px] bg-white p-4 sm:p-6 shadow-2xl sm:rounded-[28px]"
       >
         <div className="flex items-start justify-between gap-3">
           <div>

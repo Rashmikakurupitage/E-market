@@ -24,6 +24,7 @@ import Portal from '../../src/components/Portal';
 import ProductReviews from '../../src/components/ProductReviews';
 import ReviewModal from '../../src/components/ReviewModal';
 import CustomerGateModal from '../../src/components/CustomerGateModal';
+import { profilePhotoUrl } from '../../src/lib/profilePhoto';
 
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
 
@@ -54,11 +55,16 @@ const isExample = (product) => !product.sellerId;
 
 function SellerLine({ product }) {
   const seller = getSeller(product);
+  const sellerPhoto = profilePhotoUrl(seller);
   return (
     <div className="flex items-center gap-3">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-magenta to-saffron text-xs font-bold text-white shadow-sm ring-2 ring-white">
-        {initials(seller.businessName) || '?'}
-      </span>
+      {sellerPhoto ? (
+        <img src={sellerPhoto} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover shadow-sm ring-2 ring-white" />
+      ) : (
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-magenta to-saffron text-xs font-bold text-white shadow-sm ring-2 ring-white">
+          {initials(seller.businessName) || '?'}
+        </span>
+      )}
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <p className="truncate text-sm font-semibold text-ink">{seller.businessName || '—'}</p>
@@ -148,7 +154,7 @@ function QuickView({ product, onClose }) {
           )}
         </div>
 
-        <div className="flex flex-col p-6 sm:p-8">
+        <div className="flex flex-col p-4 sm:p-8 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             {product.category && (
               <span className="rounded-full bg-sand/70 px-3 py-1 text-xs font-semibold text-ink/80">
@@ -167,7 +173,7 @@ function QuickView({ product, onClose }) {
             )}
           </div>
 
-          <h2 id="quick-view-title" className="mt-4 pr-10 text-3xl font-bold leading-tight text-ink">{product.title}</h2>
+          <h2 id="quick-view-title" className="mt-4 pr-10 text-2xl sm:text-3xl font-bold leading-tight text-ink break-words">{product.title}</h2>
           <div className="mt-3">
             <PriceTag product={product} large />
           </div>
@@ -394,7 +400,7 @@ export default function StorePage() {
       <PageArt />
       <div className="mx-auto max-w-7xl">
         {/* Banner */}
-        <section className="relative isolate animate-zoom-in overflow-hidden rounded-[40px] bg-ink px-6 py-10 text-white shadow-2xl shadow-ink/20 sm:px-10 sm:py-12">
+        <section className="relative isolate animate-zoom-in overflow-hidden rounded-[28px] sm:rounded-[40px] bg-ink px-4 py-8 text-white shadow-2xl shadow-ink/20 sm:px-10 sm:py-12">
           <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 -z-10 h-72 w-72 rounded-full bg-magenta/50 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/4 -z-10 h-72 w-72 rounded-full bg-saffron/35 blur-3xl" />
           <DotGrid className="pointer-events-none absolute right-8 top-8 -z-10 hidden w-24 text-white/15 md:block" rows={4} cols={6} />
@@ -408,7 +414,7 @@ export default function StorePage() {
                 <Store className="h-3.5 w-3.5" />
                 {s.tag}
               </span>
-              <h1 className="mt-4 text-4xl font-bold leading-tight sm:text-5xl">{s.title}</h1>
+              <h1 className="mt-4 text-3xl font-bold leading-tight sm:text-5xl">{s.title}</h1>
               <Squiggle className="mt-1 h-3 w-40" />
               <p className="mt-4 max-w-xl text-sm leading-relaxed text-white/70 sm:text-base">{s.subtitle}</p>
 
@@ -418,19 +424,21 @@ export default function StorePage() {
                   e.preventDefault();
                   document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="mt-7 flex max-w-xl items-center gap-2 rounded-full bg-white/10 p-1.5 ring-1 ring-white/15 backdrop-blur transition-shadow focus-within:ring-2 focus-within:ring-turmeric/60"
+                className="mt-6 sm:mt-7 flex max-w-xl flex-col xs:flex-row items-stretch xs:items-center gap-2 rounded-2xl xs:rounded-full bg-white/10 p-1.5 ring-1 ring-white/15 backdrop-blur transition-shadow focus-within:ring-2 focus-within:ring-turmeric/60"
               >
-                <label htmlFor="store-search" className="sr-only">{t.searchBtn}</label>
-                <Search className="ml-3 h-5 w-5 shrink-0 text-white/50" aria-hidden="true" />
-                <input
-                  id="store-search"
-                  type="search"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  placeholder={t.searchPlaceholder}
-                  className="min-w-0 flex-1 bg-transparent px-2 py-2.5 text-sm text-white placeholder:text-white/45 focus:outline-none sm:text-base"
-                />
-                <button type="submit" className="btn-shine shrink-0 rounded-full bg-magenta px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-magenta/30 transition-colors hover:bg-magenta-dark">
+                <div className="flex flex-1 items-center gap-2 pl-2 sm:pl-3">
+                  <label htmlFor="store-search" className="sr-only">{t.searchBtn}</label>
+                  <Search className="h-5 w-5 shrink-0 text-white/50" aria-hidden="true" />
+                  <input
+                    id="store-search"
+                    type="search"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder={t.searchPlaceholder}
+                    className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm text-white placeholder:text-white/45 focus:outline-none sm:text-base"
+                  />
+                </div>
+                <button type="submit" className="btn-shine shrink-0 rounded-xl xs:rounded-full bg-magenta px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-magenta/30 transition-colors hover:bg-magenta-dark text-center">
                   {t.searchBtn}
                 </button>
               </form>

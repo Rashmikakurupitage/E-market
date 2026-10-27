@@ -141,7 +141,7 @@ export default function Account() {
   ];
 
   return (
-    <main className="relative isolate flex-1 px-4 py-8 sm:py-10">
+    <div className="relative isolate min-h-screen w-full">
       <PageArt />
       <DashboardSidebar
         items={menu}
@@ -150,14 +150,15 @@ export default function Account() {
         name={name}
         photoUrl={profilePhotoUrl(user)}
         subtitle={user?.email}
+        roleLabel={c.accountTitle || 'Customer'}
         onLogout={loggedOut}
         menuLabel={c.accountTitle}
-        stickyClass="lg:top-28"
+        backHref="/store"
         card={{ icon: ShoppingBag, title: t.store.title, text: c.browse, label: c.browse, href: '/store' }}
       >
         {section === 'overview' && <>
         {/* Welcome */}
-        <Reveal as="section" animation="fade-down" className="relative isolate flex flex-col gap-5 overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between sm:p-8">
+        <Reveal as="section" animation="fade-down" className="relative isolate flex flex-col gap-4 sm:gap-5 overflow-hidden rounded-[24px] sm:rounded-[32px] bg-ink p-4 sm:p-8 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between">
           <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />
           <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-16 -z-10 h-48 w-48 animate-float rounded-full bg-magenta/50 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 right-10 -z-10 h-56 w-56 animate-float rounded-full bg-saffron/35 blur-3xl [animation-delay:-4s]" />
@@ -210,8 +211,26 @@ export default function Account() {
 
         {section === 'orders' && <CustomerOrders onAuthError={loggedOut} />}
         {section === 'complaints' && <CustomerComplaints onAuthError={loggedOut} />}
-        {section === 'settings' && <Reveal className="grid"><ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} /></Reveal>}
+        {section === 'settings' && (
+          <Reveal className="space-y-6">
+            <div className="rounded-[28px] bg-white p-6 shadow-sm ring-1 ring-ink/5 sm:p-8">
+              <h2 className="font-sans text-sm font-bold uppercase tracking-wider text-slate-800">
+                {t.profilePhoto?.title || 'Profile Photo'}
+              </h2>
+              <div className="mt-4 flex flex-wrap items-center gap-6">
+                <ProfilePhotoEditor user={user} name={name} onChanged={contactUpdated} onAuthError={loggedOut} />
+                <div className="min-w-0 max-w-sm">
+                  <p className="text-sm font-bold text-slate-900">{name}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">
+                    {t.profilePhoto?.hint || 'Upload a square profile photo to personalize your account and reviews.'}
+                  </p>
+                </div>
+              </div>
+            </div>
+            <ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} />
+          </Reveal>
+        )}
       </DashboardSidebar>
-    </main>
+    </div>
   );
 }

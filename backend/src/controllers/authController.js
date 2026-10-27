@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const otpStore = require('../utils/otpStore');
 const nicVault = require('../utils/nicVault');
 const { parseNic } = require('../utils/nicInfo');
+const { scanNicImage } = require('../utils/nicOcr');
 const { sendLoginCode, explainMailError, isEmailConfigured } = require('../utils/mailer');
 
 // Catch a wrong email before anything is sent: bad shape, a likely typo of a popular domain, or a domain that cannot receive mail
@@ -107,7 +108,9 @@ exports.register = async (req, res) => {
       whatsappNo,
       description,
       messengerUrl,
-      facebookUrl
+      facebookUrl,
+      nicFront,
+      nicBack
     } = req.body;
     const role = req.body.role || 'CUSTOMER';
     const nicNumberInput = req.body.nicNumber?.trim().toUpperCase();
@@ -147,17 +150,35 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'First name සහ Last name අවශ්‍ය වේ.' });
     }
 
-    // Sellers must give a valid NIC (it is stored encrypted). Customers never give one.
-    if (role === 'SELLER' && !nicVault.isValidNic(nicNumberInput)) {
-      return res.status(400).json({ code: 'INVALID_NIC', message: 'Enter a valid NIC number: 12 digits, or 9 digits followed by V or X.' });
-    }
-    // Only women can sell here: the NIC number shows the gender and the birth date
-    const nicInfo = role === 'SELLER' ? parseNic(nicNumberInput) : null;
-    if (role === 'SELLER' && !nicInfo.valid) {
-      return res.status(400).json({ code: 'INVALID_NIC', message: 'This NIC number is not valid. Please check it.' });
-    }
-    if (nicInfo?.gender === 'male') {
-      return res.status(403).json({ code: 'WOMEN_ONLY', message: 'Only women can register as sellers.' });
+    // Sellers must upload both front & back NIC photos and provide a valid NIC (it is stored encrypted).
+    let nicInfo = null;
+    if (role === 'SELLER') {
+      if (!nicFront || typeof nicFront !== 'string' || !nicFront.startsWith('data:image/')) {
+        return res.status(400).json({
+          code: 'NIC_FRONT_REQUIRED',
+          message: 'Front side photo of your NIC is essential for seller registration.'
+        });
+      }
+      if (!nicBack || typeof nicBack !== 'string' || !nicBack.startsWith('data:image/')) {
+        return res.status(400).json({
+          code: 'NIC_BACK_REQUIRED',
+          message: 'Back side photo of your NIC is essential for seller registration.'
+        });
+      }
+      if (!nicVault.isValidNic(nicNumberInput)) {
+        return res.status(400).json({ code: 'INVALID_NIC', message: 'Enter a valid NIC number: 12 digits, or 9 digits followed by V or X.' });
+      }
+      // Only women can sell here: the NIC number shows the gender and the birth date
+      nicInfo = parseNic(nicNumberInput);
+      if (!nicInfo.valid) {
+        return res.status(400).json({ code: 'INVALID_NIC', message: 'This NIC number is not valid. Please check it.' });
+      }
+      if (nicInfo.gender === 'male') {
+        return res.status(403).json({
+          code: 'WOMEN_ONLY',
+          message: 'Only female entrepreneurs can register as sellers on Lanka Women E-Market. Male users are welcome to register as customers to support our sellers.'
+        });
+      }
     }
     const normalizedNicNumber = makeSelfServiceNic(role);
     const sellerMessengerUrl = normalizeOptionalUrl(messengerUrl);
@@ -208,7 +229,9 @@ exports.register = async (req, res) => {
                 whatsappNo: whatsappNo || phone,
                 messengerUrl: sellerMessengerUrl,
                 facebookUrl: sellerFacebookUrl,
-                description: description || null
+                description: description || null,
+                nicFront: nicFront || null,
+                nicBack: nicBack || null
               }
             }
           }
@@ -273,7 +296,7 @@ exports.login = async (req, res) => {
 
     const user = await prisma.user.findUnique({
       where: { email },
-      include: { sellerProfile: true, customerProfile: true }
+      include: { sellerProfile: true, customerProfile: true, profilePhoto: { select: { updatedAt: true } } }
     });
 
     // Admins must use the admin login (email + NIC + emailed code)
@@ -327,7 +350,7 @@ const findByEmailAndNic = (role, profile) => (email, nicNumber) =>
       email: { equals: email, mode: 'insensitive' },
       [profile]: { is: { nicNumber: { equals: nicNumber, mode: 'insensitive' } } }
     },
-    include: { [profile]: true }
+    include: { [profile]: true, profilePhoto: { select: { updatedAt: true } } }
   });
 
 const LOGIN_TYPES = {
@@ -870,5 +893,70 @@ exports.verifyEmailChange = async (req, res) => {
     }
     console.error('EMAIL_CHANGE_VERIFY_ERROR:', error);
     res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });
+  }
+};
+
+// Scan NIC photos via OCR and extract NIC number and Date of Birth
+exports.scanNic = async (req, res) => {
+  try {
+    const { image, frontImage, backImage } = req.body;
+    const front = frontImage || image;
+    const back = backImage;
+
+    if (!front && !back) {
+      return res.status(400).json({ success: false, message: 'Image data is required.' });
+    }
+
+    let result = null;
+    let combinedText = '';
+
+    // 1. Try front photo first
+    if (front) {
+      try {
+        const frontRes = await scanNicImage(front);
+        combinedText += (frontRes.rawText || '') + '\n';
+        if (frontRes.extracted) {
+          result = frontRes.extracted;
+        }
+      } catch (frontErr) {
+        console.warn('Front OCR scan error:', frontErr.message);
+      }
+    }
+
+    // 2. If front did not yield NIC, try back photo
+    if (!result && back) {
+      try {
+        const backRes = await scanNicImage(back);
+        combinedText += (backRes.rawText || '') + '\n';
+        if (backRes.extracted) {
+          result = backRes.extracted;
+        }
+      } catch (backErr) {
+        console.warn('Back OCR scan error:', backErr.message);
+      }
+    }
+
+    if (!result) {
+      return res.json({
+        success: false,
+        message: 'Could not detect a valid Sri Lankan NIC number in the uploaded photos.',
+        rawText: combinedText.trim()
+      });
+    }
+
+    const isFemale = result.info.gender === 'female';
+    return res.json({
+      success: true,
+      nicNumber: result.nic,
+      gender: result.info.gender,
+      isFemale,
+      birthDate: result.info.birthDate,
+      message: isFemale
+        ? 'NIC number and Date of Birth successfully extracted.'
+        : 'Male NIC detected. Only female entrepreneurs can register as sellers on Lanka Women E-Market.'
+    });
+  } catch (error) {
+    console.error('SCAN_NIC_ERROR:', error);
+    return res.status(500).json({ success: false, message: 'Failed to process NIC image.' });
   }
 };

@@ -49,7 +49,7 @@ export default function AboutPage() {
       <PageArt />
 
       {/* 1. Signature Top Hero Banner */}
-      <section className="relative isolate mx-auto mt-4 w-[calc(100%-1.5rem)] max-w-7xl overflow-hidden rounded-[40px] px-4 pb-28 pt-10 text-white sm:mt-6 sm:w-[calc(100%-3rem)] sm:pb-36 sm:pt-14">
+      <section className="relative isolate mx-auto mt-4 w-[calc(100%-1.5rem)] max-w-7xl overflow-hidden rounded-[28px] sm:rounded-[40px] px-4 pb-28 pt-10 text-white sm:mt-6 sm:w-[calc(100%-3rem)] sm:pb-36 sm:pt-14">
         <img
           src={HERO_IMAGE}
           alt=""

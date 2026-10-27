@@ -625,6 +625,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
   const [reloadKey, setReloadKey] = useState(0);
   const [toRemove, setToRemove] = useState(null);
   const [removeError, setRemoveError] = useState('');
+  const [viewingNicSeller, setViewingNicSeller] = useState(null);
 
   useEffect(() => {
     let ignore = false;
@@ -732,7 +733,23 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                       </p>
                       <dl className="mt-3 grid gap-x-6 gap-y-1.5 text-sm text-slate-700 sm:grid-cols-2">
                         <div className="flex min-w-0 items-center gap-2"><Mail className="h-4 w-4 shrink-0 text-slate-400" /><dt className="sr-only">{a.email}</dt><dd className="truncate">{seller.email}</dd></div>
-                        <div className="flex items-center gap-2"><IdCard className="h-4 w-4 shrink-0 text-slate-400" /><dt className="text-slate-500">{a.nic}</dt><dd className="font-medium tracking-wide">{seller.nicMasked || '—'}</dd></div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <IdCard className="h-4 w-4 shrink-0 text-slate-400" />
+                          <dt className="text-slate-500">{a.nic}</dt>
+                          <dd className="font-medium tracking-wide flex items-center gap-2">
+                            <span>{seller.nicMasked || '—'}</span>
+                            {(seller.nicFront || seller.nicBack) && (
+                              <button
+                                type="button"
+                                onClick={() => setViewingNicSeller(seller)}
+                                className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 hover:bg-brand-100 ring-1 ring-brand-200 transition-colors dark:bg-brand-950/60 dark:text-brand-300 dark:ring-brand-800"
+                              >
+                                <Eye className="h-3 w-3" />
+                                {a.viewNicPhotos || 'View Photos'}
+                              </button>
+                            )}
+                          </dd>
+                        </div>
                         <div className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0 text-slate-400" /><dt className="sr-only">{a.phone}</dt><dd>{seller.phone}</dd></div>
                         {whatsapp && (
                           <div className="flex items-center gap-2"><WhatsAppIcon className="h-4 w-4 shrink-0 text-slate-400" /><dt className="sr-only">{a.whatsapp}</dt><dd>{formatPhone(whatsapp)}</dd></div>
@@ -815,6 +832,94 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
           onConfirm={removeSeller}
           onClose={() => setToRemove(null)}
         />
+      )}
+      {viewingNicSeller && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-sm animate-in fade-in"
+          onClick={() => setViewingNicSeller(null)}
+        >
+          <div
+            className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b pb-4 dark:border-slate-800">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+                  <IdCard className="h-5 w-5" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                    {a.nicPhotosTitle || 'National Identity Card (NIC)'}
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                    {viewingNicSeller.businessName} · {viewingNicSeller.nicMasked || ''}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setViewingNicSeller(null)}
+                className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+              {/* Front Photo */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Front Side
+                  </span>
+                  <span className="rounded-md bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+                    Front
+                  </span>
+                </div>
+                {viewingNicSeller.nicFront ? (
+                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-800/50 aspect-[16/10] flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={viewingNicSeller.nicFront}
+                      alt="NIC Front"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-xs text-slate-400 dark:border-slate-800 dark:bg-slate-800/30">
+                    {a.noNicPhotos || 'No front photo uploaded'}
+                  </div>
+                )}
+              </div>
+
+              {/* Back Photo */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                    Back Side
+                  </span>
+                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                    Back
+                  </span>
+                </div>
+                {viewingNicSeller.nicBack ? (
+                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-800/50 aspect-[16/10] flex items-center justify-center">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={viewingNicSeller.nicBack}
+                      alt="NIC Back"
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-xs text-slate-400 dark:border-slate-800 dark:bg-slate-800/30">
+                    {a.noNicPhotos || 'No back photo uploaded'}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
@@ -1398,7 +1503,7 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <main className="relative isolate flex-1 px-4 py-8 sm:py-10">
+    <div className="relative isolate min-h-screen w-full">
       <PageArt />
       <DashboardSidebar
         items={menu}
@@ -1408,9 +1513,10 @@ export default function AdminDashboard() {
         subtitle={session.user?.email}
         onLogout={loginExpired}
         menuLabel={a.menuTitle}
+        hideDesktopTopBar={true}
         card={{ icon: ShieldCheck, title: a.title, text: stats ? fill(a.statProductsSub, { count: stats.products.total }) : a.subtitle, label: a.tabSellers, onClick: () => setTab('sellers') }}
       >
-          <section className="flex flex-col gap-2 rounded-[28px] bg-slate-800 p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
+          <section className="flex flex-col gap-2 rounded-[22px] sm:rounded-[28px] bg-slate-800 p-4 sm:p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="flex items-center gap-2 text-2xl font-extrabold">
                 <ShieldCheck className="h-6 w-6 text-brand-300" />
@@ -1481,6 +1587,6 @@ export default function AdminDashboard() {
             </section>
           )}
       </DashboardSidebar>
-    </main>
+    </div>
   );
 }

@@ -64,7 +64,7 @@ export default function CustomerGateModal({ isOpen, onClose, product }) {
   return (
     <Portal>
       <div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in"
+        className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs animate-fade-in"
         onClick={(e) => {
           if (e.target === e.currentTarget) onClose();
         }}
@@ -73,7 +73,7 @@ export default function CustomerGateModal({ isOpen, onClose, product }) {
           role="dialog"
           aria-modal="true"
           aria-labelledby="customer-gate-title"
-          className="relative w-full max-w-md overflow-hidden rounded-3xl border border-slate-200/90 bg-white p-6 sm:p-7 shadow-2xl animate-zoom-in"
+          className="relative w-full max-w-md overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200/90 bg-white p-4 sm:p-7 shadow-2xl animate-zoom-in"
         >
           {/* Close Button */}
           <button

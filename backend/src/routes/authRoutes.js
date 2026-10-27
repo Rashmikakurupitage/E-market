@@ -16,10 +16,12 @@ const {
   me,
   updatePhone,
   requestEmailChangeCode,
-  verifyEmailChange
+  verifyEmailChange,
+  scanNic
 } = require('../controllers/authController');
 const authMiddleware = require('../middlewares/authmiddleware');
 
+router.post('/scan-nic', scanNic);
 router.post('/register', register);
 router.post('/login', login);
 router.post('/verify-email', verifyEmail);

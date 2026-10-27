@@ -4,8 +4,14 @@ try {
   if (themeStorage.getItem("lang")) {
     themeStorage.removeItem("lang");
   }
-  if (themeStorage.getItem("lw-theme") === "dark") {
+  var savedTheme = themeStorage.getItem("lw-theme");
+  var prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+  if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
     themeDocument.setAttribute("data-theme", "dark");
+    themeDocument.classList.add("dark");
+  } else {
+    themeDocument.removeAttribute("data-theme");
+    themeDocument.classList.remove("dark");
   }
   var accent = themeStorage.getItem("lw-accent");
   var pattern = themeStorage.getItem("lw-pattern");

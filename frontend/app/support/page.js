@@ -239,7 +239,7 @@ export default function Support() {
       <style>{PRINT_STYLES}</style>
 
       {/* Title */}
-      <section className="relative isolate mx-auto mt-4 w-[calc(100%-1.5rem)] max-w-7xl rounded-[40px] sm:mt-6 sm:w-[calc(100%-3rem)] overflow-hidden px-4 pb-28 pt-12 text-white sm:pb-36 sm:pt-16 print:hidden">
+      <section className="relative isolate mx-auto mt-4 w-[calc(100%-1.5rem)] max-w-7xl rounded-[28px] sm:rounded-[40px] sm:mt-6 sm:w-[calc(100%-3rem)] overflow-hidden px-4 pb-28 pt-12 text-white sm:pb-36 sm:pt-16 print:hidden">
         <img src={HERO_IMAGE} alt="" className="absolute inset-0 -z-20 h-full w-full animate-ken-burns object-cover" />
         <div className="absolute inset-0 -z-10 bg-linear-to-br from-ink/95 via-ink/85 to-brand-700/80" />
         <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />

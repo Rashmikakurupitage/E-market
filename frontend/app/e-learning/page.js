@@ -436,7 +436,7 @@ export default function ELearning() {
       <div className="mx-auto max-w-6xl space-y-10">
 
         {/* Banner */}
-        <Reveal as="section" animation="fade-down" className="relative isolate overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-2xl sm:p-10 lg:p-12">
+        <Reveal as="section" animation="fade-down" className="relative isolate overflow-hidden rounded-[24px] sm:rounded-[32px] bg-ink p-4 sm:p-10 lg:p-12 text-white shadow-2xl">
           <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />
           <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 -z-10 h-64 w-64 animate-float rounded-full bg-magenta/50 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 right-10 -z-10 h-56 w-56 animate-float rounded-full bg-saffron/35 blur-3xl [animation-delay:-4s]" />

@@ -528,10 +528,23 @@ exports.setSellerStatus = async (req, res) => {
       return res.status(400).json({ message: 'අවලංගු තත්ත්වයකි.' });
     }
 
+    const sellerId = String(req.params.id);
     const { nicNumber, nicHash, nicEncrypted, nicLast5, ...seller } = await prisma.sellerProfile.update({
-      where: { id: String(req.params.id) },
+      where: { id: sellerId },
       data: { status }
     });
+
+    if (status === 'REJECTED') {
+      await prisma.product.updateMany({
+        where: { sellerId },
+        data: { isPublished: false }
+      });
+    } else if (status === 'APPROVED') {
+      await prisma.product.updateMany({
+        where: { sellerId },
+        data: { isPublished: true }
+      });
+    }
 
     res.json({ message: 'තත්ත්වය යාවත්කාලීන කරන ලදී.', seller });
   } catch (error) {
