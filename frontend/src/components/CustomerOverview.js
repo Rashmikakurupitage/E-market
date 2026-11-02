@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, ClipboardList, Flag, PackageCheck, ShoppingBag, Truck } from 'lucide-react';
+import { ArrowRight, ClipboardList, Flag, Heart, PackageCheck, ShoppingBag, Truck } from 'lucide-react';
 import API from '../lib/api';
 import { useLanguage } from '../lib/i18n';
 import { formatDate, formatPrice } from '../lib/catalog';
@@ -86,6 +86,7 @@ export default function CustomerOverview({ onNavigate, onAuthError }) {
         {[
           { href: '/store', icon: ShoppingBag, label: d.browseStore, hint: d.browseHint },
           { tab: 'orders', icon: ClipboardList, label: t.orders.myTitle, hint: d.ordersHint },
+          { tab: 'wishlist', icon: Heart, label: t.customerFeatures.wishlistTitle, hint: t.customerFeatures.wishlistHint },
           { tab: 'complaints', icon: Flag, label: t.complaints.myTitle, hint: d.complaintsHint },
         ].map(({ href, tab, icon: Icon, label, hint }) => {
           const inner = (

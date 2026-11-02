@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   ArrowLeft, Banknote, CircleAlert, CircleCheck, LoaderCircle, LogIn, MapPin, Package, ShoppingBag, Store, Truck, UserPlus,
@@ -20,12 +20,12 @@ const NEXT = encodeURIComponent('/store/checkout');
 function Steps({ current }) {
   const { t } = useLanguage();
   const steps = [
-    { icon: ShoppingBag, label: t.cart.title },
+    { icon: ShoppingBag, label: t.checkout.reviewStep },
     { icon: Truck, label: t.checkout.delivery },
-    { icon: CircleCheck, label: t.orders.status.CONFIRMED },
+    { icon: CircleCheck, label: t.checkout.confirmStep },
   ];
   return (
-    <ol className="mt-6 flex flex-wrap items-center gap-2">
+    <ol aria-label={t.checkout.title} className="mt-6 flex flex-wrap items-center gap-2">
       {steps.map(({ icon: Icon, label }, index) => {
         const done = index < current;
         const active = index === current;
@@ -33,6 +33,7 @@ function Steps({ current }) {
           <li key={label} className="flex items-center gap-2">
             {index > 0 && <span aria-hidden="true" className={`h-px w-6 sm:w-10 ${done || active ? 'bg-magenta' : 'bg-ink/15'}`} />}
             <span
+              aria-current={active ? 'step' : undefined}
               className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-semibold transition-colors ${
                 active ? 'bg-ink text-white' : done ? 'bg-magenta/10 text-magenta' : 'bg-white/70 text-ink/50 ring-1 ring-ink/10'
               }`}
@@ -121,12 +122,50 @@ export default function CheckoutPage() {
     note: '',
   };
   const form = { ...defaults, ...typed };
-  const set = (key) => (e) => setTyped((old) => ({ ...old, [key]: e.target.value }));
+  const set = (key) => (e) => {
+    const { value } = e.target;
+    setTyped((old) => ({ ...old, [key]: value }));
+    setErrors((old) => old[key] ? { ...old, [key]: undefined } : old);
+    setServerError('');
+  };
 
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
   const [placing, setPlacing] = useState(false);
   const [placed, setPlaced] = useState(null); // { reference, orders } after success
+  const [checkoutStep, setCheckoutStep] = useState(0);
+  const [saveDelivery, setSaveDelivery] = useState(false);
+
+  useEffect(() => {
+    if (!hydrated || role !== 'CUSTOMER') return undefined;
+    let ignore = false;
+    API.get('/customer/delivery-details')
+      .then(({ data }) => {
+        if (ignore) return;
+        setTyped((current) => ({
+          ...current,
+          ...Object.fromEntries(
+            ['name', 'phone', 'address', 'district']
+              .filter((key) => current[key] === undefined && data[key])
+              .map((key) => [key, data[key]])
+          ),
+        }));
+      })
+      .catch((error) => {
+        if (!ignore && [401, 403].includes(error.response?.status)) {
+          setServerError(c.errors.generic);
+        }
+      });
+    return () => { ignore = true; };
+  }, [hydrated, role, c.errors.generic]);
+
+  const goToStep = (step) => {
+    setCheckoutStep(step);
+    window.scrollTo({
+      top: 0,
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+    });
+  };
 
   const validate = () => {
     const found = {};
@@ -143,10 +182,33 @@ export default function CheckoutPage() {
     setServerError('');
     const found = validate();
     setErrors(found);
-    if (Object.keys(found).length > 0) return;
+    const firstInvalid = Object.keys(found)[0];
+    if (firstInvalid) {
+      document.getElementById(`checkout-${firstInvalid}`)?.focus();
+      return;
+    }
+
+    if (checkoutStep === 1) {
+      goToStep(2);
+      return;
+    }
 
     setPlacing(true);
     try {
+      if (saveDelivery) {
+        try {
+          await API.put('/customer/delivery-details', {
+            name: form.name,
+            phone: form.phone,
+            address: form.address,
+            district: form.district,
+          });
+        } catch {
+          setServerError(t.customerFeatures.deliverySaveError);
+          setPlacing(false);
+          return;
+        }
+      }
       const res = await API.post('/orders', {
         items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
         delivery: { name: form.name, phone: form.phone, address: form.address, district: form.district },
@@ -228,7 +290,7 @@ export default function CheckoutPage() {
           <h1 className="text-4xl font-bold text-ink sm:text-5xl">{c.title}</h1>
           <Squiggle className="mt-1 h-3 w-40" />
         </div>
-        <Steps current={1} />
+        <Steps current={checkoutStep} />
 
         {!hydrated ? (
           <div className="mt-8 h-64 animate-pulse rounded-[32px] bg-white/60" />
@@ -247,7 +309,27 @@ export default function CheckoutPage() {
         ) : (
           <div className="mt-8 grid items-start gap-8 lg:grid-cols-[1.25fr_1fr]">
             <div className="order-2 lg:order-1">
-              {!session ? (
+              {checkoutStep === 0 ? (
+                <section className="rounded-[32px] bg-white p-6 shadow-xl shadow-ink/5 ring-1 ring-ink/5 sm:p-8">
+                  <h2 className="text-xl font-bold text-ink sm:text-2xl">{c.reviewHeading}</h2>
+                  <p className="mt-2 text-sm leading-relaxed text-ink/65">{c.reviewText}</p>
+                  <div className="mt-6 rounded-2xl bg-cream p-4 ring-1 ring-ink/5">
+                    <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+                      <ShoppingBag className="h-4 w-4 text-magenta" />
+                      {fill(t.cart.itemsCount, { count })}
+                    </p>
+                    <p className="mt-2 text-2xl font-bold tabular-nums text-magenta">{formatPrice(total)}</p>
+                    <p className="mt-1 text-xs leading-relaxed text-ink/60">{c.deliveryEstimateNote}</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => goToStep(1)}
+                    className={`${primaryButtonClass} mt-6 min-h-12`}
+                  >
+                    {c.continueToDelivery}<ArrowLeft className="h-4 w-4 rotate-180" />
+                  </button>
+                </section>
+              ) : !session ? (
                 /* Not logged in */
                 <div className="relative isolate animate-fade-up overflow-hidden rounded-[32px] bg-ink p-8 text-white shadow-2xl shadow-ink/20">
                   <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 -z-10 h-56 w-56 rounded-full bg-magenta/50 blur-3xl" />
@@ -267,68 +349,128 @@ export default function CheckoutPage() {
                       {c.register}
                     </Link>
                   </div>
+                  <button type="button" onClick={() => goToStep(0)} className="mt-5 min-h-11 rounded-full px-5 text-sm font-semibold text-white ring-1 ring-white/30 transition hover:bg-white/10 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/30">
+                    {c.backStep}
+                  </button>
                 </div>
               ) : role !== 'CUSTOMER' ? (
                 /* Seller or admin account */
-                <p className="flex animate-fade-up items-start gap-3 rounded-[24px] bg-turmeric/20 p-5 text-sm leading-relaxed text-ink ring-1 ring-turmeric/40">
-                  <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-saffron" />
-                  {c.wrongAccount}
-                </p>
+                <div className="space-y-4">
+                  <p className="flex animate-fade-up items-start gap-3 rounded-[24px] bg-turmeric/20 p-5 text-sm leading-relaxed text-ink ring-1 ring-turmeric/40">
+                    <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-saffron" />
+                    {c.wrongAccount}
+                  </p>
+                  <button type="button" onClick={() => goToStep(0)} className="min-h-11 rounded-full px-5 text-sm font-semibold text-ink ring-1 ring-ink/15 hover:bg-cream">
+                    {c.backStep}
+                  </button>
+                </div>
               ) : (
                 /* Delivery form */
                 <form onSubmit={placeOrder} noValidate className="animate-fade-up space-y-6 rounded-[32px] bg-white p-6 shadow-xl shadow-ink/5 ring-1 ring-ink/5 sm:p-8">
-                  <h2 className="flex items-center gap-2.5 text-2xl font-bold text-ink">
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-magenta/10 text-magenta">
-                      <Truck className="h-5 w-5" />
-                    </span>
-                    {c.delivery}
-                  </h2>
+                      {checkoutStep === 1 ? (
+                        <>
+                          <div>
+                            <h2 className="flex items-center gap-2.5 text-xl font-bold text-ink sm:text-2xl">
+                              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-magenta/10 text-magenta">
+                                <Truck className="h-5 w-5" />
+                              </span>
+                              {c.delivery}
+                            </h2>
+                            <p className="mt-2 text-sm leading-relaxed text-ink/60">{c.deliveryIntro}</p>
+                          </div>
+                          <div className="grid gap-5 sm:grid-cols-2">
+                            <Field id="checkout-name" label={c.name} required error={errors.name}>
+                              <input id="checkout-name" value={form.name} onChange={set('name')} autoComplete="name" aria-invalid={!!errors.name} className={inputClass(errors.name)} />
+                            </Field>
+                            <Field id="checkout-phone" label={c.phone} required error={errors.phone}>
+                              <input id="checkout-phone" type="tel" inputMode="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" aria-invalid={!!errors.phone} className={inputClass(errors.phone)} />
+                            </Field>
+                          </div>
+                          <Field id="checkout-address" label={c.address} required error={errors.address}>
+                            <textarea id="checkout-address" rows={3} value={form.address} onChange={set('address')} placeholder={c.addressPlaceholder} autoComplete="street-address" aria-invalid={!!errors.address} className={inputClass(errors.address)} />
+                          </Field>
+                          <Field id="checkout-district" label={c.district} required error={errors.district}>
+                            <select id="checkout-district" value={form.district} onChange={set('district')} aria-invalid={!!errors.district} className={inputClass(errors.district)}>
+                              <option value="">—</option>
+                              {DISTRICTS.map((d) => (
+                                <option key={d} value={d}>{d}</option>
+                              ))}
+                            </select>
+                          </Field>
+                          <Field id="checkout-note" label={c.note} error={errors.note}>
+                            <textarea id="checkout-note" rows={2} maxLength={500} value={form.note} onChange={set('note')} placeholder={c.notePlaceholder} className={inputClass(errors.note)} />
+                          </Field>
+                          <label className="flex items-start gap-3 rounded-2xl bg-cream px-4 py-3 text-sm text-ink/75 ring-1 ring-ink/5">
+                            <input
+                              type="checkbox"
+                              checked={saveDelivery}
+                              onChange={(event) => setSaveDelivery(event.target.checked)}
+                              className="mt-0.5 h-4 w-4 rounded border-ink/25 accent-magenta"
+                            />
+                            <span>{t.customerFeatures.saveForNextTime}</span>
+                          </label>
+                        </>
+                      ) : (
+                        <>
+                          <div>
+                            <h2 className="text-xl font-bold text-ink sm:text-2xl">{c.confirmHeading}</h2>
+                            <p className="mt-2 text-sm leading-relaxed text-ink/60">{c.confirmText}</p>
+                          </div>
+                          <dl className="divide-y divide-ink/10 rounded-2xl bg-cream px-4 ring-1 ring-ink/5">
+                            <div className="py-3">
+                              <dt className="text-xs font-semibold text-ink/55">{c.name}</dt>
+                              <dd className="mt-1 break-words text-sm font-semibold text-ink">{form.name}</dd>
+                            </div>
+                            <div className="py-3">
+                              <dt className="text-xs font-semibold text-ink/55">{c.phone}</dt>
+                              <dd className="mt-1 break-words text-sm font-semibold text-ink">{form.phone}</dd>
+                            </div>
+                            <div className="py-3">
+                              <dt className="text-xs font-semibold text-ink/55">{c.address}</dt>
+                              <dd className="mt-1 whitespace-pre-line break-words text-sm font-semibold text-ink">{form.address}, {form.district}</dd>
+                            </div>
+                            {form.note.trim() && (
+                              <div className="py-3">
+                                <dt className="text-xs font-semibold text-ink/55">{c.note}</dt>
+                                <dd className="mt-1 whitespace-pre-line break-words text-sm text-ink">{form.note}</dd>
+                              </div>
+                            )}
+                          </dl>
+                          <div className="flex gap-3 rounded-[22px] bg-cream p-4 ring-1 ring-ink/5">
+                            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-leaf/15 text-leaf">
+                              <Banknote className="h-5 w-5" />
+                            </span>
+                            <div>
+                              <p className="text-sm font-bold text-ink">{c.payment}</p>
+                              <p className="mt-0.5 text-xs leading-relaxed text-ink/60">{c.paymentText}</p>
+                            </div>
+                          </div>
+                        </>
+                      )}
 
-                  <div className="grid gap-5 sm:grid-cols-2">
-                    <Field id="checkout-name" label={c.name} required error={errors.name}>
-                      <input id="checkout-name" value={form.name} onChange={set('name')} autoComplete="name" aria-invalid={!!errors.name} className={inputClass(errors.name)} />
-                    </Field>
-                    <Field id="checkout-phone" label={c.phone} required error={errors.phone}>
-                      <input id="checkout-phone" type="tel" inputMode="tel" value={form.phone} onChange={set('phone')} autoComplete="tel" aria-invalid={!!errors.phone} className={inputClass(errors.phone)} />
-                    </Field>
-                  </div>
-                  <Field id="checkout-address" label={c.address} required error={errors.address}>
-                    <textarea id="checkout-address" rows={3} value={form.address} onChange={set('address')} placeholder={c.addressPlaceholder} autoComplete="street-address" aria-invalid={!!errors.address} className={inputClass(errors.address)} />
-                  </Field>
-                  <Field id="checkout-district" label={c.district} required error={errors.district}>
-                    <select id="checkout-district" value={form.district} onChange={set('district')} aria-invalid={!!errors.district} className={inputClass(errors.district)}>
-                      <option value="">—</option>
-                      {DISTRICTS.map((d) => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </select>
-                  </Field>
-                  <Field id="checkout-note" label={c.note} error={errors.note}>
-                    <textarea id="checkout-note" rows={2} maxLength={500} value={form.note} onChange={set('note')} placeholder={c.notePlaceholder} className={inputClass(errors.note)} />
-                  </Field>
+                      {serverError && (
+                        <p role="alert" className="flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
+                          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+                          {serverError}
+                        </p>
+                      )}
 
-                  <div className="flex gap-3 rounded-[22px] bg-cream p-4 ring-1 ring-ink/5">
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-leaf/15 text-leaf">
-                      <Banknote className="h-5 w-5" />
-                    </span>
-                    <div>
-                      <p className="text-sm font-bold text-ink">{c.payment}</p>
-                      <p className="mt-0.5 text-xs leading-relaxed text-ink/60">{c.paymentText}</p>
-                    </div>
-                  </div>
-
-                  {serverError && (
-                    <p role="alert" className="flex items-start gap-2 rounded-2xl bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-red-200">
-                      <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
-                      {serverError}
-                    </p>
-                  )}
-
-                  <button type="submit" disabled={placing} className={primaryButtonClass}>
-                    {placing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                    {placing ? c.placing : `${c.place} · ${formatPrice(total)}`}
-                  </button>
-                </form>
+                      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+                        <button type="button" onClick={() => goToStep(checkoutStep - 1)} className="min-h-12 rounded-full px-5 text-sm font-semibold text-ink ring-1 ring-ink/15 transition hover:bg-cream focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">
+                          {c.backStep}
+                        </button>
+                        {checkoutStep === 1 ? (
+                          <button type="submit" className={`${primaryButtonClass} min-h-12`}>
+                            {c.continueToConfirm}<ArrowLeft className="h-4 w-4 rotate-180" />
+                          </button>
+                        ) : (
+                          <button type="submit" disabled={placing} className={`${primaryButtonClass} min-h-12`}>
+                            {placing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                            {placing ? c.placing : `${c.place} · ${formatPrice(total)}`}
+                          </button>
+                        )}
+                      </div>
+                    </form>
               )}
             </div>
 

@@ -162,14 +162,18 @@ const base = `
   background: #0e0c12;
   color: rgb(246 242 250);
 }
-/* The page background: the same warm glows, but on a deep plum instead of cream */
+/* Warm, muted glows on a deep plum page background */
 [data-theme='dark'] .bg-mesh {
   background-color: #0e0c12;
   background-image:
-    radial-gradient(at 8% 12%, rgb(var(--accent2-rgb) / 0.11) 0, transparent 42%),
-    radial-gradient(at 92% 6%, rgb(var(--accent-rgb) / 0.16) 0, transparent 44%),
+    radial-gradient(at 8% 12%, rgb(156 91 59 / 0.1) 0, transparent 42%),
+    radial-gradient(at 92% 6%, rgb(112 133 84 / 0.11) 0, transparent 44%),
     radial-gradient(at 62% 92%, rgb(244 185 62 / 0.06) 0, transparent 48%),
-    radial-gradient(at 4% 88%, rgb(79 154 82 / 0.07) 0, transparent 42%);
+    radial-gradient(at 4% 88%, rgb(96 128 103 / 0.07) 0, transparent 42%);
+}
+[data-theme='dark'] body::before {
+  opacity: 0.3;
+  filter: invert(1);
 }
 [data-theme='dark'] .admin-surface {
   background-image: radial-gradient(rgb(255 255 255 / 0.06) 1px, transparent 1.4px);

@@ -50,7 +50,7 @@ export default function ScrollExtras() {
         title={t.home.backToTop}
         tabIndex={showTop ? 0 : -1}
         aria-hidden={!showTop}
-        className={`fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand-700 shadow-lg ring-1 ring-ink/5 transition-all duration-300 hover:-translate-y-1 hover:bg-brand-600 hover:text-white hover:shadow-xl print:hidden ${
+        className={`fixed bottom-[calc(76px+env(safe-area-inset-bottom))] right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-white text-brand-700 shadow-lg ring-1 ring-ink/5 transition-all duration-300 hover:-translate-y-1 hover:bg-brand-600 hover:text-white hover:shadow-xl print:hidden lg:bottom-6 ${
           showTop ? 'opacity-100' : 'pointer-events-none translate-y-4 opacity-0'
         }`}
       >

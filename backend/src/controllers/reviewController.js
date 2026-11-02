@@ -24,10 +24,10 @@ exports.getProductReviews = async (req, res) => {
 
     let canReview = false;
     let myReview = null;
-    const authorization = req.headers.authorization;
-    if (authorization?.startsWith('Bearer ')) {
+    const token = req.cookies?.lw_session;
+    if (token) {
       try {
-        const decoded = jwt.verify(authorization.slice(7), process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
         if (decoded.role === 'CUSTOMER') {
           const customer = await getCustomer(decoded.userId);
           if (customer) {
@@ -93,5 +93,53 @@ exports.saveProductReview = async (req, res) => {
   } catch (error) {
     console.error('SAVE_PRODUCT_REVIEW_ERROR:', error);
     res.status(500).json({ message: 'Could not save product review.' });
+  }
+};
+
+exports.getSellerReviews = async (req, res) => {
+  try {
+    if (req.user.role !== 'SELLER') {
+      return res.status(403).json({ code: 'NOT_SELLER', message: 'Only sellers can view seller reviews.' });
+    }
+    const seller = await prisma.sellerProfile.findUnique({
+      where: { userId: req.user.userId },
+      select: { id: true },
+    });
+    if (!seller) {
+      return res.status(403).json({ code: 'NOT_SELLER', message: 'Seller profile not found.' });
+    }
+
+    const where = { product: { sellerId: seller.id } };
+    const [summary, byRating, reviews] = await Promise.all([
+      prisma.productReview.aggregate({ where, _avg: { rating: true }, _count: { _all: true } }),
+      prisma.productReview.groupBy({ by: ['rating'], where, _count: { _all: true } }),
+      prisma.productReview.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          updatedAt: true,
+          product: { select: { id: true, title: true } },
+        },
+      }),
+    ]);
+    const ratingCounts = Object.fromEntries([1, 2, 3, 4, 5].map((rating) => [rating, 0]));
+    byRating.forEach(({ rating, _count }) => {
+      ratingCounts[rating] = _count._all;
+    });
+    const reviewCount = summary._count._all;
+    res.json({
+      reviewCount,
+      averageRating: reviewCount ? Math.round((summary._avg.rating || 0) * 10) / 10 : 0,
+      ratingCounts,
+      reviews,
+    });
+  } catch (error) {
+    console.error('SELLER_REVIEWS_ERROR:', error);
+    res.status(500).json({ message: 'Could not load seller reviews.' });
   }
 };

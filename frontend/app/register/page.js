@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LoaderCircle, CircleAlert, CircleCheck, ArrowRight, KeyRound } from 'lucide-react';
@@ -20,6 +20,7 @@ const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 
 // A clear message when the server says the email address is wrong
 const emailErrorText = (data, r) => {
+  if (data?.code === 'RATE_LIMITED') return r.rateLimited;
   if (data?.code === 'WOMEN_ONLY') return r.nicWomenOnly;
   if (data?.code === 'INVALID_NIC') return r.nicIncorrect;
   if (data?.code === 'EMAIL_TYPO') return fill(r.emailTypo, { suggestion: data.suggestion });
@@ -62,6 +63,17 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [currentStep, setCurrentStep] = useState(0);
+  const stepFieldsetRef = useRef(null);
+  const stepperRef = useRef(null);
+
+  useEffect(() => {
+    if (currentStep === 0) return;
+    stepperRef.current?.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  }, [currentStep]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -82,12 +94,49 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
     if (!nicInfo.valid) errors.nic = r.nicIncorrect;
     else if (nicInfo.gender === 'male') errors.nic = r.nicWomenOnly;
     if (!isStrongPassword(formData.password)) errors.password = r.passwordRule;
-    if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match.';
+    if (formData.password !== formData.confirmPassword) errors.confirmPassword = r.passwordMismatch;
     if (!PHONE_PATTERN.test(cleanPhone(formData.phone))) errors.phone = r.phoneInvalid;
     if (!whatsappSameAsPhone && !PHONE_PATTERN.test(cleanPhone(formData.whatsappNo))) {
       errors.whatsappNo = r.phoneInvalid;
     }
     return errors;
+  };
+
+  const validateCurrentStep = () => {
+    const fieldset = stepFieldsetRef.current;
+    if (fieldset && !fieldset.reportValidity()) return false;
+
+    const errors = {};
+    if (currentStep === 0) {
+      if (!nicInfo.valid) errors.nic = r.nicIncorrect;
+      else if (nicInfo.gender === 'male') errors.nic = r.nicWomenOnly;
+      if (!isStrongPassword(formData.password)) errors.password = r.passwordRule;
+      if (formData.password !== formData.confirmPassword) errors.confirmPassword = r.passwordMismatch;
+    }
+    if (currentStep === 2) {
+      if (!PHONE_PATTERN.test(cleanPhone(formData.phone))) errors.phone = r.phoneInvalid;
+      if (!whatsappSameAsPhone && !PHONE_PATTERN.test(cleanPhone(formData.whatsappNo))) {
+        errors.whatsappNo = r.phoneInvalid;
+      }
+    }
+
+    setFieldErrors((previous) => ({ ...previous, ...errors }));
+    const firstError = Object.keys(errors)[0];
+    if (firstError) {
+      document.getElementById(firstError)?.focus();
+      return false;
+    }
+    return true;
+  };
+
+  const moveToStep = (step) => {
+    if (step <= currentStep) {
+      setError('');
+      setCurrentStep(step);
+    } else if (step === currentStep + 1 && validateCurrentStep()) {
+      setError('');
+      setCurrentStep(step);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -126,7 +175,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         onVerify(res.data.email);
         return;
       }
-      saveSession(res.data.token, res.data.user);
+      saveSession(res.data.user);
       onRegistered();
     } catch (err) {
       if (!err.response) {
@@ -140,7 +189,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" />
@@ -148,8 +197,40 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         </div>
       )}
 
+      <div ref={stepperRef} className="scroll-mt-40 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-bold text-slate-800">
+            {r.stepProgress.replace('{current}', String(currentStep + 1)).replace('{total}', '3')}
+          </p>
+          <p className="text-xs font-semibold text-slate-500">
+            {currentStep === 0 ? r.sectionPersonal : currentStep === 1 ? r.sectionBusiness : r.sectionContact}
+          </p>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuemin={1} aria-valuemax={3} aria-valuenow={currentStep + 1} aria-label={r.stepProgress.replace('{current}', String(currentStep + 1)).replace('{total}', '3')}>
+          <div className="h-full rounded-full bg-brand-600 transition-[width] duration-300" style={{ width: `${((currentStep + 1) / 3) * 100}%` }} />
+        </div>
+        <ol className="grid grid-cols-3 gap-2">
+          {[r.sectionPersonal, r.sectionBusiness, r.sectionContact].map((label, index) => (
+            <li key={label}>
+              <button
+                type="button"
+                onClick={() => moveToStep(index)}
+                aria-current={index === currentStep ? 'step' : undefined}
+                disabled={index > currentStep}
+                className={`flex min-h-11 w-full items-center gap-2 rounded-xl px-2 text-left text-xs font-semibold transition sm:px-3 ${index === currentStep ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200' : index < currentStep ? 'text-brand-700 hover:bg-brand-50' : 'cursor-not-allowed text-slate-400'}`}
+              >
+                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${index < currentStep ? 'bg-brand-600 text-white' : index === currentStep ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  {index < currentStep ? <CircleCheck className="h-4 w-4" /> : index + 1}
+                </span>
+                <span className="truncate">{label}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </div>
+
       {/* 1. Personal details */}
-      <fieldset className="space-y-4">
+      {currentStep === 0 && <fieldset ref={stepFieldsetRef} className="space-y-4">
         <SectionTitle number={1}>{r.sectionPersonal}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="firstName" label={r.firstName} required>
@@ -178,17 +259,17 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
           <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-brand-700" />
           {r.loginInfo}
         </p>
-      </fieldset>
+      </fieldset>}
 
       {/* 2. Business details */}
-      <fieldset className="space-y-4">
+      {currentStep === 1 && <fieldset ref={stepFieldsetRef} className="space-y-4">
         <SectionTitle number={2}>{r.sectionBusiness}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="businessName" label={r.businessName} required>
             <input id="businessName" name="businessName" type="text" required autoComplete="organization" value={formData.businessName} onChange={handleChange} className={inputClass(false)} />
           </Field>
           <Field id="district" label={r.district} required>
-            <select id="district" name="district" value={formData.district} onChange={handleChange} className={inputClass(false)}>
+            <select id="district" name="district" required value={formData.district} onChange={handleChange} className={inputClass(false)}>
               {DISTRICTS.map((d) => (
                 <option key={d} value={d}>
                   {d}
@@ -200,10 +281,10 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
             <textarea id="description" name="description" rows={3} value={formData.description} onChange={handleChange} className={inputClass(false)} placeholder={r.descriptionPlaceholder} />
           </Field>
         </div>
-      </fieldset>
+      </fieldset>}
 
       {/* 3. Contact details */}
-      <fieldset className="space-y-4">
+      {currentStep === 2 && <fieldset ref={stepFieldsetRef} className="space-y-4">
         <SectionTitle number={3}>{r.sectionContact}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="phone" label={r.phone} required error={fieldErrors.phone}>
@@ -242,13 +323,26 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
             <input id="facebookUrl" name="facebookUrl" type="url" value={formData.facebookUrl} onChange={handleChange} className={inputClass(false)} placeholder="https://facebook.com/your-page" />
           </Field>
         </div>
-      </fieldset>
+      </fieldset>}
 
-      <div className="space-y-4">
-        <button type="submit" disabled={loading} className={primaryButtonClass}>
-          {loading && <LoaderCircle className="h-4 w-4 animate-spin" />}
-          {loading ? r.submitting : r.submit}
-        </button>
+      <div className="space-y-4 border-t border-slate-100 pt-5">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+          {currentStep > 0 ? (
+            <button type="button" onClick={() => moveToStep(currentStep - 1)} className="min-h-12 rounded-xl px-5 text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">
+              {r.stepBack}
+            </button>
+          ) : <span />}
+          {currentStep < 2 ? (
+            <button type="button" onClick={() => moveToStep(currentStep + 1)} className={`${primaryButtonClass} min-h-12 sm:min-w-40`}>
+              {r.stepNext}<ArrowRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <button type="submit" disabled={loading} className={`${primaryButtonClass} min-h-12 sm:min-w-56`}>
+              {loading && <LoaderCircle className="h-4 w-4 animate-spin" />}
+              {loading ? r.submitting : r.submit}
+            </button>
+          )}
+        </div>
         <p className="text-center text-sm text-slate-500">
           {r.haveAccount}{' '}
           <Link href="/login" className="font-semibold text-brand-700 hover:underline">
@@ -284,7 +378,7 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
 
     const errors = {};
     if (!isStrongPassword(formData.password)) errors.password = r.passwordRule;
-    if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match.';
+    if (formData.password !== formData.confirmPassword) errors.confirmPassword = r.passwordMismatch;
     if (!PHONE_PATTERN.test(cleanPhone(formData.phone))) errors.phone = r.phoneInvalid;
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
@@ -310,7 +404,7 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
         onVerify(res.data.email);
         return;
       }
-      saveSession(res.data.token, res.data.user);
+      saveSession(res.data.user);
       onRegistered();
     } catch (err) {
       if (!err.response) {

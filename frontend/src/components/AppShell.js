@@ -3,11 +3,48 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Download, House, LifeBuoy, Store, UserRound, X } from 'lucide-react';
+import { BookOpen, Download, House, LifeBuoy, Store, UserRound, X } from 'lucide-react';
 import { useLanguage } from '../lib/i18n';
 import { homePathFor, useSession } from '../lib/auth';
+import API from '../lib/api';
+import { replaceCartItems, useCartItems } from '../lib/cart';
 
 const DISMISS_KEY = 'lw-install-dismissed';
+
+function CartSync() {
+  const session = useSession();
+  const items = useCartItems();
+  const customer = session?.user?.role === 'CUSTOMER';
+  const [readyFor, setReadyFor] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    setReadyFor(null);
+    if (!customer) return () => { active = false; };
+    const localItems = items;
+    API.post('/customer/cart/sync', {
+      items: localItems.map(({ id, quantity }) => ({ productId: id, quantity })),
+    }).then(({ data }) => {
+      if (!active) return;
+      replaceCartItems(data.items || []);
+      setReadyFor(session.user.id);
+    }).catch(() => {
+      // Keep the browser cart usable while offline; it will sync on a later visit.
+    });
+    return () => { active = false; };
+  // Sync once when the signed-in customer changes. Cart mutations are saved by the next effect.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [customer, session?.user?.id]);
+
+  useEffect(() => {
+    if (!customer || readyFor !== session?.user?.id) return;
+    const timer = window.setTimeout(() => {
+      API.put('/customer/cart', { items: items.map(({ id, quantity }) => ({ productId: id, quantity })) }).catch(() => {});
+    }, 350);
+    return () => window.clearTimeout(timer);
+  }, [customer, items, readyFor, session?.user?.id]);
+  return null;
+}
 
 // Registers the service worker (production only, so development is never served from a cache)
 function ServiceWorker() {
@@ -97,7 +134,8 @@ function InstallBanner() {
   );
 }
 
-// App-style bottom tabs on phones (Home, Store, Help, Account/Login). Hidden on larger screens and in the admin portal.
+// App-style bottom tabs on phones (Home, Store, Learn, Help, Account/Login).
+// Hidden on larger screens and in the admin portal.
 function BottomTabs() {
   const { t } = useLanguage();
   const pathname = usePathname() || '/';
@@ -107,6 +145,7 @@ function BottomTabs() {
   const tabs = [
     { href: '/', label: t.navHome, icon: House, active: pathname === '/' },
     { href: '/store', label: t.navStore, icon: Store, active: pathname.startsWith('/store') },
+    { href: '/e-learning', label: t.navElearn, icon: BookOpen, active: pathname.startsWith('/e-learning') },
     { href: '/support', label: t.navSupport, icon: LifeBuoy, active: pathname.startsWith('/support') || pathname.startsWith('/faq') },
     session
       ? { href: homePathFor(session.user?.role), label: session.user?.role === 'CUSTOMER' ? t.myAccount : t.dashboardBtn, icon: UserRound, active: pathname.startsWith('/account') || pathname.startsWith('/dashboard') }
@@ -118,9 +157,9 @@ function BottomTabs() {
       <ul className="mx-auto flex max-w-lg">
         {tabs.map(({ href, label, icon: Icon, active }) => (
           <li key={href} className="flex-1">
-            <Link href={href} aria-current={active ? 'page' : undefined} className={`flex flex-col items-center gap-0.5 py-2 text-[11px] font-semibold transition-colors ${active ? 'text-magenta' : 'text-ink/55'}`}>
+            <Link href={href} aria-current={active ? 'page' : undefined} className={`flex min-h-12 flex-col items-center justify-center gap-0.5 py-2 text-[11px] font-semibold transition-colors ${active ? 'text-magenta' : 'text-ink/55'}`}>
               <Icon className="h-5 w-5" />
-              <span className="max-w-full truncate px-1">{label}</span>
+              <span className="max-w-full truncate px-0.5">{label}</span>
             </Link>
           </li>
         ))}
@@ -133,6 +172,7 @@ export default function AppShell() {
   return (
     <>
       <ServiceWorker />
+      <CartSync />
       <BottomTabs />
       <InstallBanner />
     </>

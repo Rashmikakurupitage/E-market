@@ -13,6 +13,7 @@ const getKey = () => {
   }
   return Buffer.from(raw, 'hex');
 };
+const validateKey = () => getKey();
 
 const normalize = (nic) => String(nic || '').trim().toUpperCase();
 const isValidNic = (nic) => NIC_PATTERN.test(normalize(nic));
@@ -40,4 +41,4 @@ const protect = (nic) => ({ nicHash: hash(nic), nicEncrypted: encrypt(nic), nicL
 // What an admin sees: *****4255V
 const mask = (last5) => (last5 ? `*****${last5}` : null);
 
-module.exports = { NIC_PATTERN, isValidNic, normalize, hash, encrypt, decrypt, protect, mask };
+module.exports = { NIC_PATTERN, isValidNic, normalize, hash, encrypt, decrypt, protect, mask, validateKey };

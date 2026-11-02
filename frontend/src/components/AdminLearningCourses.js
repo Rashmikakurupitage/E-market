@@ -5,6 +5,7 @@ import { BookOpen, CircleCheck, CirclePlus, LoaderCircle, Pencil, Plus, Send, Ey
 import API from '../lib/api';
 import { LANGUAGES, translations, useLanguage } from '../lib/i18n';
 import { inputClass } from './form';
+import ImageCropDialog from './ImageCropDialog';
 
 function AdminImagePreview({ courseId, slot, label, unavailableLabel }) {
   const [imageUrl, setImageUrl] = useState('');
@@ -142,6 +143,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
   const [saving, setSaving] = useState(false);
   const [publishingId, setPublishingId] = useState(null);
   const [uploadingSlot, setUploadingSlot] = useState(null);
+  const [cropRequest, setCropRequest] = useState(null);
   const [formError, setFormError] = useState('');
 
   useEffect(() => {
@@ -269,10 +271,29 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
     setSaving(true);
     setFormError('');
     try {
-      await persistDraft(draft, editingId);
+      const response = await API.post('/admin/learning-courses/translate', {
+        sourceLanguage: selectedLanguage,
+        content: draft.translations[selectedLanguage],
+      });
+      const translatedDraft = {
+        ...draft,
+        translations: { ...draft.translations, ...response.data.translations },
+      };
+      setDraft(translatedDraft);
+      await persistDraft(translatedDraft, editingId);
       onChanged(copy.saved);
     } catch (error) {
       if ([401, 403].includes(error.response?.status)) onAuthError();
+      else if (error.response?.data?.code === 'TRANSLATION_NOT_CONFIGURED') {
+        try {
+          await persistDraft(draft, editingId);
+          onChanged(copy.savedWithoutTranslation, true);
+        } catch (saveError) {
+          if ([401, 403].includes(saveError.response?.status)) onAuthError();
+          else setFormError(copy.saveError);
+        }
+      }
+      else if (error.response?.data?.code?.startsWith('TRANSLATION_')) setFormError(copy.translationError);
       else setFormError(copy.saveError);
     } finally {
       setSaving(false);
@@ -300,23 +321,23 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
   const mediaFor = (slot) => recordMap.get(String(editingId))?.media?.find((item) => item.slot === slot);
 
   const uploadMedia = async (slot, file, kind) => {
-    if (!file || !draft) return;
+    if (!file || !draft) return false;
     if (kind === 'image' && !IMAGE_TYPES.includes(file.type)) {
       setFormError(copy.mediaTypes);
-      return;
+      return false;
     }
     if (kind === 'video' && !VIDEO_TYPES.includes(file.type)) {
       setFormError(copy.mediaTypes);
-      return;
+      return false;
     }
     if (kind === 'audio' && !AUDIO_TYPES.includes(file.type)) {
       setFormError(copy.mediaTypes);
-      return;
+      return false;
     }
     const maxBytes = kind === 'image' ? MAX_IMAGE_BYTES : kind === 'video' ? MAX_VIDEO_BYTES : MAX_AUDIO_BYTES;
     if (file.size > maxBytes) {
       setFormError(kind === 'image' ? copy.imageSizeLimit : kind === 'video' ? copy.videoSizeLimit : copy.audioSizeLimit);
-      return;
+      return false;
     }
 
     setUploadingSlot(slot);
@@ -339,6 +360,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
         };
       }));
       onChanged(copy.mediaSaved);
+      return true;
     } catch (error) {
       if ([401, 403].includes(error.response?.status)) onAuthError();
       else if (error.response?.status === 413) {
@@ -346,6 +368,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
       }
       else if (error.response?.status === 400) setFormError(copy.saveError);
       else setFormError(copy.mediaSaveError);
+      return false;
     } finally {
       setUploadingSlot(null);
     }
@@ -404,7 +427,18 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
             onChange={(event) => {
               const file = event.target.files?.[0];
               event.target.value = '';
-              uploadMedia(slot, file, kind);
+              if (kind === 'image' && file) {
+                if (!IMAGE_TYPES.includes(file.type)) {
+                  setFormError(copy.mediaTypes);
+                } else if (file.size > MAX_IMAGE_BYTES) {
+                  setFormError(copy.imageSizeLimit);
+                } else {
+                  setFormError('');
+                  setCropRequest({ slot, file });
+                }
+              } else {
+                uploadMedia(slot, file, kind);
+              }
             }}
             className="sr-only"
           />
@@ -494,6 +528,19 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
             <h4 className="font-extrabold text-ink">{copy.coverImage}</h4>
             <p className="text-xs text-slate-500">{copy.mediaTypes} {copy.uploadLimits}</p>
             {mediaControl('cover-image', 'image', copy.coverImage)}
+            {cropRequest && (
+              <ImageCropDialog
+                key={`${cropRequest.slot}-${cropRequest.file.name}-${cropRequest.file.lastModified}`}
+                file={cropRequest.file}
+                aspectRatio={4 / 3}
+                onCancel={() => setCropRequest(null)}
+                onCrop={async (blob) => {
+                  const saved = await uploadMedia(cropRequest.slot, blob, 'image');
+                  if (saved) setCropRequest(null);
+                  return saved;
+                }}
+              />
+            )}
           </section>
 
           <section className="space-y-4">
@@ -557,7 +604,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
           {formError && <p className="rounded-xl bg-red-50 px-4 py-3 text-sm font-medium text-red-800" role="alert">{formError}</p>}
           <button type="submit" disabled={saving || Boolean(uploadingSlot)} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white transition hover:bg-magenta disabled:opacity-60">
             {saving ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CircleCheck className="h-4 w-4" />}
-            {saving ? copy.saving : copy.save}
+            {saving ? copy.translatingAndSaving : copy.save}
           </button>
         </form>
       )}

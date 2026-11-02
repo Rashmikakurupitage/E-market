@@ -2,8 +2,8 @@ const crypto = require('crypto');
 const dns = require('dns').promises;
 const prisma = require('../config/db');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 const otpStore = require('../utils/otpStore');
+const { clearSessionCookies, setSessionCookie } = require('../utils/authCookies');
 const nicVault = require('../utils/nicVault');
 const { parseNic } = require('../utils/nicInfo');
 const { sendLoginCode, explainMailError, isEmailConfigured } = require('../utils/mailer');
@@ -53,13 +53,6 @@ const normalizeOptionalUrl = (value) => {
   const trimmed = String(value).trim();
   return trimmed || null;
 };
-
-const signToken = (user, expiresIn = '7d') =>
-  jwt.sign(
-    { userId: user.id, role: user.role },
-    process.env.JWT_SECRET || 'fallback_secret',
-    { expiresIn }
-  );
 
 // Never send passwordHash back to the browser
 // NIC data (even encrypted) never leaves the server in a login or profile response
@@ -275,11 +268,8 @@ exports.login = async (req, res) => {
       return res.status(403).json({ code: 'ACCOUNT_REMOVED', message: 'This account has been removed.' });
     }
 
-    res.json({
-      message: 'සාර්ථකව Log විය!',
-      token: signToken(user),
-      user: toPublicUser(user)
-    });
+    setSessionCookie(res, user);
+    res.json({ message: 'සාර්ථකව Log විය!', user: toPublicUser(user) });
   } catch (error) {
     console.error('LOGIN_ERROR:', error);
     res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });
@@ -417,11 +407,8 @@ const verifyLoginCode = (type) => async (req, res) => {
       return res.status(400).json({ code: result, message: messages[result] });
     }
 
-    res.json({
-      message: 'සාර්ථකව Log විය!',
-      token: signToken(user, type.sessionLength),
-      user: toPublicUser(user)
-    });
+    setSessionCookie(res, user, type.sessionLength);
+    res.json({ message: 'සාර්ථකව Log විය!', user: toPublicUser(user) });
   } catch (error) {
     console.error('LOGIN_VERIFY_ERROR:', error);
     res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });
@@ -463,7 +450,8 @@ exports.verifyEmail = async (req, res) => {
       data: { emailVerifiedAt: new Date() },
       include: { sellerProfile: true, customerProfile: true, profilePhoto: { select: { updatedAt: true } } }
     });
-    res.json({ message: 'Your email is verified.', token: signToken(verified), user: toPublicUser(verified) });
+    setSessionCookie(res, verified);
+    res.json({ message: 'Your email is verified.', user: toPublicUser(verified) });
   } catch (error) {
     console.error('VERIFY_EMAIL_ERROR:', error);
     res.status(500).json({ message: 'Server error.' });
@@ -595,7 +583,15 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ code: result, message: 'The code is not valid. Please ask for a new one.' });
     }
 
-    await prisma.user.update({ where: { id: user.id }, data: { passwordHash: await bcrypt.hash(newPassword, 10), emailVerifiedAt: user.emailVerifiedAt || new Date() } });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash: await bcrypt.hash(newPassword, 12),
+        emailVerifiedAt: user.emailVerifiedAt || new Date(),
+        sessionVersion: { increment: 1 },
+      },
+    });
+    clearSessionCookies(res);
     res.json({ message: 'Your password was changed. You can log in now.' });
   } catch (error) {
     console.error('PASSWORD_RESET_ERROR:', error);

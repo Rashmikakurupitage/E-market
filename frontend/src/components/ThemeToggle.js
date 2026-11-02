@@ -3,7 +3,6 @@
 import { Moon, Sun } from 'lucide-react';
 import { useLanguage } from '../lib/i18n';
 import { setTheme, useTheme } from '../lib/theme';
-import AppearanceMenu from './AppearanceMenu';
 
 const TEXT = {
   en: { dark: 'Dark', light: 'Light', toDark: 'Switch to dark mode', toLight: 'Switch to light mode', group: 'Colour theme' },
@@ -46,7 +45,6 @@ export default function ThemeToggle({ variant = 'button', iconOnly = false, clas
   }
 
   return (
-    <span className="flex items-center gap-1.5">
     <button
       type="button"
       onClick={() => setTheme(dark ? 'light' : 'dark')}
@@ -56,7 +54,5 @@ export default function ThemeToggle({ variant = 'button', iconOnly = false, clas
     >
       {dark ? <Sun className="h-[18px] w-[18px]" /> : <Moon className="h-[18px] w-[18px]" />}
     </button>
-    <AppearanceMenu className={className} />
-    </span>
   );
 }

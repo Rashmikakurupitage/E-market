@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   Plus, Package, MessageCircle, TrendingUp, MapPin, LoaderCircle, CircleAlert, X, Tag,
-  Hourglass, CircleX, RefreshCw, Trash2, CircleCheck, LayoutDashboard, ClipboardList, Settings,
+  Hourglass, CircleX, RefreshCw, Trash2, CircleCheck, LayoutDashboard, ClipboardList, Settings, Store, Star,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -27,6 +27,8 @@ import DashboardSidebar from '../../src/components/DashboardSidebar';
 import SellerInsights from '../../src/components/SellerInsights';
 import { cleanMessengerUrl } from '../../src/lib/catalog';
 import Portal from '../../src/components/Portal';
+import { profilePhotoUrl } from '../../src/lib/profilePhoto';
+import { SellerProfilePanel, SellerReviewsPanel } from '../../src/components/SellerWorkspace';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -366,10 +368,13 @@ export default function Dashboard() {
   const ownerName = [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') || profile?.businessName || '';
   const sellerStatus = profile?.status || 'PENDING';
 
+  const workspace = t.sellerWorkspace;
   const menu = [
     { value: 'overview', label: t.admin.tabOverview, icon: LayoutDashboard },
     { value: 'products', label: d.myProducts, icon: Package },
     { value: 'orders', label: t.orders.sellerTitle, icon: ClipboardList },
+    { value: 'profile', label: workspace.profileTab, icon: Store },
+    { value: 'reviews', label: workspace.reviewsTab, icon: Star },
     { value: 'settings', label: t.contactEdit.title, icon: Settings },
   ];
 
@@ -381,6 +386,7 @@ export default function Dashboard() {
         active={section}
         onSelect={setSection}
         name={ownerName}
+        photoUrl={profilePhotoUrl(user)}
         subtitle={user?.email}
         onLogout={loggedOut}
         menuLabel={d.title}
@@ -404,7 +410,10 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-4">
             <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-white text-xl font-extrabold text-brand-700 shadow-lg ring-4 ring-white/25">
-              {initials(ownerName) || '?'}
+              {profilePhotoUrl(user) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={profilePhotoUrl(user)} alt={ownerName} className="h-full w-full rounded-full object-cover" />
+              ) : initials(ownerName) || '?'}
             </span>
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-wider text-turmeric">{d.title}</p>
@@ -452,6 +461,19 @@ export default function Dashboard() {
           <StatCard icon={TrendingUp} label={d.statWeek} value={weekClicks} sub={d.statWeekSub} tone="gold" delay={200} />
         </section>
         <p className="px-1 text-xs leading-relaxed text-slate-500">{d.resultsNote}</p>
+
+        <section className="grid gap-4 sm:grid-cols-2">
+          <button type="button" onClick={() => setSection('profile')} className="group flex items-center gap-4 rounded-[24px] bg-white p-5 text-left shadow-sm ring-1 ring-ink/5 transition hover:-translate-y-0.5 hover:shadow-md">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-brand-50 text-brand-700"><Store className="h-6 w-6" /></span>
+            <span className="min-w-0 flex-1"><span className="block font-bold text-ink">{workspace.overviewProfile}</span><span className="mt-1 block text-sm text-ink/55">{workspace.previewHint}</span></span>
+            <Store className="h-4 w-4 shrink-0 text-brand-700 transition-transform group-hover:translate-x-1" />
+          </button>
+          <button type="button" onClick={() => setSection('reviews')} className="group flex items-center gap-4 rounded-[24px] bg-white p-5 text-left shadow-sm ring-1 ring-ink/5 transition hover:-translate-y-0.5 hover:shadow-md">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600"><Star className="h-6 w-6" /></span>
+            <span className="min-w-0 flex-1"><span className="block font-bold text-ink">{workspace.overviewReviews}</span><span className="mt-1 block text-sm text-ink/55">{workspace.verifiedOnly}</span></span>
+            <Star className="h-4 w-4 shrink-0 text-amber-500 transition-transform group-hover:scale-110" />
+          </button>
+        </section>
 
         <SellerInsights profile={profile} productCount={products.length} onAddProduct={() => setShowAddProduct(true)} onNavigate={setSection} onAuthError={loggedOut} />
         </>)}
@@ -520,6 +542,10 @@ export default function Dashboard() {
 
         {/* Orders customers placed in the Store */}
         {section === 'orders' && <SellerOrders onAuthError={loggedOut} />}
+
+        {section === 'profile' && <SellerProfilePanel user={user} onUpdated={contactUpdated} onAuthError={loggedOut} />}
+
+        {section === 'reviews' && <SellerReviewsPanel onAuthError={loggedOut} />}
 
         {/* Email, phone and the WhatsApp number customers order on */}
         {section === 'settings' && <Reveal><ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} /></Reveal>}

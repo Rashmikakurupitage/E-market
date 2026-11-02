@@ -20,33 +20,34 @@ enum ApplicationStatus {
 }
 
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  phone        String   @unique
-  passwordHash String
-  role         Role     @default(CUSTOMER)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String    @id @default(uuid())
+  email           String    @unique
+  phone           String    @unique
+  passwordHash    String
+  role            Role      @default(CUSTOMER)
+  sessionVersion  Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
   // Set when the owner enters the code we email at sign-up. Accounts without it cannot log in.
   emailVerifiedAt DateTime?
   // Set by an administrator to deactivate an account while retaining its history.
-  removedAt    DateTime?
+  removedAt       DateTime?
 
-  sellerProfile   SellerProfile?
-  customerProfile CustomerProfile?
-  adminProfile    AdminProfile?
-  profilePhoto    ProfilePhoto?
-  learningProgress LearningProgress?
+  sellerProfile        SellerProfile?
+  customerProfile      CustomerProfile?
+  adminProfile         AdminProfile?
+  profilePhoto         ProfilePhoto?
+  learningProgress     LearningProgress?
   learningCertificates LearningCertificate[]
 }
 
 model LearningCourse {
-  id        String   @id @default(uuid())
-  courseId  String   @unique
-  content   Json     @db.JsonB
-  published Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        String                @id @default(uuid())
+  courseId  String                @unique
+  content   Json                  @db.JsonB
+  published Boolean               @default(false)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
   media     LearningCourseMedia[]
 }
 
@@ -70,17 +71,17 @@ model LearningProgress {
 }
 
 model LearningCertificate {
-  id               String   @id @default(uuid())
-  certificateCode  String   @unique @default(uuid())
-  userId           String
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  courseId         String
-  courseTitle      String
-  learnerName      String
-  lessonCount      Int
-  quizScore        Int
+  id                String   @id @default(uuid())
+  certificateCode   String   @unique @default(uuid())
+  userId            String
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  courseId          String
+  courseTitle       String
+  learnerName       String
+  lessonCount       Int
+  quizScore         Int
   quizQuestionCount Int
-  issuedAt         DateTime @default(now())
+  issuedAt          DateTime @default(now())
 
   @@unique([userId, courseId])
 }
@@ -141,15 +142,21 @@ model SellerProfile {
 }
 
 model CustomerProfile {
-  id         String          @id @default(uuid())
-  userId     String          @unique
-  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  fullName   String
+  id                    String          @id @default(uuid())
+  userId                String          @unique
+  user                  User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fullName              String
   // Customers log in with email + NIC + emailed code. Empty only for accounts made before that.
-  nicNumber  String?         @unique
-  orders     Order[]
-  complaints Complaint[]
-  reviews    ProductReview[]
+  nicNumber             String?         @unique
+  orders                Order[]
+  complaints            Complaint[]
+  reviews               ProductReview[]
+  wishlistItems         WishlistItem[]
+  savedDeliveryName     String?
+  savedDeliveryPhone    String?
+  savedDeliveryAddress  String?         @db.Text
+  savedDeliveryDistrict String?
+  cart                  Json            @default("[]") @db.JsonB
 }
 
 // A photo a seller uploaded for a product (kept in the database; the product's images list holds its address)
@@ -180,11 +187,24 @@ model Product {
   messengerUrl    String?
   isPublished     Boolean        @default(true)
 
-  analytics  ClickAnalytics[]
-  orderItems OrderItem[]
-  reviews    ProductReview[]
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
+  analytics     ClickAnalytics[]
+  orderItems    OrderItem[]
+  reviews       ProductReview[]
+  wishlistItems WishlistItem[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}
+
+model WishlistItem {
+  id         String          @id @default(uuid())
+  customerId String
+  customer   CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  productId  String
+  product    Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt  DateTime        @default(now())
+
+  @@unique([customerId, productId])
+  @@index([customerId, createdAt])
 }
 
 model ProductReview {

@@ -1,8 +1,9 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
+import API, { clearCsrfToken } from './api';
 
-// The login token lives in localStorage under 'token' (api.js sends it with every request)
+// Remove the old browser-readable token once, then retain only public user display data.
 const TOKEN_KEY = 'token';
 const USER_KEY = 'user';
 
@@ -11,20 +12,22 @@ let cached = { raw: undefined, session: null };
 
 // Returns { token, user } or null. Cached so React gets the same object until something changes.
 function readSession() {
-  let token = null;
   let userJson = null;
   try {
-    token = localStorage.getItem(TOKEN_KEY);
+    if (localStorage.getItem(TOKEN_KEY)) {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(USER_KEY);
+    }
     userJson = localStorage.getItem(USER_KEY);
   } catch {}
 
-  const raw = `${token}|${userJson}`;
+  const raw = userJson || '';
   if (raw !== cached.raw) {
     let user = null;
     try {
       user = userJson ? JSON.parse(userJson) : null;
     } catch {}
-    cached = { raw, session: token ? { token, user } : null };
+    cached = { raw, session: user ? { user } : null };
   }
   return cached.session;
 }
@@ -60,9 +63,9 @@ export function loginPathFor(role) {
   return '/login';
 }
 
-export function saveSession(token, user) {
+export function saveSession(user) {
   try {
-    localStorage.setItem(TOKEN_KEY, token);
+    localStorage.removeItem(TOKEN_KEY);
     localStorage.setItem(USER_KEY, JSON.stringify(user));
   } catch {}
   notify();
@@ -80,7 +83,13 @@ export function clearSession() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
   } catch {}
+  clearCsrfToken();
   notify();
+}
+
+export async function logoutSession() {
+  await API.post('/auth/logout');
+  clearSession();
 }
 
 // The current session, or null when logged out (always null during server rendering)

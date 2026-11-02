@@ -1,7 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { getSeller } from './catalog';
+import { effectivePrice, getSeller } from './catalog';
 
 // The shopping cart. It is kept in this browser (localStorage 'cart'), so it survives page reloads and logging in.
 // Each item: { id, title, price, image, category, sellerId, sellerName, district, whatsappNo, quantity }
@@ -105,6 +105,10 @@ export function removeFromCart(ids) {
 
 export function clearCart() {
   writeItems([]);
+}
+
+export function replaceCartItems(items) {
+  writeItems(Array.isArray(items) ? items : []);
 }
 
 // Items grouped by seller, in the order they were first added: [{ sellerId, sellerName, district, items, subtotal }]

@@ -1,13 +1,14 @@
 const express = require('express');
 const router = express.Router();
 const { createProduct, getAllProducts, getMyProducts, getSellerOverview, getProductImage, setDiscount, deleteProduct, trackClick } = require('../controllers/productController');
-const { getProductReviews, saveProductReview } = require('../controllers/reviewController');
+const { getProductReviews, saveProductReview, getSellerReviews } = require('../controllers/reviewController');
 const authMiddleware = require('../middlewares/authmiddleware');
 
 // Public routes
 router.get('/', getAllProducts);
 router.post('/track-click', trackClick);
 router.get('/images/:id', getProductImage);
+router.get('/seller/reviews', authMiddleware, getSellerReviews);
 router.get('/:id/reviews', getProductReviews);
 router.post('/:id/reviews', authMiddleware, saveProductReview);
 

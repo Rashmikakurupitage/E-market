@@ -104,10 +104,10 @@ exports.createProduct = async (req, res) => {
 // 2. සියලුම Products ලබාගැනීම (Public Search/Filter)
 // True when the request carries a valid login token of a registered customer. Everyone else gets no seller contact details.
 const isCustomer = (req) => {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) return false;
+  const token = req.cookies?.lw_session;
+  if (!token) return false;
   try {
-    return jwt.verify(header.split(' ')[1], process.env.JWT_SECRET).role === 'CUSTOMER';
+    return jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] }).role === 'CUSTOMER';
   } catch {
     return false;
   }
@@ -150,22 +150,36 @@ exports.getAllProducts = async (req, res) => {
         seller: {
           select: {
             businessName: true,
+            description: true,
             district: true,
             status: true,
             whatsappNo: true,
             facebookUrl: true,
-            messengerUrl: true
+            messengerUrl: true,
+            userId: true,
+            user: { select: { profilePhoto: { select: { updatedAt: true } } } }
           }
         }
       },
       orderBy: { createdAt: 'desc' }
     });
 
+    const withSellerPhoto = (product) => {
+      if (!product.seller) return withDiscount(product);
+      const photoVersion = product.seller.user?.profilePhoto?.updatedAt?.getTime() || null;
+      const { user, userId, ...seller } = product.seller;
+      const sellerWithPhoto = {
+        ...seller,
+        ...(photoVersion ? { photoUrl: `${publicBase(req)}/api/profile/photo/${userId}?v=${photoVersion}` } : {})
+      };
+      return withDiscount({ ...product, seller: sellerWithPhoto });
+    };
+
     // Contact options are for registered customers only, so nobody else ever receives them
     if (!isCustomer(req)) {
       return res.json(
         products.map((product) =>
-          withDiscount({
+          withSellerPhoto({
             ...product,
             messengerUrl: null,
             seller: product.seller && { ...product.seller, whatsappNo: null, facebookUrl: null, messengerUrl: null }
@@ -174,7 +188,7 @@ exports.getAllProducts = async (req, res) => {
       );
     }
 
-    res.json(products.map(withDiscount));
+    res.json(products.map(withSellerPhoto));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });

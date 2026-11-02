@@ -71,7 +71,7 @@ export default function CodeLogin({ requestPath, verifyPath, texts: l, redirectT
     setLoading(true);
     try {
       const res = await API.post(verifyPath, { ...loginDetails(), code });
-      saveSession(res.data.token, res.data.user);
+      saveSession(res.data.user);
       router.push(redirectTo);
     } catch (err) {
       setError(describeError(err));

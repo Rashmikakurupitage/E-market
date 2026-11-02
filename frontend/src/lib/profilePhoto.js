@@ -11,18 +11,50 @@ export function squarePhoto(file, size = 480) {
     const url = URL.createObjectURL(file);
     const img = new window.Image();
     img.onload = () => {
-      const side = Math.min(img.width, img.height);
       const canvas = document.createElement('canvas');
-      canvas.width = Math.min(size, side);
-      canvas.height = canvas.width;
-      canvas.getContext('2d').drawImage(img, (img.width - side) / 2, (img.height - side) / 2, side, side, 0, 0, canvas.width, canvas.height);
-      URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/jpeg', 0.85));
+      const side = Math.min(img.width, img.height);
+      let outputSize = Math.min(size, side);
+      const encode = (quality) => new Promise((done, fail) => {
+        canvas.toBlob((blob) => blob ? done(blob) : fail(new Error('type')), 'image/jpeg', quality);
+      });
+      const readDataUrl = (blob) => new Promise((done, fail) => {
+        const reader = new FileReader();
+        reader.onload = () => done(reader.result);
+        reader.onerror = () => fail(new Error('type'));
+        reader.readAsDataURL(blob);
+      });
+
+      const process = async () => {
+        while (outputSize >= 120) {
+          canvas.width = Math.max(1, Math.round(outputSize));
+          canvas.height = canvas.width;
+          const context = canvas.getContext('2d');
+          if (!context) throw new Error('type');
+          context.drawImage(
+            img,
+            (img.width - side) / 2,
+            (img.height - side) / 2,
+            side,
+            side,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
+          for (const quality of [0.85, 0.75, 0.65, 0.55]) {
+            const blob = await encode(quality);
+            if (blob.size <= 480 * 1024) return readDataUrl(blob);
+          }
+          outputSize *= 0.8;
+        }
+        throw new Error('size');
+      };
+
+      process()
+        .then(resolve, reject)
+        .finally(() => URL.revokeObjectURL(url));
     };
-    img.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error('type'));
-    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('type')); };
     img.src = url;
   });
 }

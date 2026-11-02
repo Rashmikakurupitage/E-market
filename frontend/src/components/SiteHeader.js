@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, LogIn, LogOut, LayoutDashboard, UserPlus, UserRound } from 'lucide-react';
+import { Menu, X, LogIn, LogOut, LayoutDashboard, UserPlus, UserRound, ShoppingBag } from 'lucide-react';
 import { useLanguage, SITE_TITLES } from '../lib/i18n';
-import { useSession, clearSession, homePathFor, loginPathFor } from '../lib/auth';
+import { useSession, logoutSession, homePathFor, loginPathFor } from '../lib/auth';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
 import LanguageSelect from './LanguageSelect';
+import { openCart, useCart } from '../lib/cart';
 
 export const EMBLEM_URL = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Emblem_of_Sri_Lanka.svg';
 
@@ -22,7 +23,9 @@ export default function SiteHeader() {
   const pathname = usePathname();
   const router = useRouter();
   const session = useSession();
+  const { count: cartCount } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [logoutError, setLogoutError] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [hidden, setHidden] = useState(false);
   const lastScrollY = useRef(0);
@@ -65,10 +68,16 @@ export default function SiteHeader() {
   const isCustomer = role === 'CUSTOMER';
   const isAdmin = role === 'SUPER_ADMIN';
 
-  const logout = () => {
-    clearSession();
-    setMenuOpen(false);
-    router.push(loginPathFor(role));
+  const logout = async () => {
+    setLogoutError(false);
+    try {
+      await logoutSession();
+      setMenuOpen(false);
+      router.push(loginPathFor(role));
+    } catch (error) {
+      console.error('LOGOUT_ERROR:', error?.response?.status || error?.message || 'Unknown error');
+      setLogoutError(true);
+    }
   };
 
   // Login + Register when logged out; Dashboard (sellers, admins) or My account (customers) + Logout when logged in.
@@ -135,6 +144,16 @@ export default function SiteHeader() {
           </Link>
 
           <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={openCart}
+              aria-label={`${t.cart.title}${cartCount ? ` (${cartCount})` : ''}`}
+              title={t.cart.title}
+              className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-ink ring-1 ring-ink/10 transition-colors hover:bg-cream hover:text-magenta"
+            >
+              <ShoppingBag className="h-[18px] w-[18px]" />
+              {cartCount > 0 && <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-magenta px-1 text-[10px] font-bold text-white">{cartCount}</span>}
+            </button>
             {/* Menu toggle for smaller screens */}
             <button
               type="button"
@@ -155,7 +174,7 @@ export default function SiteHeader() {
         {/* Second row below 1280px wide: language buttons, plus the account buttons from tablet size up (on phones those are in the menu) */}
         <div className="mt-2 flex items-center justify-center gap-2 border-t border-ink/10 pt-2 sm:justify-between xl:hidden">
           <div className="flex items-center gap-2">
-            <LanguageSelect />
+            <LanguageSelect compact />
             <ThemeToggle className="!h-9 !w-9" />
           </div>
           <div className="hidden items-center gap-2 sm:flex">{accountButtons}</div>
@@ -202,6 +221,7 @@ export default function SiteHeader() {
             <div className="mt-2 grid grid-cols-2 gap-2 sm:hidden">{accountButtons}</div>
           </nav>
         )}
+        {logoutError && <p role="alert" className="mt-2 rounded-xl bg-red-50 px-4 py-2 text-sm font-semibold text-red-800">{t.logoutError}</p>}
       </div>
     </header>
   );

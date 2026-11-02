@@ -63,14 +63,14 @@ export default function ProductCard({ product }) {
       onKeyDown={onKey}
       className="group flex h-full cursor-pointer flex-col rounded-[22px] border border-ink/5 bg-white p-2 shadow-sm sm:rounded-[28px] sm:p-3 shadow-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-magenta">
       {/* Image */}
-      <div className="shine relative aspect-square overflow-hidden rounded-[22px] bg-sand">
+      <div className="shine relative aspect-square overflow-hidden rounded-[22px] bg-[#f7f1e7]">
         {image && !imageFailed ? (
           <img
             src={image}
             alt={product.title}
             loading="lazy"
             onError={() => setImageFailed(true)}
-            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+            className="h-full w-full object-contain p-2 transition-transform duration-500 group-hover:scale-105 sm:p-3"
           />
         ) : (
           <div className="flex h-full w-full items-center justify-center text-ink/20">
@@ -117,8 +117,11 @@ export default function ProductCard({ product }) {
 
         {/* Seller */}
         <div className="mt-3 flex items-center gap-2.5 border-t border-ink/5 pt-3">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-magenta to-saffron text-xs font-bold text-white">
-            {initials(seller.businessName) || '?'}
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-magenta to-saffron text-xs font-bold text-white">
+            {seller.photoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={seller.photoUrl} alt="" className="h-full w-full object-cover" />
+            ) : initials(seller.businessName) || '?'}
           </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-ink">{seller.businessName || '—'}</p>

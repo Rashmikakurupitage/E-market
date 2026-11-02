@@ -22,6 +22,7 @@ import AdminOverview from '../../src/components/AdminOverview';
 import { allWallpapers, shownWallpapers, BUILTIN_WALLPAPERS } from '../../src/lib/siteImage';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
 import AdminLearningCourses from '../../src/components/AdminLearningCourses';
+import ImageCropDialog from '../../src/components/ImageCropDialog';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -1074,6 +1075,7 @@ function WallpaperPanel({ onChanged, onAuthError }) {
   const p = t.sitePicture;
   const [state, setState] = useState(null); // { custom, rotate, seconds, active }
   const [preview, setPreview] = useState(null); // a chosen picture, before it is added
+  const [cropFile, setCropFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
@@ -1116,7 +1118,7 @@ function WallpaperPanel({ onChanged, onAuthError }) {
 
   const saveSettings = (changes, message) => run(() => API.put('/admin/site/wallpaper-settings', changes), message);
 
-  const choose = async (event) => {
+  const choose = (event) => {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
@@ -1125,10 +1127,17 @@ function WallpaperPanel({ onChanged, onAuthError }) {
       setError(p.errors.type);
       return;
     }
+    setCropFile(file);
+  };
+
+  const saveCrop = async (blob) => {
     try {
-      setPreview(await shrinkPicture(file));
+      setPreview(await shrinkPicture(blob));
+      setCropFile(null);
+      return true;
     } catch {
       setError(p.errors.type);
+      return false;
     }
   };
 
@@ -1279,6 +1288,15 @@ function WallpaperPanel({ onChanged, onAuthError }) {
           </button>
         )}
       </div>
+      {cropFile && (
+        <ImageCropDialog
+          key={cropFile.name + cropFile.lastModified}
+          file={cropFile}
+          aspectRatio={4 / 5}
+          onCancel={() => setCropFile(null)}
+          onCrop={saveCrop}
+        />
+      )}
     </div>
   );
 }

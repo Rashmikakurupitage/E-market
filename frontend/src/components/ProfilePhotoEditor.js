@@ -6,6 +6,7 @@ import API from '../lib/api';
 import { useLanguage } from '../lib/i18n';
 import { initials } from '../lib/catalog';
 import { profilePhotoUrl, squarePhoto } from '../lib/profilePhoto';
+import ImageCropDialog from './ImageCropDialog';
 
 // The customer's round profile picture, with buttons to change or remove it
 export default function ProfilePhotoEditor({ user, name, onChanged, onAuthError }) {
@@ -13,14 +14,17 @@ export default function ProfilePhotoEditor({ user, name, onChanged, onAuthError 
   const p = t.profilePhoto;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [cropFile, setCropFile] = useState(null);
   const photo = profilePhotoUrl(user);
 
   const fail = (err) => {
-    if ([401, 403].includes(err.response?.status) && err.response?.data?.code !== 'NOT_CUSTOMER') return onAuthError?.();
-    setError(err.response?.status === 413 ? p.errors.big : p.errors.generic);
+    if ([401, 403].includes(err.response?.status)) onAuthError?.();
+    const message = err.response?.status === 413 || err.message === 'size' ? p.errors.big : p.errors.generic;
+    setError(message);
+    return message;
   };
 
-  const choose = async (event) => {
+  const choose = (event) => {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
@@ -29,14 +33,24 @@ export default function ProfilePhotoEditor({ user, name, onChanged, onAuthError 
       setError(p.errors.type);
       return;
     }
+    setCropFile(file);
+  };
+
+  const saveCrop = async (blob) => {
     setBusy(true);
+    setError('');
     try {
-      const image = await squarePhoto(file);
+      const image = await squarePhoto(blob);
       const res = await API.put('/profile/photo', { image });
       onChanged({ ...user, photoVersion: res.data.photoVersion });
+      setCropFile(null);
+      return true;
     } catch (err) {
-      if (err.message === 'type') setError(p.errors.type);
-      else fail(err);
+      if (err.message === 'type') {
+        setError(p.errors.type);
+        return p.errors.type;
+      }
+      return fail(err);
     } finally {
       setBusy(false);
     }
@@ -98,6 +112,15 @@ export default function ProfilePhotoEditor({ user, name, onChanged, onAuthError 
         <p role="alert" className="mt-2 max-w-[11rem] text-xs font-medium text-red-200">
           {error}
         </p>
+      )}
+      {cropFile && (
+        <ImageCropDialog
+          key={cropFile.name + cropFile.lastModified}
+          file={cropFile}
+          aspectRatio={1}
+          onCancel={() => setCropFile(null)}
+          onCrop={saveCrop}
+        />
       )}
     </div>
   );

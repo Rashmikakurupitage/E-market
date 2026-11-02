@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import SiteHeader from './SiteHeader';
 import SiteFooter from './SiteFooter';
 import ScrollExtras from './ScrollExtras';
+import CartDrawer from './CartDrawer';
 
 export default function SiteFrame({ children }) {
   const pathname = usePathname();
@@ -16,6 +17,7 @@ export default function SiteFrame({ children }) {
   return (
     <>
       <SiteHeader />
+      <CartDrawer />
       <div className="flex flex-1 flex-col">{children}</div>
       <SiteFooter />
       <ScrollExtras />

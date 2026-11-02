@@ -1,3 +1,4 @@
 # Never commit secrets: the passwords and keys in .env stay on this computer
 .env
 .env.local
+/node_modules/

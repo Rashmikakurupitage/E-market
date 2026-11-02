@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ImagePlus, Link2, Star, X } from 'lucide-react';
 import { fill, useLanguage } from '../lib/i18n';
 import { inputClass } from './form';
+import ImageCropDialog from './ImageCropDialog';
 
 export const MAX_PHOTOS = 5;
 const MAX_UPLOAD_BYTES = 550 * 1024;
@@ -61,9 +62,12 @@ export default function ProductPhotosField({ value, onChange }) {
   const [link, setLink] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [cropFiles, setCropFiles] = useState([]);
+  const [cropIndex, setCropIndex] = useState(0);
+  const croppedPhotos = useRef([]);
   const full = value.length >= MAX_PHOTOS;
 
-  const addFiles = async (event) => {
+  const addFiles = (event) => {
     const files = [...(event.target.files || [])];
     event.target.value = '';
     if (files.length === 0) return;
@@ -71,21 +75,45 @@ export default function ProductPhotosField({ value, onChange }) {
     const room = MAX_PHOTOS - value.length;
     const picked = files.slice(0, room);
     if (files.length > room) setError(fill(p.onlyRoom, { count: room }));
-    setBusy(true);
-    const added = [];
+    const valid = [];
     for (const file of picked) {
       if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
         setError(p.errors.type);
         continue;
       }
-      try {
-        added.push(await shrink(file));
-      } catch (error) {
-        setError(error.message === 'size' ? p.errors.big : p.errors.type);
-      }
+      valid.push(file);
     }
-    setBusy(false);
-    if (added.length > 0) onChange([...value, ...added]);
+    if (valid.length) {
+      croppedPhotos.current = [];
+      setCropIndex(0);
+      setCropFiles(valid);
+    }
+  };
+
+  const saveCrop = async (blob) => {
+    setBusy(true);
+    try {
+      croppedPhotos.current.push(await shrink(blob));
+    } catch (cropError) {
+      setError(cropError.message === 'size' ? p.errors.big : p.errors.type);
+    } finally {
+      setBusy(false);
+    }
+    if (cropIndex + 1 < cropFiles.length) {
+      setCropIndex((current) => current + 1);
+    } else {
+      if (croppedPhotos.current.length) onChange([...value, ...croppedPhotos.current]);
+      croppedPhotos.current = [];
+      setCropFiles([]);
+      setCropIndex(0);
+    }
+    return true;
+  };
+
+  const cancelCropping = () => {
+    croppedPhotos.current = [];
+    setCropFiles([]);
+    setCropIndex(0);
   };
 
   const addLink = () => {
@@ -142,10 +170,10 @@ export default function ProductPhotosField({ value, onChange }) {
       )}
 
       <div className="mt-3 flex flex-col gap-2">
-        <label className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-ink/25 px-4 py-3 text-sm font-semibold text-ink transition-colors hover:bg-sand/60 ${full || busy ? 'pointer-events-none opacity-50' : ''}`}>
+        <label className={`inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-ink/25 px-4 py-3 text-sm font-semibold text-ink transition-colors hover:bg-sand/60         ${full || busy || cropFiles.length > 0 ? 'pointer-events-none opacity-50' : ''}`}>
           <ImagePlus className="h-4 w-4" />
           {busy ? p.working : p.upload}
-          <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={addFiles} disabled={full || busy} className="sr-only" />
+          <input type="file" accept="image/jpeg,image/png,image/webp" multiple onChange={addFiles} disabled={full || busy || cropFiles.length > 0} className="sr-only" />
         </label>
 
         <div className="flex gap-2">
@@ -176,6 +204,15 @@ export default function ProductPhotosField({ value, onChange }) {
         <p role="alert" className="mt-1 text-xs font-medium text-red-600">
           {error}
         </p>
+      )}
+      {cropFiles[cropIndex] && (
+        <ImageCropDialog
+          key={`${cropIndex}-${cropFiles[cropIndex].name}-${cropFiles[cropIndex].lastModified}`}
+          file={cropFiles[cropIndex]}
+          aspectRatio={1}
+          onCancel={cancelCropping}
+          onCrop={saveCrop}
+        />
       )}
     </div>
   );

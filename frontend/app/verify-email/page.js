@@ -77,7 +77,7 @@ function VerifyEmail() {
     setLoading(true);
     try {
       const res = await API.post('/auth/verify-email', { email, code: code.trim() });
-      saveSession(res.data.token, res.data.user);
+      saveSession(res.data.user);
       setDone(true);
       const target = res.data.user.role === 'CUSTOMER' ? next || homePathFor('CUSTOMER') : homePathFor(res.data.user.role);
       setTimeout(() => router.replace(target), 1800);

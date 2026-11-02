@@ -33,7 +33,7 @@ function PasswordLogin({ redirectTo, footer }) {
 
     try {
       const res = await API.post('/auth/login', { email: email.trim(), password });
-      saveSession(res.data.token, res.data.user);
+      saveSession(res.data.user);
       router.push(redirectTo);
     } catch (err) {
       const responseError = err.response?.data;

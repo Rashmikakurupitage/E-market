@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   ArrowUpRight, BadgeCheck, BookOpen, Eye, Gift, Info, LayoutDashboard, MapPin, Package, PackageSearch, PackagePlus,
-  Scissors, Search, Shirt, SlidersHorizontal, Soup, Sparkles, Sprout, Store, Tag, X, ArrowRight,
+  Scissors, Search, Shirt, ShoppingCart, SlidersHorizontal, Soup, Sparkles, Sprout, Store, Tag, X, ArrowRight,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -23,6 +23,8 @@ import { DotGrid, PageArt, Sparkle, Squiggle } from '../../src/components/Art';
 import { inputClass } from '../../src/components/form';
 import Portal from '../../src/components/Portal';
 import ProductReviews from '../../src/components/ProductReviews';
+import { addRecentProduct, useRecentProducts } from '../../src/lib/recentProducts';
+import { addToCart, openCart } from '../../src/lib/cart';
 
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
 
@@ -55,11 +57,15 @@ function SellerLine({ product }) {
   const seller = getSeller(product);
   return (
     <div className="flex items-center gap-3">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-magenta to-saffron text-xs font-bold text-white shadow-sm ring-2 ring-white">
-        {initials(seller.businessName) || '?'}
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full bg-linear-to-br from-magenta to-saffron text-xs font-bold text-white shadow-sm ring-2 ring-white">
+        {seller.photoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={seller.photoUrl} alt="" className="h-full w-full object-cover" />
+        ) : initials(seller.businessName) || '?'}
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-ink">{seller.businessName || '—'}</p>
+        {seller.description && <p className="mt-0.5 line-clamp-1 text-xs text-ink/50">{seller.description}</p>}
         {seller.district && (
           <p className="flex items-center gap-1 text-xs text-ink/55">
             <MapPin className="h-3 w-3" />
@@ -150,6 +156,19 @@ function StoreCard({ product, onOpen }) {
           ) : !whatsapp && canContact ? (
             <span className="flex-1 text-xs leading-snug text-ink/55">{t.whatsappUnavailable}</span>
           ) : null}
+          {!example && (
+            <button
+              type="button"
+              onClick={() => { addToCart(product); openCart(); }}
+              aria-label={s.addToCart}
+              title={s.addToCart}
+              disabled={product.price === null || product.price === undefined}
+              className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-magenta disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-auto sm:flex-1 sm:gap-1.5 sm:px-3 sm:text-sm"
+            >
+              <ShoppingCart className="h-4 w-4 shrink-0" />
+              <span className="hidden truncate sm:inline">{s.addToCart}</span>
+            </button>
+          )}
           {whatsapp && (
             <a
               href={whatsapp}
@@ -240,7 +259,7 @@ function OfferSpotlight({ product, onOpen }) {
 }
 
 // Full details in a pop-up: big picture, description, seller and contact actions
-function QuickView({ product, onClose }) {
+function QuickView({ product, session, onClose }) {
   const { t } = useLanguage();
   const s = t.store;
   const example = isExample(product);
@@ -263,7 +282,7 @@ function QuickView({ product, onClose }) {
     <Portal>
 <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="quick-view-title">
       <div className="absolute inset-0 animate-page-in bg-ink/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative grid max-h-[92vh] w-full max-w-4xl animate-zoom-in overflow-y-auto rounded-t-[32px] bg-white shadow-2xl sm:rounded-[32px] md:grid-cols-2">
+      <div className="relative grid h-[min(92dvh,52rem)] w-full max-w-4xl animate-zoom-in grid-rows-[minmax(0,38dvh)_minmax(0,1fr)] overflow-hidden rounded-t-[32px] bg-white shadow-2xl sm:h-[min(90dvh,52rem)] sm:rounded-[32px] md:grid-cols-2 md:grid-rows-1">
         <button
           type="button"
           onClick={onClose}
@@ -273,7 +292,7 @@ function QuickView({ product, onClose }) {
           <X className="h-5 w-5" />
         </button>
 
-        <div className="relative aspect-square bg-sand md:aspect-auto md:min-h-[460px]">
+        <div className="relative min-h-0 bg-sand">
           {image ? (
             <img src={image} alt={product.title} className="absolute inset-0 h-full w-full object-cover" />
           ) : (
@@ -300,7 +319,7 @@ function QuickView({ product, onClose }) {
           )}
         </div>
 
-        <div className="flex flex-col p-6 sm:p-8">
+        <div className="min-h-0 overflow-y-auto overscroll-contain p-5 sm:p-8">
           <div className="flex flex-wrap items-center gap-2">
             {product.category && (
               <span className="rounded-full bg-sand/70 px-3 py-1 text-xs font-semibold text-ink/80">
@@ -332,8 +351,19 @@ function QuickView({ product, onClose }) {
 
           {!example && <ProductReviews productId={product.id} session={session} />}
 
-          <div className="mt-auto pt-6">
+          <div className="pt-6">
             <div className="flex flex-col gap-2.5 sm:flex-row">
+              {!example && (
+                <button
+                  type="button"
+                  onClick={() => { addToCart(product); openCart(); }}
+                  disabled={product.price === null || product.price === undefined}
+                  className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-magenta disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  {s.addToCart}
+                </button>
+              )}
               {example ? (
                 <span className="flex flex-1 items-center justify-center rounded-full bg-sand/70 px-4 py-3 text-sm font-semibold text-ink/40">{s.exampleButton}</span>
               ) : null}
@@ -403,6 +433,7 @@ export default function StorePage() {
   const [sort, setSort] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [selected, setSelected] = useState(null);
+  const recentIds = useRecentProducts();
 
   // Products open for registered users. Visitors are sent to the customer sign-up form first,
   // and come back to this product once they have registered (or logged in).
@@ -411,6 +442,7 @@ export default function StorePage() {
       router.push(`/register?as=customer&next=${encodeURIComponent(`/store?product=${product.id}`)}`);
       return;
     }
+    addRecentProduct(product.id);
     setSelected(product);
   };
 
@@ -447,8 +479,11 @@ export default function StorePage() {
     if (!id) return;
     const found = products.find((item) => String(item.id) === id);
     if (!found) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (session) setSelected(found);
+    if (session) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelected(found);
+      addRecentProduct(found.id);
+    }
     else router.replace(`/register?as=customer&next=${encodeURIComponent(`/store?product=${id}`)}`);
   }, [hydrated, status, products, session, router]);
 
@@ -478,6 +513,7 @@ export default function StorePage() {
       })
       .sort(SORTS[sort]);
   }, [products, query, category, district, minPrice, maxPrice, sort]);
+  const recentProducts = recentIds.map((id) => products.find((product) => String(product.id) === id)).filter(Boolean);
   const featuredOffer =
     visible.find((product) => product.discount && !isExample(product)) ||
     visible.find((product) => product.discount);
@@ -561,6 +597,27 @@ export default function StorePage() {
             </ul>
           </div>
         </section>
+
+        {recentProducts.length > 0 && (
+          <section className="mx-auto mt-6 max-w-7xl" aria-label={t.customerFeatures.recentViewed}>
+            <h2 className="mb-3 text-sm font-bold text-ink/70">{t.customerFeatures.recentViewed}</h2>
+            <ul className="no-scrollbar flex gap-3 overflow-x-auto pb-2">
+              {recentProducts.map((product) => (
+                <li key={product.id} className="w-48 shrink-0">
+                  <button type="button" onClick={() => openProduct(product)} className="flex w-full items-center gap-3 rounded-2xl bg-white p-2 text-left shadow-sm ring-1 ring-ink/5 transition hover:-translate-y-0.5 hover:shadow-md">
+                    <span className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-sand">
+                      {product.images?.[0] && <img src={product.images[0]} alt="" className="h-full w-full object-cover" />}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block truncate text-xs font-bold text-ink">{product.title}</span>
+                      <span className="mt-1 block text-[11px] text-magenta">{product.price == null ? t.priceOnRequest : formatPrice(product.discount?.salePrice || product.price)}</span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         {/* Categories */}
         <div className="no-scrollbar -mx-4 mt-8 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0">
@@ -669,7 +726,10 @@ export default function StorePage() {
                 )}
                 {gridProducts.map((product, index) => (
                   <Reveal key={product.id} delay={(index % 3) * 80} className="grid">
-                    <StoreCard product={product} onOpen={() => openProduct(product)} />
+                    <StoreCard
+                      product={product}
+                      onOpen={() => openProduct(product)}
+                    />
                   </Reveal>
                 ))}
               </div>
@@ -733,7 +793,14 @@ export default function StorePage() {
         </Reveal>
       </div>
 
-      {selected && <QuickView key={selected.id} product={selected} onClose={closeProduct} />}
+      {selected && (
+        <QuickView
+          key={selected.id}
+          product={selected}
+          session={session}
+          onClose={closeProduct}
+        />
+      )}
     </main>
   );
 }
