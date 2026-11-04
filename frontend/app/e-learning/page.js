@@ -309,7 +309,9 @@ export default function ELearning() {
         if (cancelled) return;
         writeProgressSnapshot(mergeProgress(accountProgress, guestProgress), accountKey);
         setSyncStatus('error');
-        console.error('LEARNING_PROGRESS_SYNC_ERROR:', error?.response?.status || error?.message || 'Unknown error');
+        if (error?.response?.status !== 401 && error?.response?.status !== 403) {
+          console.error('LEARNING_PROGRESS_SYNC_ERROR:', error?.response?.status || error?.message || 'Unknown error');
+        }
       }
     };
 
