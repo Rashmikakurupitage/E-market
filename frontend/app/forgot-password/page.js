@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { CircleAlert, CircleCheck, CheckCircle2, KeyRound, LoaderCircle, Mail, ShieldCheck, Terminal, Lock, ArrowLeft } from 'lucide-react';
+import { CircleAlert, CircleCheck, CheckCircle2, KeyRound, LoaderCircle, Mail, ShieldCheck, Terminal } from 'lucide-react';
 import API from '../../src/lib/api';
 import { fill, useLanguage } from '../../src/lib/i18n';
 import { isStrongPassword } from '../../src/lib/catalog';
@@ -23,12 +23,6 @@ function ForgotPassword() {
 
   // Steps: 'email' (Step 1) -> 'verify' (Step 2: Check Code) -> 'new-password' (Step 3: Create Password) -> 'done'
   const [step, setStep] = useState('email');
-  const [identifier, setIdentifier] = useState('');
-  const [originalEmail, setOriginalEmail] = useState('');
-  const [accountId, setAccountId] = useState('');
-  const [emailHint, setEmailHint] = useState('');
-  const [promptOriginalEmail, setPromptOriginalEmail] = useState(false);
-
   const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [resetToken, setResetToken] = useState('');
@@ -66,7 +60,6 @@ function ForgotPassword() {
         : template
         ? fill(template, {
             seconds: data.retryAfter ?? '',
-            hint: data.emailHint || emailHint || '',
             role: data.role || (as === 'seller' ? 'Seller' : 'Customer'),
           })
         : (data?.message || f.errors?.generic || 'Something went wrong. Please try again.')
@@ -79,34 +72,21 @@ function ForgotPassword() {
     setError('');
     setErrors({});
 
-    const targetInput = promptOriginalEmail ? originalEmail.trim() : identifier.trim();
-    if (!targetInput) {
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
       setError(f.errors?.MISSING_DETAILS || 'Please enter your registered email address.');
       return;
     }
 
     setLoading(true);
     try {
-      const payload = {
+      const response = await API.post('/auth/forgot-password', {
+        email: cleanEmail,
         role: as === 'seller' ? 'SELLER' : 'CUSTOMER',
-        ...(promptOriginalEmail && accountId
-          ? { accountId, originalEmail: targetInput, email: targetInput }
-          : { identifier: targetInput, email: targetInput }),
-      };
+      });
 
-      const response = await API.post('/auth/forgot-password', payload);
-
-      // If the account was identified by Phone or NIC, prompt for the original registration email with hint
-      if (response.data.originalEmailRequired) {
-        setAccountId(response.data.accountId);
-        setEmailHint(response.data.emailHint);
-        setPromptOriginalEmail(true);
-        setError('');
-        return;
-      }
-
-      // If verification code was sent to the confirmed original email
-      const verifiedEmail = response.data.email || targetInput;
+      // Code successfully sent to original registered email
+      const verifiedEmail = response.data.email || cleanEmail;
       setEmail(verifiedEmail);
       setSentTo(response.data.sentTo || verifiedEmail);
       setEmailed(response.data.emailed !== false);
@@ -114,17 +94,9 @@ function ForgotPassword() {
       setCode('');
       setStep('verify');
     } catch (err) {
-      const data = err.response?.data;
-      if (data?.emailHint) {
-        setEmailHint(data.emailHint);
-      }
-      if (data?.accountId) {
-        setAccountId(data.accountId);
-        setPromptOriginalEmail(true);
-      }
       fail(err);
-      if (data?.code === 'RESEND_TOO_SOON') {
-        setResendIn(data.retryAfter || 60);
+      if (err.response?.data?.code === 'RESEND_TOO_SOON') {
+        setResendIn(err.response.data.retryAfter || 60);
         setStep('verify');
       }
     } finally {
@@ -132,21 +104,8 @@ function ForgotPassword() {
     }
   };
 
-  const handleResetIdentifier = () => {
-    setPromptOriginalEmail(false);
-    setAccountId('');
-    setEmailHint('');
-    setOriginalEmail('');
-    setError('');
-    setErrors({});
-  };
-
   const handleChangeEmail = () => {
     setStep('email');
-    setPromptOriginalEmail(false);
-    setAccountId('');
-    setEmailHint('');
-    setOriginalEmail('');
     setCode('');
     setError('');
     setErrors({});
@@ -253,128 +212,54 @@ function ForgotPassword() {
               </Link>
             </div>
           ) : step === 'email' ? (
-            promptOriginalEmail ? (
-              /* STEP 1 - B: Require Original Registration Email (Hint Provided) */
-              <form onSubmit={handleSendCode} noValidate className="space-y-5 animate-fade-in">
-                <div>
-                  <h2 className="flex items-center gap-2 text-2xl font-bold text-ink">
-                    <ShieldCheck className="h-6 w-6 text-brand-600" />
-                    {f.originalEmailTitle || 'Enter your original registration email'}
-                  </h2>
-                  <p className="mt-1.5 text-sm text-ink/65">
-                    {f.originalEmailNotice || 'Account identified! For security, verification codes can only be sent to the email address you originally registered with.'}
-                  </p>
-                </div>
-
-                {/* Encrypted Email Hint Box */}
-                {emailHint && (
-                  <div role="status" className="flex items-start gap-3 rounded-2xl border border-brand-200 bg-brand-50/70 p-4 text-sm text-slate-800 shadow-sm ring-1 ring-brand-100">
-                    <Lock className="mt-0.5 h-5 w-5 shrink-0 text-brand-700" />
-                    <div>
-                      <span className="block text-xs font-semibold uppercase tracking-wider text-brand-900">
-                        {f.originalEmailHintLabel || 'Original registration email hint:'}
-                      </span>
-                      <strong className="mt-0.5 block font-mono text-base font-bold tracking-wide text-brand-800">
-                        {emailHint}
-                      </strong>
-                    </div>
-                  </div>
-                )}
-
-                {error && (
-                  <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 animate-fade-in">
-                    <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                <Field id="originalEmail" label={f.originalEmailInputLabel || 'Original Registered Email'} required>
-                  <input
-                    id="originalEmail"
-                    type="email"
-                    required
-                    autoComplete="email"
-                    value={originalEmail}
-                    onChange={(e) => setOriginalEmail(e.target.value)}
-                    className={inputClass(false)}
-                    placeholder="name@example.com"
-                    autoFocus
-                  />
-                </Field>
-
-                <button type="submit" disabled={loading || !originalEmail.trim()} className={primaryButtonClass}>
-                  {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                  <span>{loading ? (f.working || 'Please wait...') : (f.verifyOriginalBtn || 'Verify email & send code')}</span>
-                </button>
-
-                <div className="text-center pt-2">
-                  <button
-                    type="button"
-                    onClick={handleResetIdentifier}
-                    className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-brand-700 hover:underline"
-                  >
-                    <ArrowLeft className="h-4 w-4" />
-                    <span>{f.enterOriginalInstead || 'Search with a different identifier'}</span>
-                  </button>
-                </div>
-
-                <p className="text-center text-sm text-slate-500 pt-1">
-                  <Link href={loginHref} className="font-semibold text-brand-700 hover:underline">
-                    {f.back || 'Back to login'}
-                  </Link>
+            /* STEP 1: Enter Registered Email Address Only */
+            <form onSubmit={handleSendCode} noValidate className="space-y-5 animate-fade-in">
+              <div>
+                <h2 className="flex items-center gap-2 text-2xl font-bold text-ink">
+                  <Mail className="h-6 w-6 text-magenta" />
+                  {f.emailTitle || 'Find your account'}
+                </h2>
+                <p className="mt-1.5 text-sm text-ink/65">
+                  {f.emailText || 'Enter the email you registered with. We will send you a code.'}
                 </p>
-              </form>
-            ) : (
-              /* STEP 1 - A: Enter Registered Email / Identifier */
-              <form onSubmit={handleSendCode} noValidate className="space-y-5 animate-fade-in">
-                <div>
-                  <h2 className="flex items-center gap-2 text-2xl font-bold text-ink">
-                    <Mail className="h-6 w-6 text-magenta" />
-                    {f.emailTitle || 'Find your account'}
-                  </h2>
-                  <p className="mt-1.5 text-sm text-ink/65">
-                    {f.emailText || 'Enter the email you registered with. We will send a 6-digit verification code.'}
-                  </p>
+              </div>
+
+              {error && (
+                <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 animate-fade-in">
+                  <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
+                  <span>{error}</span>
                 </div>
+              )}
 
-                {error && (
-                  <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 animate-fade-in">
-                    <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-                    <span>{error}</span>
-                  </div>
-                )}
-
-                <Field
-                  id="identifier"
-                  label={f.identifierLabel || 'Registered Email, Phone, or NIC'}
+              <Field
+                id="email"
+                label={r.email || 'Email Address'}
+                required
+              >
+                <input
+                  id="email"
+                  type="email"
                   required
-                  hint={f.identifierHint || 'Enter your registered email address, or enter your Phone/NIC to get an email hint.'}
-                >
-                  <input
-                    id="identifier"
-                    type="text"
-                    required
-                    autoComplete="username"
-                    value={identifier}
-                    onChange={(e) => setIdentifier(e.target.value)}
-                    className={inputClass(false)}
-                    placeholder={f.identifierPlaceholder || 'name@example.com or 07XXXXXXXX'}
-                    autoFocus
-                  />
-                </Field>
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputClass(false)}
+                  placeholder="name@example.com"
+                  autoFocus
+                />
+              </Field>
 
-                <button type="submit" disabled={loading || !identifier.trim()} className={primaryButtonClass}>
-                  {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
-                  <span>{loading ? (f.working || 'Please wait...') : (f.sendCode || 'Send code to Gmail')}</span>
-                </button>
+              <button type="submit" disabled={loading || !email.trim()} className={primaryButtonClass}>
+                {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <Mail className="h-4 w-4" />}
+                <span>{loading ? (f.working || 'Please wait...') : (f.sendCode || 'Send code')}</span>
+              </button>
 
-                <p className="text-center text-sm text-slate-500 pt-2">
-                  <Link href={loginHref} className="font-semibold text-brand-700 hover:underline">
-                    {f.back || 'Back to login'}
-                  </Link>
-                </p>
-              </form>
-            )
+              <p className="text-center text-sm text-slate-500 pt-2">
+                <Link href={loginHref} className="font-semibold text-brand-700 hover:underline">
+                  {f.back || 'Back to login'}
+                </Link>
+              </p>
+            </form>
           ) : step === 'verify' ? (
             /* STEP 2: Verify Code (Correct / Incorrect Check) */
             <form onSubmit={handleVerifyCode} noValidate className="space-y-5 animate-fade-in">
