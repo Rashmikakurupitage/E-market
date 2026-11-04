@@ -1,27 +1,31 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   BadgeCheck, Package, Search, MapPin, Mail, Phone, IdCard, ArrowLeft,
   ChevronDown, ChevronUp, Eye, EyeOff, Trash2, CircleCheck, CircleAlert, LoaderCircle,
   Users, UserRound, CalendarDays, ShieldCheck, Star, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw, BookOpen, X,
+  Lock, Copy, Check, ZoomIn, Camera, Scan,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
-import { useSession, useHydrated, clearSession } from '../../src/lib/auth';
+import { useSession, useHydrated, clearSession, updateSessionUser } from '../../src/lib/auth';
+import ProfilePhotoEditor from '../../src/components/ProfilePhotoEditor';
+import { profilePhotoUrl } from '../../src/lib/profilePhoto';
 import { formatPrice, initials, toWhatsAppNumber, formatPhone } from '../../src/lib/catalog';
 import { ComplaintStatusBadge, COMPLAINT_STATUSES } from '../../src/components/Complaints';
 import ProductThumb from '../../src/components/ProductThumb';
 import SellerStatusBadge from '../../src/components/SellerStatusBadge';
 import ConfirmDialog from '../../src/components/ConfirmDialog';
 import WhatsAppIcon from '../../src/components/WhatsAppIcon';
-import { PageArt } from '../../src/components/Art';
 import DashboardSidebar from '../../src/components/DashboardSidebar';
 import AdminOverview from '../../src/components/AdminOverview';
 import { allWallpapers, shownWallpapers, BUILTIN_WALLPAPERS } from '../../src/lib/siteImage';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
 import AdminLearningCourses from '../../src/components/AdminLearningCourses';
+import { CameraModal, shrinkImage } from '../../src/components/NicPhotoUpload';
+import Face3DVerificationModal from '../../src/components/Face3DVerification';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -50,7 +54,7 @@ function useDebounced(value, delay = 300) {
 
 function Toolbar({ filters, active, onFilter, search, onSearch, placeholder }) {
   return (
-    <div className="flex flex-col gap-3 border-b border-slate-100 bg-white/50 p-4 backdrop-blur-xs lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col gap-3 border-b border-slate-100 bg-white/50 p-4 backdrop-blur-xs lg:flex-row lg:items-center lg:justify-between dark:border-slate-800 dark:bg-slate-900/60">
       <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1">
         {filters.map((filter) => {
           const on = active === filter.value;
@@ -62,8 +66,8 @@ function Toolbar({ filters, active, onFilter, search, onSearch, placeholder }) {
               aria-pressed={on}
               className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all ${
                 on
-                  ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950'
-                  : 'bg-sand/70 text-slate-700 hover:bg-slate-200'
+                  ? 'bg-slate-900 text-white shadow-sm ring-1 ring-slate-950 dark:bg-brand-600 dark:text-white dark:ring-brand-500'
+                  : 'bg-sand/70 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
               }`}
             >
               {on && <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />}
@@ -177,33 +181,33 @@ function ComplaintsPanel({ stats, onChanged, onAuthError }) {
             const overdue = complaint.status === 'OPEN' && ageDays >= 3;
             const accent = overdue ? 'border-l-rose-500' : { OPEN: 'border-l-rose-300', IN_REVIEW: 'border-l-blue-400', RESOLVED: 'border-l-emerald-400', DISMISSED: 'border-l-slate-300' }[complaint.status] || 'border-l-slate-200';
             return (
-              <li key={complaint.id} className={`border-l-4 px-5 py-4 ${accent} ${open ? 'bg-slate-50/60' : ''}`}>
+              <li key={complaint.id} className={`border-l-4 px-5 py-4 ${accent} ${open ? 'bg-slate-50/60 dark:bg-white/[0.04]' : ''}`}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-mono text-sm font-bold tracking-wider text-slate-900">{complaint.reference}</span>
+                      <span className="font-mono text-sm font-bold tracking-wider text-slate-900 dark:text-slate-100">{complaint.reference}</span>
                       <ComplaintStatusBadge status={complaint.status} />
-                      <span className="rounded-full bg-sand/70 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">{c.reasons[complaint.reason] || complaint.reason}</span>
-                      {overdue && <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 ring-1 ring-rose-200"><CircleAlert className="h-3 w-3" />{ca.overdue}</span>}
+                      <span className="rounded-full bg-sand/70 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-white/10 dark:text-slate-300">{c.reasons[complaint.reason] || complaint.reason}</span>
+                      {overdue && <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-2.5 py-0.5 text-[11px] font-bold text-rose-700 ring-1 ring-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:ring-rose-800/60"><CircleAlert className="h-3 w-3" />{ca.overdue}</span>}
                     </div>
-                    <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-slate-700">
+                    <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-sm text-slate-700 dark:text-slate-200">
                       <span className="font-semibold">{complaint.customer?.fullName}</span>
                       <span className="text-slate-400">→</span>
                       <span className="font-semibold">{complaint.seller?.businessName}</span>
-                      {complaint.seller?.district && <span className="text-xs text-slate-500">({complaint.seller.district})</span>}
+                      {complaint.seller?.district && <span className="text-xs text-slate-500 dark:text-slate-400">({complaint.seller.district})</span>}
                     </p>
-                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
+                    <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500 dark:text-slate-400">
                       <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{fill(ca.received, { date: formatDate(complaint.createdAt) })}</span>
-                      <span className={`font-semibold ${overdue ? 'text-rose-700' : ''}`}>{ageDays === 0 ? t.overview.cmpToday : fill(t.overview.cmpDaysAgo, { count: ageDays })}</span>
+                      <span className={`font-semibold ${overdue ? 'text-rose-700 dark:text-rose-400' : ''}`}>{ageDays === 0 ? t.overview.cmpToday : fill(t.overview.cmpDaysAgo, { count: ageDays })}</span>
                       {complaint.order?.reference && <span>{ca.order} {complaint.order.reference}</span>}
                     </p>
-                    {!open && <p className="mt-2 line-clamp-1 text-sm text-slate-600">{complaint.message}</p>}
+                    {!open && <p className="mt-2 line-clamp-1 text-sm text-slate-600 dark:text-slate-300">{complaint.message}</p>}
                   </div>
                   <button
                     type="button"
                     onClick={() => setOpenIds((ids) => (open ? ids.filter((id) => id !== complaint.id) : [...ids, complaint.id]))}
                     aria-expanded={open}
-                    className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-cream"
+                    className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-cream dark:border-white/15 dark:text-slate-200 dark:hover:bg-white/10"
                   >
                     {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     {open ? ca.hideDetails : ca.showDetails}
@@ -287,7 +291,7 @@ function ComplaintDetails({ complaint, onSaved, onChanged, onAuthError }) {
           </dt>
           <dd className="mt-1 font-semibold text-slate-900">{seller?.businessName}</dd>
           {(seller?.firstName || seller?.lastName) && <dd className="text-slate-600">{[seller.firstName, seller.lastName].filter(Boolean).join(' ')}</dd>}
-          {seller?.district && <dd className="flex items-center gap-1.5 text-slate-600"><MapPin className="h-3.5 w-3.5 text-slate-400" />{seller.district}</dd>}
+          {seller?.district && <dd className="flex items-center gap-1.5 text-slate-600"><MapPin className="h-3.5 w-3.5 text-red-500" />{seller.district}</dd>}
           <dd className="mt-1 flex flex-col gap-0.5 text-slate-600">
             <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-400" />{seller?.user?.email}</span>
             <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-400" />{seller?.user?.phone}</span>
@@ -543,7 +547,7 @@ function AdminsPanel({ onChanged, onAuthError }) {
                 <div className="flex shrink-0 items-center gap-3">
                   <p className="text-xs text-slate-500">{fill(a.registered, { date: formatDate(admin.createdAt) })}</p>
                   {viewerIsPrimary && !admin.isPrimary && (
-                    <button type="button" onClick={() => { setRemoveError(''); setToRemove(admin); }} className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold text-red-700 ring-1 ring-red-200 hover:bg-red-50">
+                    <button type="button" onClick={() => { setRemoveError(''); setToRemove(admin); }} className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3.5 py-1.5 text-xs font-bold text-white shadow-sm hover:bg-red-700 transition-colors">
                       <Trash2 className="h-3.5 w-3.5" />
                       {a.removeAdmin}
                     </button>
@@ -626,6 +630,120 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
   const [toRemove, setToRemove] = useState(null);
   const [removeError, setRemoveError] = useState('');
   const [viewingNicSeller, setViewingNicSeller] = useState(null);
+  const [loadingVerification, setLoadingVerification] = useState(false);
+
+  const openVerificationModal = async (seller) => {
+    setViewingNicSeller(seller);
+    if ((!seller.nicFront && !seller.nicBack) || !seller.facePhoto) {
+      setLoadingVerification(true);
+      try {
+        const res = await API.get(`/admin/sellers/${seller.id}/verification`);
+        if (res.data) {
+          setViewingNicSeller((prev) => (prev?.id === seller.id ? { ...prev, ...res.data } : prev));
+        }
+      } catch (err) {
+        console.warn('Failed to load seller verification details:', err);
+      } finally {
+        setLoadingVerification(false);
+      }
+    }
+  };
+  const [copiedId, setCopiedId] = useState(false);
+  const [zoomedPhoto, setZoomedPhoto] = useState(null);
+  const [cameraConfig, setCameraConfig] = useState({ isOpen: false, step: 'front' });
+  const [savingSide, setSavingSide] = useState(null);
+  const [photoFeedback, setPhotoFeedback] = useState(null);
+  const frontInputRef = useRef(null);
+  const backInputRef = useRef(null);
+  const faceInputRef = useRef(null);
+  const [adminFaceModalOpen, setAdminFaceModalOpen] = useState(false);
+
+  const handleSaveSellerPhoto = async (side, base64Data) => {
+    if (!viewingNicSeller) return;
+    setSavingSide(side);
+    setPhotoFeedback(null);
+    try {
+      const payload = {};
+      if (side === 'front') payload.nicFront = base64Data || null;
+      else if (side === 'back') payload.nicBack = base64Data || null;
+      else if (side === 'face') payload.facePhoto = base64Data || null;
+
+      await API.patch(`/admin/sellers/${viewingNicSeller.id}/photos`, payload);
+
+      setViewingNicSeller((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          nicFront: side === 'front' ? (base64Data || null) : prev.nicFront,
+          nicBack: side === 'back' ? (base64Data || null) : prev.nicBack,
+          facePhoto: side === 'face' ? (base64Data || null) : prev.facePhoto,
+        };
+      });
+
+      setSellers((prev) => {
+        if (!Array.isArray(prev)) return prev;
+        return prev.map((s) => (s.id === viewingNicSeller.id ? {
+          ...s,
+          nicFront: side === 'front' ? (base64Data || null) : s.nicFront,
+          nicBack: side === 'back' ? (base64Data || null) : s.nicBack,
+          facePhoto: side === 'face' ? (base64Data || null) : s.facePhoto,
+        } : s));
+      });
+
+      setPhotoFeedback({
+        type: 'success',
+        text: side === 'front'
+          ? (base64Data ? 'Front ID photo updated successfully!' : 'Front ID photo removed.')
+          : side === 'back'
+          ? (base64Data ? 'Back ID photo updated successfully!' : 'Back ID photo removed.')
+          : (base64Data ? '3D Biometric Face photo updated successfully!' : '3D Face photo removed.'),
+      });
+      setTimeout(() => setPhotoFeedback(null), 3500);
+    } catch (err) {
+      console.error('Failed to update seller photo:', err);
+      setPhotoFeedback({
+        type: 'error',
+        text: err.response?.data?.message || 'Failed to update photo. Please try again.',
+      });
+    } finally {
+      setSavingSide(null);
+    }
+  };
+
+  const handleFilePicked = async (side, e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    try {
+      setSavingSide(side);
+      const compressed = await shrinkImage(file, 1600);
+      await handleSaveSellerPhoto(side, compressed);
+    } catch (err) {
+      setPhotoFeedback({ type: 'error', text: err.message || 'Error processing image file.' });
+      setSavingSide(null);
+    }
+  };
+
+  const handleCameraCapture = async (dataUrl) => {
+    const side = cameraConfig.step;
+    setCameraConfig({ isOpen: false, step: 'front' });
+    if (!dataUrl) return;
+    try {
+      setSavingSide(side);
+      const compressed = await shrinkImage(dataUrl, 1600);
+      await handleSaveSellerPhoto(side, compressed);
+    } catch (err) {
+      setPhotoFeedback({ type: 'error', text: err.message || 'Error processing captured photo.' });
+      setSavingSide(null);
+    }
+  };
+
+  const handleCopy = (text) => {
+    if (!text) return;
+    navigator.clipboard?.writeText(text);
+    setCopiedId(true);
+    setTimeout(() => setCopiedId(false), 2000);
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -655,6 +773,9 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
     try {
       await API.patch(`/admin/sellers/${seller.id}/status`, { status: newStatus });
       onChanged(fill(newStatus === 'APPROVED' ? a.approvedMsg : a.rejectedMsg, { name: seller.businessName }));
+      if (viewingNicSeller?.id === seller.id) {
+        setViewingNicSeller(null);
+      }
       setReloadKey((key) => key + 1);
     } catch (err) {
       if (isAuthError(err)) onAuthError();
@@ -704,67 +825,114 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
       ) : sellers.length === 0 ? (
         <ListMessage>{a.noSellers}</ListMessage>
       ) : (
-        <ul className="divide-y divide-slate-100">
+        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
           {sellers.map((seller) => {
             const busy = busyId === seller.id;
             const open = openId === seller.id;
             const whatsapp = toWhatsAppNumber(seller.whatsappNo);
+            const applicantName = [seller.firstName, seller.lastName].filter(Boolean).join(' ');
+            const isApproved = seller.status === 'APPROVED';
+
             return (
               <li key={seller.id} className="p-5">
                 <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                   <div className="flex min-w-0 gap-4">
-                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-100 font-bold text-brand-800">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-100 font-bold text-brand-800 dark:bg-brand-950 dark:text-brand-300">
                       {initials(seller.businessName) || '?'}
                     </span>
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
-                        <p className="font-bold text-slate-900">{seller.businessName}</p>
+                        <p className="font-bold text-slate-900 dark:text-white">{seller.businessName}</p>
+                        {applicantName && (
+                          <span className="rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                            Applicant: {applicantName}
+                          </span>
+                        )}
                         {seller.reviewCount > 0 && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-800 ring-1 ring-amber-200">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-800 ring-1 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-800">
                             <Star className="h-3 w-3 fill-amber-400 text-amber-500" />
                             {seller.averageRating.toFixed(1)} ({seller.reviewCount})
                           </span>
                         )}
+                        {seller.facePhoto && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 ring-1 ring-emerald-500/20" title="3D Biometric Verified">
+                            <ShieldCheck className="h-3 w-3" />
+                            3D Face
+                          </span>
+                        )}
                         <SellerStatusBadge status={seller.status} />
                       </div>
-                      <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500">
-                        <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{seller.district}</span>
-                        <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{fill(a.registered, { date: formatDate(seller.createdAt) })}</span>
+                      <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-slate-500 dark:text-slate-400">
+                        <span className="inline-flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-red-500" />{seller.district}</span>
+                        {seller.dateOfBirth && (
+                          <span className="inline-flex items-center gap-1">
+                            <CalendarDays className="h-3.5 w-3.5 text-slate-400" />
+                            DOB: {formatDate(seller.dateOfBirth)}
+                          </span>
+                        )}
+                        <span className="inline-flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5 text-slate-400" />{fill(a.registered, { date: formatDate(seller.createdAt) })}</span>
                       </p>
-                      <dl className="mt-3 grid gap-x-6 gap-y-1.5 text-sm text-slate-700 sm:grid-cols-2">
-                        <div className="flex min-w-0 items-center gap-2"><Mail className="h-4 w-4 shrink-0 text-slate-400" /><dt className="sr-only">{a.email}</dt><dd className="truncate">{seller.email}</dd></div>
+                      <dl className="mt-3 grid gap-x-6 gap-y-2 text-sm text-slate-700 dark:text-slate-300 sm:grid-cols-2">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <Mail className="h-4 w-4 shrink-0 text-slate-400" />
+                          <dt className="sr-only">{a.email}</dt>
+                          <dd className="truncate">{seller.email}</dd>
+                        </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <IdCard className="h-4 w-4 shrink-0 text-slate-400" />
-                          <dt className="text-slate-500">{a.nic}</dt>
-                          <dd className="font-medium tracking-wide flex items-center gap-2">
-                            <span>{seller.nicMasked || '—'}</span>
-                            {(seller.nicFront || seller.nicBack) && (
-                              <button
-                                type="button"
-                                onClick={() => setViewingNicSeller(seller)}
-                                className="inline-flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 hover:bg-brand-100 ring-1 ring-brand-200 transition-colors dark:bg-brand-950/60 dark:text-brand-300 dark:ring-brand-800"
-                              >
-                                <Eye className="h-3 w-3" />
-                                {a.viewNicPhotos || 'View Photos'}
-                              </button>
+                          <dt className="text-slate-500 dark:text-slate-400">{a.nic}:</dt>
+                          <dd className="font-medium tracking-wide flex flex-wrap items-center gap-2">
+                            {isApproved ? (
+                              <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2.5 py-0.5 font-mono text-xs font-bold text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-800">
+                                <Lock className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                                {seller.nicDisplay || seller.nicMasked || ('••••••' + (seller.nicLast5 || ''))}
+                                <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">(Encrypted · Last 5)</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2.5 py-0.5 font-mono text-xs font-bold text-amber-900 ring-1 ring-amber-300 dark:bg-amber-950/50 dark:text-amber-200 dark:ring-amber-700">
+                                {seller.nicDisplay || seller.nicFull || '—'}
+                                <span className="rounded bg-amber-200/80 px-1 py-0.2 text-[10px] font-semibold text-amber-800 dark:bg-amber-900 dark:text-amber-300">
+                                  Pending Verification
+                                </span>
+                              </span>
                             )}
+                            <button
+                              type="button"
+                              onClick={() => openVerificationModal(seller)}
+                              className={
+                                !isApproved
+                                  ? "inline-flex items-center gap-1.5 rounded-full bg-brand-600 hover:bg-brand-700 text-white px-3 py-1 text-xs font-bold shadow-sm transition-all"
+                                  : "inline-flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700 hover:bg-brand-100 ring-1 ring-brand-200 transition-colors dark:bg-brand-950/60 dark:text-brand-300 dark:ring-brand-800"
+                              }
+                            >
+                              <Eye className="h-3.5 w-3.5" />
+                              {!isApproved ? 'Verify ID & 3D Face' : (seller.facePhoto || seller.nicFront || seller.nicBack ? 'View ID & 3D Face' : 'ID & Photos')}
+                            </button>
                           </dd>
                         </div>
-                        <div className="flex items-center gap-2"><Phone className="h-4 w-4 shrink-0 text-slate-400" /><dt className="sr-only">{a.phone}</dt><dd>{seller.phone}</dd></div>
+                        <div className="flex items-center gap-2">
+                          <Phone className="h-4 w-4 shrink-0 text-slate-400" />
+                          <dt className="sr-only">{a.phone}</dt>
+                          <dd>{seller.phone}</dd>
+                        </div>
                         {whatsapp && (
-                          <div className="flex items-center gap-2"><WhatsAppIcon className="h-4 w-4 shrink-0 text-slate-400" /><dt className="sr-only">{a.whatsapp}</dt><dd>{formatPhone(whatsapp)}</dd></div>
+                          <div className="flex items-center gap-2">
+                            <WhatsAppIcon className="h-4 w-4 shrink-0 text-slate-400" />
+                            <dt className="sr-only">{a.whatsapp}</dt>
+                            <dd>{formatPhone(whatsapp)}</dd>
+                          </div>
                         )}
                       </dl>
-                      {seller.description && <p className="mt-2 text-sm italic text-slate-500">“{seller.description}”</p>}
+                      {seller.description && <p className="mt-2 text-sm italic text-slate-500 dark:text-slate-400">“{seller.description}”</p>}
                       <button
                         type="button"
                         onClick={() => setOpenId(open ? null : seller.id)}
                         aria-expanded={open}
-                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline"
+                        className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline dark:text-brand-400"
                       >
                         {open ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         {open ? a.hideProducts : a.showProducts}
-                        <span className="font-normal text-slate-500">
+                        <span className="font-normal text-slate-500 dark:text-slate-400">
                           ({fill(a.productCount, { count: seller.productCount })} · {fill(a.enquiryCount, { count: seller.clickCount })})
                         </span>
                       </button>
@@ -776,11 +944,17 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                       <button
                         type="button"
                         disabled={busy}
-                        onClick={() => changeStatus(seller, 'APPROVED')}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-60"
+                        onClick={() => {
+                          if (seller.status === 'PENDING') {
+                            openVerificationModal(seller);
+                          } else {
+                            changeStatus(seller, 'APPROVED');
+                          }
+                        }}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white hover:bg-green-700 disabled:opacity-60 shadow-sm"
                       >
                         {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <BadgeCheck className="h-4 w-4" />}
-                        {a.approve}
+                        {seller.status === 'PENDING' ? 'Verify & Approve' : a.approve}
                       </button>
                     )}
                     {seller.status === 'PENDING' && (
@@ -788,7 +962,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                         type="button"
                         disabled={busy}
                         onClick={() => changeStatus(seller, 'REJECTED')}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60 shadow-sm"
                       >
                         {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CircleAlert className="h-4 w-4" />}
                         {a.reject}
@@ -802,7 +976,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                           setRemoveError('');
                           setToRemove(seller);
                         }}
-                        className="inline-flex items-center justify-center gap-1.5 rounded-lg bg-red-50 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-100 hover:text-red-700 disabled:opacity-60"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 disabled:opacity-60 shadow-sm transition-colors"
                       >
                         <Trash2 className="h-4 w-4" />
                         {t.sellerRemoval.remove}
@@ -812,7 +986,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                 </div>
 
                 {open && (
-                  <div className="mt-4 rounded-xl bg-cream p-4">
+                  <div className="mt-4 rounded-xl bg-cream p-4 dark:bg-slate-800/60">
                     <SellerProducts sellerId={seller.id} onAuthError={onAuthError} />
                   </div>
                 )}
@@ -835,89 +1009,593 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
       )}
       {viewingNicSeller && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-4 backdrop-blur-sm animate-in fade-in"
-          onClick={() => setViewingNicSeller(null)}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-3 sm:p-4 backdrop-blur-sm animate-in fade-in"
+          onClick={() => {
+            setViewingNicSeller(null);
+            setZoomedPhoto(null);
+          }}
         >
           <div
-            className="relative max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl sm:rounded-3xl bg-white p-4 sm:p-6 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
+            className="relative max-h-[92vh] w-full max-w-4xl overflow-y-auto rounded-2xl sm:rounded-3xl bg-white p-5 sm:p-7 shadow-2xl dark:bg-slate-900 border border-slate-200 dark:border-slate-800"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Modal Header */}
             <div className="flex items-center justify-between border-b pb-4 dark:border-slate-800">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300">
-                  <IdCard className="h-5 w-5" />
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-700 dark:bg-brand-950 dark:text-brand-300 ring-1 ring-brand-200/50">
+                  <IdCard className="h-6 w-6" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base">
-                    {a.nicPhotosTitle || 'National Identity Card (NIC)'}
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    {viewingNicSeller.businessName} · {viewingNicSeller.nicMasked || ''}
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-bold text-slate-900 dark:text-white text-lg">
+                      Seller Identity & ID Card Verification
+                    </h3>
+                    <SellerStatusBadge status={viewingNicSeller.status} />
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    {viewingNicSeller.businessName} · Registered {formatDate(viewingNicSeller.createdAt)}
                   </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setViewingNicSeller(null)}
+                onClick={() => {
+                  setViewingNicSeller(null);
+                  setZoomedPhoto(null);
+                }}
                 className="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
-              {/* Front Photo */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Front Side
+            {/* Applicant Details Verification Box */}
+            <div className="mt-5 rounded-2xl bg-slate-50 p-4 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60">
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                  Applicant Submitted Information
+                </h4>
+                {viewingNicSeller.status === 'APPROVED' ? (
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-700 dark:text-emerald-300">
+                    <Lock className="h-3 w-3" /> Encrypted & Approved
                   </span>
-                  <span className="rounded-md bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
-                    Front
-                  </span>
-                </div>
-                {viewingNicSeller.nicFront ? (
-                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-800/50 aspect-[16/10] flex items-center justify-center">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={viewingNicSeller.nicFront}
-                      alt="NIC Front"
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
                 ) : (
-                  <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-xs text-slate-400 dark:border-slate-800 dark:bg-slate-800/30">
-                    {a.noNicPhotos || 'No front photo uploaded'}
-                  </div>
+                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-700 dark:text-amber-300">
+                    <CircleAlert className="h-3.5 w-3.5" /> Compare with ID card photos below before approving
+                  </span>
                 )}
               </div>
 
-              {/* Back Photo */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Back Side
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
+                {/* ID Number */}
+                <div className="rounded-xl bg-white p-3 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 sm:col-span-2 lg:col-span-1">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                    National ID Number (NIC)
                   </span>
-                  <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                    Back
+                  <div className="flex items-center justify-between gap-2">
+                    {viewingNicSeller.status === 'APPROVED' ? (
+                      <span className="font-mono text-base font-bold text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                        <Lock className="h-4 w-4" />
+                        {viewingNicSeller.nicDisplay || viewingNicSeller.nicMasked || ('••••••' + (viewingNicSeller.nicLast5 || ''))}
+                      </span>
+                    ) : (
+                      <span className="font-mono text-base font-bold text-slate-900 dark:text-white">
+                        {viewingNicSeller.nicDisplay || viewingNicSeller.nicFull || '—'}
+                      </span>
+                    )}
+                    {viewingNicSeller.status !== 'APPROVED' && (viewingNicSeller.nicDisplay || viewingNicSeller.nicFull) && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(viewingNicSeller.nicDisplay || viewingNicSeller.nicFull)}
+                        className="inline-flex items-center gap-1 rounded-md bg-slate-100 hover:bg-slate-200 px-2 py-1 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 transition-colors"
+                        title="Copy ID Number"
+                      >
+                        {copiedId ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3" />}
+                        {copiedId ? 'Copied' : 'Copy'}
+                      </button>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">
+                    {viewingNicSeller.status === 'APPROVED'
+                      ? 'ID is encrypted in database. Showing only last 5 digits.'
+                      : 'Full plaintext ID shown for verification prior to approval.'}
                   </span>
                 </div>
-                {viewingNicSeller.nicBack ? (
-                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-800/50 aspect-[16/10] flex items-center justify-center">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={viewingNicSeller.nicBack}
-                      alt="NIC Back"
-                      className="h-full w-full object-cover"
-                    />
+
+                {/* Applicant Full Name */}
+                <div className="rounded-xl bg-white p-3 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                    Applicant Full Name
+                  </span>
+                  <span className="font-semibold text-slate-900 dark:text-white block truncate">
+                    {[viewingNicSeller.firstName, viewingNicSeller.lastName].filter(Boolean).join(' ') || viewingNicSeller.businessName}
+                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block">
+                    Business: {viewingNicSeller.businessName}
+                  </span>
+                </div>
+
+                {/* Date of Birth & District */}
+                <div className="rounded-xl bg-white p-3 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
+                    Date of Birth & District
+                  </span>
+                  <span className="font-semibold text-slate-900 dark:text-white block">
+                    {viewingNicSeller.dateOfBirth ? formatDate(viewingNicSeller.dateOfBirth) : 'Not specified'}
+                  </span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 block flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-red-500" /> District: {viewingNicSeller.district}
+                  </span>
+                </div>
+
+                {/* Contact info */}
+                <div className="rounded-xl bg-white p-3 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div>
+                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">Email Address</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200 truncate block text-xs">{viewingNicSeller.email}</span>
                   </div>
-                ) : (
-                  <div className="flex h-48 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-50 text-xs text-slate-400 dark:border-slate-800 dark:bg-slate-800/30">
-                    {a.noNicPhotos || 'No back photo uploaded'}
+                  <div>
+                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">Phone Number</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200 block text-xs">{viewingNicSeller.phone}</span>
                   </div>
-                )}
+                  <div>
+                    <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">WhatsApp Number</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200 block text-xs">{viewingNicSeller.whatsappNo || viewingNicSeller.phone}</span>
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* Photos Section */}
+            <div className="mt-6">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <IdCard className="h-4 w-4 text-brand-600" />
+                  Seller ID Card Photos & Verification
+                </h4>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  Upload file or capture via live camera
+                </span>
+              </div>
+
+              {photoFeedback && (
+                <div
+                  className={`mb-4 flex items-center gap-2 rounded-xl p-3 text-xs font-semibold ${
+                    photoFeedback.type === 'success'
+                      ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 ring-1 ring-emerald-200 dark:ring-emerald-800'
+                      : 'bg-rose-50 text-rose-800 dark:bg-rose-950/50 dark:text-rose-300 ring-1 ring-rose-200 dark:ring-rose-800'
+                  }`}
+                >
+                  {photoFeedback.type === 'success' ? (
+                    <CircleCheck className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <CircleAlert className="h-4 w-4 shrink-0 text-rose-600 dark:text-rose-400" />
+                  )}
+                  <span>{photoFeedback.text}</span>
+                </div>
+              )}
+
+              {loadingVerification && (
+                <div className="mb-3 flex items-center justify-center gap-2 rounded-xl bg-brand-50/70 p-3 text-xs font-semibold text-brand-700 dark:bg-brand-950/40 dark:text-brand-300">
+                  <LoaderCircle className="h-4 w-4 animate-spin text-brand-600" />
+                  Loading high-resolution ID photos...
+                </div>
+              )}
+
+              {/* Hidden file inputs */}
+              <input
+                ref={frontInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleFilePicked('front', e)}
+              />
+              <input
+                ref={backInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleFilePicked('back', e)}
+              />
+              <input
+                ref={faceInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(e) => handleFilePicked('face', e)}
+              />
+
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+                {/* 3D Biometric Face Verification Card */}
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                        <Scan className="h-3.5 w-3.5 text-brand-600" />
+                        3D Face Biometric
+                      </span>
+                      {viewingNicSeller.facePhoto ? (
+                        <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1">
+                          <ShieldCheck className="h-3 w-3" /> 3D Verified
+                        </span>
+                      ) : (
+                        <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+                          Pending
+                        </span>
+                      )}
+                    </div>
+
+                    {viewingNicSeller.facePhoto ? (
+                      <div
+                        onClick={() => setZoomedPhoto({ src: viewingNicSeller.facePhoto, label: '3D Verified Biometric Face' })}
+                        className="group relative cursor-zoom-in overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-800/50 aspect-[16/10] flex items-center justify-center transition-all hover:ring-2 hover:ring-brand-500"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={viewingNicSeller.facePhoto}
+                          alt="3D Verified Face"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                          <ZoomIn className="h-4 w-4" /> Click to enlarge
+                        </div>
+                        <div className="absolute bottom-1.5 right-1.5 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 backdrop-blur-xs flex items-center gap-1">
+                          <ShieldCheck className="h-3 w-3" /> KYC PASS
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex aspect-[16/10] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/70 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-800/30">
+                        {savingSide === 'face' ? (
+                          <span className="flex items-center gap-1.5 text-brand-600 font-semibold">
+                            <LoaderCircle className="h-4 w-4 animate-spin" /> Saving...
+                          </span>
+                        ) : (
+                          'No 3D face verified yet'
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions for Face */}
+                  <div className="mt-3 flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800">
+                    <button
+                      type="button"
+                      disabled={savingSide !== null}
+                      onClick={() => setAdminFaceModalOpen(true)}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs transition-colors disabled:opacity-50"
+                      title="Run 3D Face Biometric Scan"
+                    >
+                      <Scan className="h-3.5 w-3.5" />
+                      <span>3D Scan</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={savingSide !== null}
+                      onClick={() => setCameraConfig({ isOpen: true, step: 'face' })}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-brand-700 shadow-xs transition-colors disabled:opacity-50"
+                      title="Take quick live photo"
+                    >
+                      <Camera className="h-3.5 w-3.5" />
+                      <span>Photo</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={savingSide !== null}
+                      onClick={() => faceInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                      title="Upload an image file from device"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      <span>Upload</span>
+                    </button>
+
+                    {viewingNicSeller.facePhoto && (
+                      <button
+                        type="button"
+                        disabled={savingSide !== null}
+                        onClick={() => handleSaveSellerPhoto('face', null)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-2 py-1.5 text-xs font-bold text-white hover:bg-red-700 shadow-xs transition-colors ml-auto disabled:opacity-50"
+                        title="Remove face photo"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+                {/* Front Photo Card */}
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        ID Card — Front Side
+                      </span>
+                      <span className="rounded-md bg-brand-50 px-2 py-0.5 text-[11px] font-semibold text-brand-700 dark:bg-brand-950 dark:text-brand-300">
+                        Front Side
+                      </span>
+                    </div>
+
+                    {viewingNicSeller.nicFront ? (
+                      <div
+                        onClick={() => setZoomedPhoto({ src: viewingNicSeller.nicFront, label: 'Front Side of ID' })}
+                        className="group relative cursor-zoom-in overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-800/50 aspect-[16/10] flex items-center justify-center transition-all hover:ring-2 hover:ring-brand-500"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={viewingNicSeller.nicFront}
+                          alt="NIC Front"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                          <ZoomIn className="h-4 w-4" /> Click to enlarge
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex aspect-[16/10] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/70 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-800/30">
+                        {savingSide === 'front' ? (
+                          <span className="flex items-center gap-1.5 text-brand-600 font-semibold">
+                            <LoaderCircle className="h-4 w-4 animate-spin" /> Saving...
+                          </span>
+                        ) : (
+                          'No front photo uploaded'
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions for Front */}
+                  <div className="mt-3 flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800">
+                    <button
+                      type="button"
+                      disabled={savingSide !== null}
+                      onClick={() => setCameraConfig({ isOpen: true, step: 'front' })}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-700 shadow-xs transition-colors disabled:opacity-50"
+                      title="Take live photo using webcam / camera"
+                    >
+                      <Camera className="h-3.5 w-3.5" />
+                      <span>{viewingNicSeller.nicFront ? 'Retake Photo' : 'Take Photo'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={savingSide !== null}
+                      onClick={() => frontInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                      title="Upload an image file from device"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      <span>{viewingNicSeller.nicFront ? 'Replace File' : 'Upload File'}</span>
+                    </button>
+
+                    {viewingNicSeller.nicFront && (
+                      <button
+                        type="button"
+                        disabled={savingSide !== null}
+                        onClick={() => handleSaveSellerPhoto('front', null)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-red-700 shadow-xs transition-colors ml-auto disabled:opacity-50"
+                        title="Remove front photo"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>Remove</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Back Photo Card */}
+                <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        ID Card — Back Side
+                      </span>
+                      <span className="rounded-md bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                        Back Side
+                      </span>
+                    </div>
+
+                    {viewingNicSeller.nicBack ? (
+                      <div
+                        onClick={() => setZoomedPhoto({ src: viewingNicSeller.nicBack, label: 'Back Side of ID' })}
+                        className="group relative cursor-zoom-in overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-800/50 aspect-[16/10] flex items-center justify-center transition-all hover:ring-2 hover:ring-brand-500"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={viewingNicSeller.nicBack}
+                          alt="NIC Back"
+                          className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
+                          <ZoomIn className="h-4 w-4" /> Click to enlarge
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex aspect-[16/10] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/70 text-xs text-slate-400 dark:border-slate-700 dark:bg-slate-800/30">
+                        {savingSide === 'back' ? (
+                          <span className="flex items-center gap-1.5 text-brand-600 font-semibold">
+                            <LoaderCircle className="h-4 w-4 animate-spin" /> Saving...
+                          </span>
+                        ) : (
+                          'No back photo uploaded'
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Actions for Back */}
+                  <div className="mt-3 flex flex-wrap items-center gap-2 pt-2 border-t border-slate-200/80 dark:border-slate-800">
+                    <button
+                      type="button"
+                      disabled={savingSide !== null}
+                      onClick={() => setCameraConfig({ isOpen: true, step: 'back' })}
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-brand-700 shadow-xs transition-colors disabled:opacity-50"
+                      title="Take live photo using webcam / camera"
+                    >
+                      <Camera className="h-3.5 w-3.5" />
+                      <span>{viewingNicSeller.nicBack ? 'Retake Photo' : 'Take Photo'}</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={savingSide !== null}
+                      onClick={() => backInputRef.current?.click()}
+                      className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
+                      title="Upload an image file from device"
+                    >
+                      <Upload className="h-3.5 w-3.5" />
+                      <span>{viewingNicSeller.nicBack ? 'Replace File' : 'Upload File'}</span>
+                    </button>
+
+                    {viewingNicSeller.nicBack && (
+                      <button
+                        type="button"
+                        disabled={savingSide !== null}
+                        onClick={() => handleSaveSellerPhoto('back', null)}
+                        className="inline-flex items-center gap-1 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-red-700 shadow-xs transition-colors ml-auto disabled:opacity-50"
+                        title="Remove back photo"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        <span>Remove</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {!viewingNicSeller.nicFront && !viewingNicSeller.nicBack && (
+                <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50/70 p-3 text-xs dark:border-emerald-900/60 dark:bg-emerald-950/30">
+                  <div className="flex items-start gap-2.5">
+                    <CircleCheck className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-emerald-900 dark:text-emerald-200">
+                        Algorithm-Verified Seller (No initial photos uploaded)
+                      </p>
+                      <p className="text-emerald-800/90 dark:text-emerald-300/80">
+                        This seller was validated by NIC checksum algorithm at signup. You can use the buttons above to upload or take webcam photos of their physical ID at any time.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* In-Modal Action Footer */}
+            <div className="mt-7 pt-5 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-xs text-slate-500 dark:text-slate-400 max-w-md">
+                {viewingNicSeller.status === 'PENDING' ? (
+                  <span>
+                    Once approved, the ID number will be securely encrypted in the database. Only the last 5 digits will be displayed thereafter.
+                  </span>
+                ) : (
+                  <span>
+                    This seller is already approved. ID number is encrypted (AES-256-GCM).
+                  </span>
+                )}
+              </div>
+
+              <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+                {viewingNicSeller.status !== 'APPROVED' && (
+                  <button
+                    type="button"
+                    disabled={busyId === viewingNicSeller.id}
+                    onClick={() => changeStatus(viewingNicSeller, 'APPROVED')}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-green-700 shadow-md transition-colors disabled:opacity-60"
+                  >
+                    {busyId === viewingNicSeller.id ? (
+                      <LoaderCircle className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <BadgeCheck className="h-4 w-4" />
+                        <span>Approve Seller & Encrypt ID</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                {viewingNicSeller.status === 'PENDING' && (
+                  <button
+                    type="button"
+                    disabled={busyId === viewingNicSeller.id}
+                    onClick={() => changeStatus(viewingNicSeller, 'REJECTED')}
+                    className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-red-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-red-700 transition-colors disabled:opacity-60"
+                  >
+                    {busyId === viewingNicSeller.id ? (
+                      <LoaderCircle className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <>
+                        <CircleAlert className="h-4 w-4" />
+                        <span>Reject</span>
+                      </>
+                    )}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setViewingNicSeller(null);
+                    setZoomedPhoto(null);
+                  }}
+                  className="rounded-xl border border-slate-300 dark:border-slate-700 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live Camera Viewfinder Modal */}
+      {cameraConfig.isOpen && (
+        <CameraModal
+          isOpen={cameraConfig.isOpen}
+          initialStep={cameraConfig.step}
+          singleStepOnly={true}
+          onCaptureFront={handleCameraCapture}
+          onCaptureBack={handleCameraCapture}
+          onClose={() => setCameraConfig({ isOpen: false, step: 'front' })}
+          r={t.register || {}}
+        />
+      )}
+
+      {/* Admin 3D Face Biometric Scan Modal */}
+      {adminFaceModalOpen && (
+        <Face3DVerificationModal
+          isOpen={adminFaceModalOpen}
+          onComplete={async (result) => {
+            setAdminFaceModalOpen(false);
+            if (result.photo) {
+              await handleSaveSellerPhoto('face', result.photo);
+            }
+          }}
+          onClose={() => setAdminFaceModalOpen(false)}
+          r={t.register || {}}
+        />
+      )}
+
+      {/* Lightbox / Zoom Modal for Photo */}
+      {zoomedPhoto && (
+        <div
+          className="fixed inset-0 z-60 flex items-center justify-center bg-black/90 p-4 backdrop-blur-md animate-in fade-in"
+          onClick={() => setZoomedPhoto(null)}
+        >
+          <div className="relative max-h-[95vh] max-w-[95vw] flex flex-col items-center" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between w-full mb-2 text-white">
+              <span className="font-semibold text-sm">{zoomedPhoto.label}</span>
+              <button
+                type="button"
+                onClick={() => setZoomedPhoto(null)}
+                className="rounded-full bg-white/20 p-2 text-white hover:bg-white/30 transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={zoomedPhoto.src}
+              alt={zoomedPhoto.label}
+              className="max-h-[85vh] max-w-[90vw] object-contain rounded-xl shadow-2xl"
+            />
           </div>
         </div>
       )}
@@ -1015,7 +1693,7 @@ function CustomersPanel({ onChanged, onAuthError, onBack }) {
                   setRemoveError('');
                   setToRemove(customer);
                 }}
-                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 hover:bg-red-50 hover:text-red-700"
+                className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white hover:bg-red-700 shadow-sm transition-colors"
               >
                 <Trash2 className="h-4 w-4" />
                 {removal.remove}
@@ -1151,7 +1829,7 @@ function ProductsPanel({ onChanged, onAuthError }) {
                   <button
                     type="button"
                     onClick={() => setToRemove(product)}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-3.5 py-2 text-sm font-bold text-white hover:bg-red-700 shadow-sm transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                     {a.remove}
@@ -1364,7 +2042,7 @@ function WallpaperPanel({ onChanged, onAuthError }) {
                       onClick={() => remove(wallpaper)}
                       aria-label={p.remove}
                       title={p.remove}
-                      className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/95 text-red-600 shadow transition-colors hover:bg-red-600 hover:text-white disabled:opacity-60"
+                      className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-white shadow-md transition-colors hover:bg-red-700 disabled:opacity-60"
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -1504,25 +2182,39 @@ export default function AdminDashboard() {
 
   return (
     <div className="relative isolate min-h-screen w-full">
-      <PageArt />
-      <DashboardSidebar
+            <DashboardSidebar
         items={menu}
         active={tab}
         onSelect={setTab}
         name={session.user?.profile?.fullName || a.title}
         subtitle={session.user?.email}
+        photoUrl={profilePhotoUrl(session.user)}
+        roleLabel="Admin"
         onLogout={loginExpired}
         menuLabel={a.menuTitle}
+        backHref="/"
+        backLabel={t.admin?.publicSite || 'Store'}
         hideDesktopTopBar={true}
         card={{ icon: ShieldCheck, title: a.title, text: stats ? fill(a.statProductsSub, { count: stats.products.total }) : a.subtitle, label: a.tabSellers, onClick: () => setTab('sellers') }}
       >
-          <section className="flex flex-col gap-2 rounded-[22px] sm:rounded-[28px] bg-slate-800 p-4 sm:p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <h1 className="flex items-center gap-2 text-2xl font-extrabold">
-                <ShieldCheck className="h-6 w-6 text-brand-300" />
-                {a.title}
-              </h1>
-              <p className="mt-1 text-sm text-slate-300">{a.subtitle}</p>
+          <section className="flex flex-col gap-4 rounded-[22px] sm:rounded-[28px] bg-slate-800 p-4 sm:p-6 text-white shadow-sm sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-center gap-4">
+              <ProfilePhotoEditor
+                user={session.user}
+                name={session.user?.profile?.fullName || session.user?.email || a.title}
+                onChanged={(updatedUser) => {
+                  updateSessionUser(updatedUser);
+                  changed('Profile photo updated successfully!');
+                }}
+                onAuthError={loginExpired}
+              />
+              <div>
+                <h1 className="flex items-center gap-2 text-2xl font-extrabold">
+                  <ShieldCheck className="h-6 w-6 text-brand-300" />
+                  {a.title}
+                </h1>
+                <p className="mt-1 text-sm text-slate-300">{a.subtitle}</p>
+              </div>
             </div>
             <p className="text-xs text-slate-400">
               {fill(a.loggedInAs, {
@@ -1583,7 +2275,7 @@ export default function AdminDashboard() {
 
           {tab === 'admins' && (
             <section className="overflow-hidden rounded-[28px] bg-white shadow-sm ring-1 ring-ink/5">
-              <AdminsPanel onChanged={changed} onAuthError={loginExpired} />
+              <AdminsPanel session={session} onChanged={changed} onAuthError={loginExpired} />
             </section>
           )}
       </DashboardSidebar>

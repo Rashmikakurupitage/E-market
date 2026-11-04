@@ -2,9 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import {
-  AlertTriangle, ArrowRight, BadgeCheck, CalendarDays, ChevronDown, CircleCheck, FileText, Flag, Hourglass, MessageCircle, Package, RefreshCw, ShoppingBag, Store, TrendingUp, Users, Wallet,
+  AlertTriangle, ArrowRight, BadgeCheck, CalendarDays, ChevronDown, CircleCheck, Clock, FileText, Flag, Hourglass, MessageCircle, Package, RefreshCw, ShoppingBag, Store, TrendingUp, Users, Wallet,
 } from 'lucide-react';
 import API from '../lib/api';
+import { useHydrated } from '../lib/auth';
 import { fill, useLanguage } from '../lib/i18n';
 import { formatPrice, initials } from '../lib/catalog';
 import CountUp from './CountUp';
@@ -22,20 +23,22 @@ const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => (
   "'": '&#39;',
 }[character]));
 
-export function Kpi({ icon: Icon, label, value, sub, tone, delay, onClick }) {
-  const tones = {
-    magenta: 'from-magenta to-saffron',
-    ink: 'from-ink to-slate-600',
-    leaf: 'from-leaf to-emerald-400',
-    blue: 'from-blue-500 to-cyan-400',
-    amber: 'from-amber-500 to-yellow-400',
-    rose: 'from-rose-500 to-orange-400',
-  };
+const KPI_CONFIG = {
+  magenta: { bg: 'linear-gradient(135deg, #c8336f 0%, #ee7d2b 100%)', solid: '#c8336f' },
+  ink:     { bg: 'linear-gradient(135deg, #334155 0%, #1e293b 100%)', solid: '#334155' },
+  leaf:    { bg: 'linear-gradient(135deg, #16a34a 0%, #10b981 100%)', solid: '#16a34a' },
+  blue:    { bg: 'linear-gradient(135deg, #2563eb 0%, #06b6d4 100%)', solid: '#2563eb' },
+  amber:   { bg: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)', solid: '#f59e0b' },
+  rose:    { bg: 'linear-gradient(135deg, #e11d48 0%, #f43f5e 100%)', solid: '#e11d48' },
+};
+
+export function Kpi({ icon: Icon, label, value, sub, tone = 'ink', delay, onClick }) {
+  const cfg = KPI_CONFIG[tone] || KPI_CONFIG.ink;
   return (
     <Reveal delay={delay} className="group relative overflow-hidden rounded-[22px] sm:rounded-[26px] border border-ink/8 bg-white p-3.5 sm:p-5 shadow-sm shadow-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/10 hover:border-ink/15">
-      <span aria-hidden="true" className={`absolute -right-6 -top-6 h-20 w-20 sm:h-24 sm:w-24 rounded-full bg-linear-to-br opacity-15 transition-transform duration-500 group-hover:scale-125 ${tones[tone]}`} />
-      <span className={`flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl sm:rounded-2xl bg-linear-to-br text-white shadow-md shadow-ink/10 transition-transform duration-300 group-hover:scale-105 ${tones[tone]}`}>
-        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
+      <span aria-hidden="true" className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 sm:h-24 sm:w-24 rounded-full opacity-15 transition-transform duration-500 group-hover:scale-125" style={{ background: cfg.bg, backgroundColor: cfg.solid }} />
+      <span className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl sm:rounded-2xl text-white transition-transform duration-300 group-hover:scale-105" style={{ background: cfg.bg, backgroundColor: cfg.solid }}>
+        <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
       </span>
       <p className="mt-2.5 sm:mt-3.5 text-2xl sm:text-3xl font-extrabold tabular-nums tracking-tight text-ink">{typeof value === 'number' ? <CountUp value={value} /> : value ?? '–'}</p>
       <p className="mt-1 text-xs sm:text-sm font-semibold text-ink/75">{label}</p>
@@ -256,6 +259,15 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [now] = useState(() => new Date());
+  const [currentDate, setCurrentDate] = useState(() => new Date());
+  const mounted = useHydrated();
+
+  useEffect(() => {
+    const clockTimer = setInterval(() => {
+      setCurrentDate(new Date());
+    }, 1000);
+    return () => clearInterval(clockTimer);
+  }, []);
   const currentYear = now.getFullYear();
   const [rangeMode, setRangeMode] = useState('days-14');
   const [selectedYear, setSelectedYear] = useState(currentYear);
@@ -303,9 +315,20 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
   // Cards with no page of their own: bring the matching section into view
   const scrollToCard = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
-  const hour = new Date().getHours();
+  const hour = currentDate.getHours();
   const greeting = hour < 12 ? o.morning : hour < 17 ? o.afternoon : o.evening;
-  const today = new Date().toLocaleDateString(lang === 'en' ? 'en-GB' : lang === 'si' ? 'si-LK' : 'ta-LK', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const today = currentDate.toLocaleDateString(lang === 'en' ? 'en-GB' : lang === 'si' ? 'si-LK' : 'ta-LK', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+  const timeFormatted = currentDate.toLocaleTimeString(lang === 'en' ? 'en-GB' : lang === 'si' ? 'si-LK' : 'ta-LK', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: true,
+  });
 
   const sellers = stats?.sellers;
   const sellerTotal = sellers ? sellers.PENDING + sellers.APPROVED + sellers.REJECTED : 0;
@@ -472,12 +495,18 @@ export default function AdminOverview({ stats, onNavigate, onAuthError }) {
     <div className="space-y-6">
       {/* Greeting */}
       <Reveal animation="fade-down" className="relative isolate overflow-hidden rounded-[22px] sm:rounded-[28px] bg-linear-to-br from-ink via-[#2a1d3a] to-magenta-dark p-4 sm:p-6 text-white shadow-lg">
-        <span aria-hidden="true" className="pointer-events-none absolute -right-10 -top-12 -z-10 h-44 w-44 animate-float rounded-full bg-saffron/30 blur-3xl" />
-        <span aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 -z-10 h-40 w-40 animate-float rounded-full bg-magenta/40 blur-3xl [animation-delay:-3s]" />
-        <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-turmeric">
-          <CalendarDays className="h-4 w-4" />
-          {today}
-        </p>
+        <span aria-hidden="true" className="pointer-events-none absolute -bottom-16 left-1/3 -z-10 h-40 w-40 animate-float rounded-full bg-magenta/30 blur-2xl [animation-delay:-3s]" />
+        <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-wider text-turmeric">
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarDays className="h-4 w-4 shrink-0" />
+            <span>{today}</span>
+          </span>
+          <span aria-hidden="true" className="text-white/40">·</span>
+          <span className="inline-flex items-center gap-1.5 tabular-nums text-amber-300">
+            <Clock className="h-3.5 w-3.5 shrink-0 text-amber-400" />
+            <span suppressHydrationWarning>{mounted ? timeFormatted : ''}</span>
+          </span>
+        </div>
         <h2 className="mt-2 text-2xl font-extrabold sm:text-3xl">{greeting} 👋</h2>
         <p className="mt-1 text-sm text-white/75">
           {needsAttention > 0 ? fill(o.attention, { count: needsAttention }) : o.allClear}

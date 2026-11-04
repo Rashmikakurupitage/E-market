@@ -109,17 +109,19 @@ exports.listAdmins = async (req, res) => {
         email: true,
         phone: true,
         createdAt: true,
-        adminProfile: { select: { fullName: true, isPrimary: true } }
+        adminProfile: { select: { fullName: true, isPrimary: true } },
+        profilePhoto: { select: { updatedAt: true } }
       }
     });
 
     const viewer = admins.find((admin) => admin.id === req.user.userId);
     res.json({
       viewerIsPrimary: !!viewer?.adminProfile?.isPrimary,
-      admins: admins.map(({ adminProfile, ...user }) => ({
+      admins: admins.map(({ adminProfile, profilePhoto, ...user }) => ({
         ...user,
         fullName: adminProfile?.fullName || '',
-        isPrimary: !!adminProfile?.isPrimary
+        isPrimary: !!adminProfile?.isPrimary,
+        photoVersion: profilePhoto ? profilePhoto.updatedAt.getTime() : null
       }))
     });
   } catch (error) {
@@ -418,7 +420,7 @@ exports.listSellers = async (req, res) => {
     const nicMatches = [];
     if (search) {
       if (search.length >= 3) nicMatches.push({ nicLast5: { contains: search.toUpperCase().slice(-5) } });
-      if (nicVault.isValidNic(search)) nicMatches.push({ nicHash: nicVault.hash(search) });
+      if (nicVault.isValidNic(search)) { nicMatches.push({ nicHash: nicVault.hash(search) }); nicMatches.push({ nicNumber: search.toUpperCase() }); }
     }
 
     const sellers = await prisma.sellerProfile.findMany({
@@ -436,7 +438,7 @@ exports.listSellers = async (req, res) => {
         })
       },
       include: {
-        user: { select: { email: true, phone: true } },
+        user: { select: { email: true, phone: true, profilePhoto: { select: { data: true, updatedAt: true } } } },
         _count: { select: { products: true, analytics: true, reviews: true } },
         reviews: { select: { rating: true } }
       },
@@ -452,11 +454,34 @@ exports.listSellers = async (req, res) => {
           ? Math.round((sReviews.reduce((sum, r) => sum + r.rating, 0) / sReviews.length) * 10) / 10
           : 0;
 
+        const isApproved = seller.status === 'APPROVED';
+        let decryptedNic = null;
+        if (!isApproved) {
+          if (nicNumber && nicVault.isValidNic(nicNumber)) {
+            decryptedNic = nicNumber;
+          } else if (nicEncrypted) {
+            try {
+              decryptedNic = nicVault.decrypt(nicEncrypted);
+            } catch (err) {
+              decryptedNic = null;
+            }
+          }
+        }
+
+        const maskedNic = nicVault.mask(nicLast5) || (nicLast5 ? `••••••${nicLast5}` : null);
+        const resolvedLast5 = nicLast5 || (decryptedNic ? decryptedNic.slice(-5) : null);
+
         return {
           ...seller,
-          nicMasked: nicVault.mask(nicLast5),
-          email: user.email,
-          phone: user.phone,
+          nicDisplay: isApproved ? (maskedNic || (resolvedLast5 ? `••••••${resolvedLast5}` : '—')) : (decryptedNic || maskedNic || '—'),
+          nicFull: isApproved ? undefined : decryptedNic,
+          nicMasked: maskedNic || (resolvedLast5 ? `••••••${resolvedLast5}` : '—'),
+          nicLast5: resolvedLast5,
+          isNicEncrypted: isApproved,
+          email: user?.email,
+          phone: user?.phone,
+          facePhoto: user?.profilePhoto?.data || null,
+          faceVerified: !!user?.profilePhoto?.data,
           productCount: _count.products,
           clickCount: _count.analytics,
           reviewCount,
@@ -481,6 +506,118 @@ exports.getSellerProducts = async (req, res) => {
     res.json(products.map(({ _count, ...product }) => ({ ...product, clickCount: _count.analytics })));
   } catch (error) {
     serverError(res, 'ADMIN_SELLER_PRODUCTS_ERROR:', error);
+  }
+};
+
+// Get single seller details with verification data
+exports.getSellerVerification = async (req, res) => {
+  try {
+    const id = String(req.params.id);
+    const seller = await prisma.sellerProfile.findUnique({
+      where: { id },
+      include: {
+        user: {
+          select: {
+            email: true,
+            phone: true,
+            profilePhoto: { select: { data: true, updatedAt: true } }
+          }
+        },
+        _count: { select: { products: true, analytics: true, reviews: true } }
+      }
+    });
+
+    if (!seller || seller.removedAt) {
+      return res.status(404).json({ message: 'Seller not found.' });
+    }
+
+    const isApproved = seller.status === 'APPROVED';
+    let decryptedNic = null;
+    if (!isApproved) {
+      if (seller.nicNumber && nicVault.isValidNic(seller.nicNumber)) {
+        decryptedNic = seller.nicNumber;
+      } else if (seller.nicEncrypted) {
+        try {
+          decryptedNic = nicVault.decrypt(seller.nicEncrypted);
+        } catch (err) {
+          decryptedNic = null;
+        }
+      }
+    }
+
+    const maskedNic = nicVault.mask(seller.nicLast5) || (seller.nicLast5 ? `••••••${seller.nicLast5}` : null);
+    const resolvedLast5 = seller.nicLast5 || (decryptedNic ? decryptedNic.slice(-5) : null);
+    const { nicNumber, nicHash, nicEncrypted, nicLast5, ...sellerPayload } = seller;
+
+    res.json({
+      ...sellerPayload,
+      nicDisplay: isApproved ? (maskedNic || (resolvedLast5 ? `••••••${resolvedLast5}` : '—')) : (decryptedNic || maskedNic || '—'),
+      nicFull: isApproved ? undefined : decryptedNic,
+      nicMasked: maskedNic || (resolvedLast5 ? `••••••${resolvedLast5}` : '—'),
+      nicLast5: resolvedLast5,
+      isNicEncrypted: isApproved,
+      email: seller.user?.email,
+      phone: seller.user?.phone,
+      facePhoto: seller.user?.profilePhoto?.data || null,
+      faceVerified: !!seller.user?.profilePhoto?.data,
+      faceVerifiedAt: seller.user?.profilePhoto?.updatedAt || null,
+      productCount: seller._count?.products || 0,
+      clickCount: seller._count?.analytics || 0
+    });
+  } catch (error) {
+    serverError(res, 'ADMIN_SELLER_VERIFICATION_ERROR:', error);
+  }
+};
+
+// Admin update or upload seller verification photos (NIC front, NIC back, or profile photo / 3D face photo)
+exports.updateSellerPhotos = async (req, res) => {
+  try {
+    const id = String(req.params.id);
+    const { nicFront, nicBack, profilePhoto, facePhoto } = req.body;
+    const photoToSave = facePhoto !== undefined ? facePhoto : profilePhoto;
+
+    const seller = await prisma.sellerProfile.findUnique({
+      where: { id },
+      include: { user: true }
+    });
+
+    if (!seller || seller.removedAt) {
+      return res.status(404).json({ message: 'Seller not found.' });
+    }
+
+    const updateData = {};
+    if (nicFront !== undefined) updateData.nicFront = nicFront;
+    if (nicBack !== undefined) updateData.nicBack = nicBack;
+
+    let updatedSeller = seller;
+    if (Object.keys(updateData).length > 0) {
+      updatedSeller = await prisma.sellerProfile.update({
+        where: { id },
+        data: updateData
+      });
+    }
+
+    if (photoToSave !== undefined) {
+      if (!photoToSave) {
+        await prisma.profilePhoto.deleteMany({ where: { userId: seller.userId } });
+      } else if (typeof photoToSave === 'string' && photoToSave.startsWith('data:image/')) {
+        await prisma.profilePhoto.upsert({
+          where: { userId: seller.userId },
+          create: { userId: seller.userId, data: photoToSave },
+          update: { data: photoToSave }
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      nicFront: updatedSeller.nicFront,
+      nicBack: updatedSeller.nicBack,
+      facePhoto: photoToSave || null,
+      message: 'Seller photos updated successfully.'
+    });
+  } catch (error) {
+    serverError(res, 'ADMIN_SELLER_PHOTOS_ERROR:', error);
   }
 };
 
@@ -521,6 +658,7 @@ exports.removeSeller = async (req, res) => {
 };
 
 // 4. Approve or reject a seller. Only APPROVED sellers' products are shown on the website.
+// When approving, the seller's ID is encrypted in the database and masked (showing only last 5 digits).
 exports.setSellerStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -529,9 +667,52 @@ exports.setSellerStatus = async (req, res) => {
     }
 
     const sellerId = String(req.params.id);
-    const { nicNumber, nicHash, nicEncrypted, nicLast5, ...seller } = await prisma.sellerProfile.update({
+    const existingSeller = await prisma.sellerProfile.findUnique({
       where: { id: sellerId },
-      data: { status }
+      include: {
+        user: { select: { email: true, phone: true } },
+        _count: { select: { products: true, analytics: true, reviews: true } }
+      }
+    });
+
+    if (!existingSeller) {
+      return res.status(404).json({ message: 'අලෙවිකරු සොයාගත නොහැක.' });
+    }
+
+    let updateData = { status };
+
+    // When approving, ensure the NIC is encrypted and never plain
+    if (status === 'APPROVED') {
+      let plaintextNic = null;
+      if (existingSeller.nicNumber && nicVault.isValidNic(existingSeller.nicNumber)) {
+        plaintextNic = existingSeller.nicNumber;
+      } else if (existingSeller.nicEncrypted) {
+        try {
+          plaintextNic = nicVault.decrypt(existingSeller.nicEncrypted);
+        } catch (e) {
+          plaintextNic = null;
+        }
+      }
+
+      if (plaintextNic) {
+        const protectedNic = nicVault.protect(plaintextNic);
+        updateData = {
+          ...updateData,
+          nicEncrypted: protectedNic.nicEncrypted,
+          nicHash: protectedNic.nicHash,
+          nicLast5: protectedNic.nicLast5,
+          nicNumber: `SELF-SELLER-${crypto.randomBytes(8).toString('hex').toUpperCase()}`
+        };
+      }
+    }
+
+    const updatedSeller = await prisma.sellerProfile.update({
+      where: { id: sellerId },
+      data: updateData,
+      include: {
+        user: { select: { email: true, phone: true } },
+        _count: { select: { products: true, analytics: true, reviews: true } }
+      }
     });
 
     if (status === 'REJECTED') {
@@ -546,7 +727,40 @@ exports.setSellerStatus = async (req, res) => {
       });
     }
 
-    res.json({ message: 'තත්ත්වය යාවත්කාලීන කරන ලදී.', seller });
+    const isApproved = updatedSeller.status === 'APPROVED';
+    const resolvedLast5 = updatedSeller.nicLast5;
+    const maskedNic = nicVault.mask(resolvedLast5) || (resolvedLast5 ? `••••••${resolvedLast5}` : null);
+    let decryptedNic = null;
+
+    if (!isApproved) {
+      if (updatedSeller.nicNumber && nicVault.isValidNic(updatedSeller.nicNumber)) {
+        decryptedNic = updatedSeller.nicNumber;
+      } else if (updatedSeller.nicEncrypted) {
+        try {
+          decryptedNic = nicVault.decrypt(updatedSeller.nicEncrypted);
+        } catch (err) {
+          decryptedNic = null;
+        }
+      }
+    }
+
+    const { nicNumber, nicHash, nicEncrypted, nicLast5, ...sellerPayload } = updatedSeller;
+
+    res.json({
+      message: status === 'APPROVED' ? 'අලෙවිකරු අනුමත කරන ලදී. හැඳුනුම්පත් අංකය සංකේතනය කරන ලදී.' : 'තත්ත්වය යාවත්කාලීන කරන ලදී.',
+      seller: {
+        ...sellerPayload,
+        nicDisplay: isApproved ? (maskedNic || (resolvedLast5 ? `••••••${resolvedLast5}` : '—')) : (decryptedNic || maskedNic || '—'),
+        nicFull: isApproved ? undefined : decryptedNic,
+        nicMasked: maskedNic,
+        nicLast5: resolvedLast5,
+        isNicEncrypted: isApproved,
+        email: updatedSeller.user?.email,
+        phone: updatedSeller.user?.phone,
+        productCount: updatedSeller._count?.products || 0,
+        clickCount: updatedSeller._count?.analytics || 0
+      }
+    });
   } catch (error) {
     if (error.code === 'P2025') {
       return res.status(404).json({ message: 'අලෙවිකරු සොයාගත නොහැක.' });

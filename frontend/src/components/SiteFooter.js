@@ -67,7 +67,7 @@ export default function SiteFooter() {
           <h2 className="font-sans text-sm font-bold uppercase tracking-wider text-white">{t.contact}</h2>
           <ul className="mt-4 space-y-3 text-sm">
             <li className="flex items-start gap-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-saffron/20 ring-1 ring-white/10"><MapPin className="h-4 w-4 text-saffron" /></span>
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-red-500/20 ring-1 ring-white/10"><MapPin className="h-4 w-4 text-red-500" /></span>
               <address className="pt-1 not-italic leading-relaxed">
                 <button
                   type="button"

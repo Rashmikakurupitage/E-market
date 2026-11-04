@@ -1,5 +1,4 @@
 import type { Metadata, Viewport } from "next";
-import Script from "next/script";
 import { Geist, Geist_Mono, Noto_Sans_Sinhala, Noto_Sans_Tamil, Playfair_Display } from "next/font/google";
 import "./globals.css";
 import "./dark-theme.css";
@@ -58,12 +57,17 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
-      className={`${geistSans.variable} ${geistMono.variable} ${notoSinhala.variable} ${notoTamil.variable} ${playfair.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSinhala.variable} ${notoTamil.variable} ${playfair.variable} h-full antialiased w-full max-w-full overflow-x-clip`}
     >
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var d=document.documentElement,l=localStorage;if(l.getItem('lang'))l.removeItem('lang');var s=l.getItem('lw-theme'),p=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;if(s==='dark'||(!s&&p)){d.setAttribute('data-theme','dark');d.classList.add('dark');}else{d.removeAttribute('data-theme');d.classList.remove('dark');}var a=l.getItem('lw-accent');if(/^(ocean|forest|royal|slate)$/.test(a)){d.setAttribute('data-accent',a);}var pt=l.getItem('lw-pattern');if(/^(dots|lattice|waves)$/.test(pt)){d.setAttribute('data-pattern',pt);}else{d.removeAttribute('data-pattern');}}catch(e){}`,
+          }}
+        />
+      </head>
       {/* Browser extensions (e.g. converters, translators) add attributes to <body>; don't treat that as a hydration error */}
-      <body className="bg-mesh flex min-h-full flex-col text-ink w-full max-w-full overflow-x-hidden" suppressHydrationWarning>
-        {/* Apply saved colors before hydration without an inline script in the React tree */}
-        <Script src="/theme-init.js" strategy="beforeInteractive" />
+      <body className="bg-mesh relative isolate flex min-h-full flex-col text-ink w-full max-w-full overflow-x-clip" suppressHydrationWarning>
         <LanguageProvider>
           <SiteFrame>{children}</SiteFrame>
           <AppShell />

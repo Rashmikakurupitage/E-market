@@ -1074,7 +1074,7 @@ export default function DashboardPage() {
                             onClick={() => setProductToRemove(product)}
                             aria-label={`${d.remove}: ${product.title}`}
                             title={d.remove}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-transparent p-2 text-xs font-semibold text-slate-400 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950/30 sm:px-3"
+                            className="inline-flex items-center gap-1.5 rounded-xl bg-red-600 p-2 text-xs font-bold text-white shadow-xs transition-colors hover:bg-red-700 sm:px-3"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             <span className="hidden md:inline">{d.remove}</span>

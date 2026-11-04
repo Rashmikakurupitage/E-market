@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { fill } from '../lib/i18n';
 import {
   Camera,
   CheckCircle2,
@@ -20,8 +21,10 @@ import {
   Users,
   ArrowRight,
   ArrowLeft,
-  ChevronRight
+  ChevronRight,
+  Crop
 } from 'lucide-react';
+import NicCropModal from './NicCropModal';
 
 /**
  * Resizes and compresses an image in browser using canvas
@@ -113,12 +116,13 @@ function IdCardBackGraphic() {
 /**
  * Guided Continuous 2-Step Camera Viewfinder Modal
  */
-function CameraModal({
+export function CameraModal({
   isOpen,
   initialStep = 'front', // 'front' | 'back'
   singleStepOnly = false,
   onCaptureFront,
   onCaptureBack,
+  onOpenCrop,
   onClose,
   r
 }) {
@@ -137,6 +141,7 @@ function CameraModal({
   // Sync step if opened with a specific initialStep
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setStep(initialStep);
       setSnapshot(null);
     }
@@ -203,6 +208,7 @@ function CameraModal({
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       startCamera();
     } else {
       stopTracks();
@@ -429,21 +435,36 @@ function CameraModal({
         </div>
 
         {/* Bottom Toolbar */}
-        <div className="flex items-center justify-between border-t border-slate-800/80 px-6 py-4 bg-slate-900/95 z-20">
+        <div className="flex items-center justify-between border-t border-slate-800/80 px-4 sm:px-6 py-4 bg-slate-900/95 z-20">
           {snapshot ? (
-            <div className="flex items-center justify-between w-full gap-4">
+            <div className="flex flex-wrap items-center justify-between w-full gap-2 sm:gap-4">
               <button
                 type="button"
                 onClick={handleRetake}
-                className="inline-flex items-center gap-2 rounded-xl bg-slate-800 px-4 py-2.5 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 px-3.5 py-2.5 text-xs font-bold text-slate-200 hover:bg-slate-700 hover:text-white transition-colors"
               >
                 <RotateCcw className="h-4 w-4" />
                 <span>{r?.retakeBtn || 'Retake'}</span>
               </button>
+              {onOpenCrop && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const snap = snapshot;
+                    const st = step;
+                    handleClose();
+                    onOpenCrop(snap, st);
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 px-4 py-2.5 text-xs font-bold text-white hover:bg-brand-500 transition-colors shadow-sm"
+                >
+                  <Crop className="h-4 w-4" />
+                  <span>{r?.cropPhotoBtn || 'Crop Photo'}</span>
+                </button>
+              )}
               <button
                 type="button"
                 onClick={handleConfirmCurrent}
-                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-950"
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 sm:px-6 py-2.5 text-xs font-bold text-white hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-950"
               >
                 <Check className="h-4 w-4" />
                 <span>
@@ -534,9 +555,17 @@ export default function NicPhotoUpload({
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef(null);
 
+  // Interactive Crop Modal State
+  const [cropModalConfig, setCropModalConfig] = useState({
+    isOpen: false,
+    imageSrc: null,
+    step: 'front'
+  });
+
   // Automatically advance to 'back' when front is uploaded (if back is missing)
   useEffect(() => {
     if (frontImage && !backImage && activeStep === 'front') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveStep('back');
     } else if (frontImage && backImage && activeStep !== 'review') {
       setActiveStep('review');
@@ -551,28 +580,56 @@ export default function NicPhotoUpload({
     });
   };
 
-  const handleFileChange = async (e) => {
+  // Open interactive cropper when a file is selected or dropped
+  const openCropperForFile = (fileOrDataUrl, targetStep = activeStep) => {
+    if (!fileOrDataUrl) return;
+    if (typeof fileOrDataUrl === 'string') {
+      setCropModalConfig({
+        isOpen: true,
+        imageSrc: fileOrDataUrl,
+        step: targetStep
+      });
+    } else {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setCropModalConfig({
+          isOpen: true,
+          imageSrc: e.target.result,
+          step: targetStep
+        });
+      };
+      reader.readAsDataURL(fileOrDataUrl);
+    }
+  };
+
+  const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (activeStep === 'front') {
-        await onFrontChange(file);
-      } else {
-        await onBackChange(file);
-      }
+      openCropperForFile(file, activeStep);
     }
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleDrop = async (e) => {
+  const handleDrop = (e) => {
     e.preventDefault();
     setDragOver(false);
     const file = e.dataTransfer?.files?.[0];
     if (file) {
-      if (activeStep === 'front') {
-        await onFrontChange(file);
-      } else {
-        await onBackChange(file);
+      openCropperForFile(file, activeStep);
+    }
+  };
+
+  const handleCropConfirm = async (croppedDataUrl) => {
+    const targetStep = cropModalConfig.step;
+    setCropModalConfig({ isOpen: false, imageSrc: null, step: 'front' });
+    if (targetStep === 'front') {
+      await onFrontChange(croppedDataUrl);
+      if (!backImage) {
+        setActiveStep('back');
       }
+    } else {
+      await onBackChange(croppedDataUrl);
+      setActiveStep('review');
     }
   };
 
@@ -633,26 +690,26 @@ export default function NicPhotoUpload({
           </div>
 
           {/* Top Status Badge */}
-          <div className="flex items-center">
+          <div className="flex items-center shrink-0">
             {isMaleRejected ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 ring-1 ring-rose-300 dark:ring-rose-800 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-bold shadow-xs">
-                <ShieldAlert className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400" />
-                {r?.maleNicDetectedBadge || 'Male NIC Detected · Women Only'}
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 ring-1 ring-rose-300 dark:ring-rose-800 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-bold shadow-xs whitespace-nowrap">
+                <ShieldAlert className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                <span>{r?.maleNicDetectedBadge || 'Male NIC Detected · Women Only'}</span>
               </span>
             ) : bothCompleted ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 ring-1 ring-emerald-200/80 dark:ring-emerald-800/60 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold">
-                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                2 of 2 Photos Verified
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 ring-1 ring-emerald-200/80 dark:ring-emerald-800/60 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold whitespace-nowrap">
+                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <span>{r?.bothPhotosVerifiedBadge || '2 of 2 Photos Verified'}</span>
               </span>
             ) : frontImage ? (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 ring-1 ring-amber-300 dark:ring-amber-800/60 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold">
-                <LoaderCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 animate-spin" />
-                Step 2: Back Side Essential
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 ring-1 ring-amber-300 dark:ring-amber-800/60 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold whitespace-nowrap">
+                <LoaderCircle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 animate-spin shrink-0" />
+                <span>{r?.step2BackEssentialBadge || 'Step 2: Back Side Essential'}</span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 ring-1 ring-red-200/80 dark:ring-red-800/60 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold">
-                <Sparkles className="h-3.5 w-3.5 text-red-500" />
-                Step 1: Front Side Essential
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-red-50 text-red-700 dark:bg-red-950/60 dark:text-red-300 ring-1 ring-red-200/80 dark:ring-red-800/60 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[11px] sm:text-xs font-semibold whitespace-nowrap">
+                <Sparkles className="h-3.5 w-3.5 text-red-500 shrink-0" />
+                <span>{r?.step1FrontEssentialBadge || 'Step 1: Front Side Essential'}</span>
               </span>
             )}
           </div>
@@ -837,14 +894,23 @@ export default function NicPhotoUpload({
                     {r?.step1Front || 'Front Side'}
                   </span>
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs z-10">
+                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs z-10 flex-wrap p-2">
+                  <button
+                    type="button"
+                    onClick={() => openCropperForFile(frontImage, 'front')}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-brand-500 shadow-sm transition-colors"
+                    title={r?.cropPhotoBtn || 'Crop / Adjust'}
+                  >
+                    <Crop className="h-3.5 w-3.5" />
+                    <span>{r?.cropPhotoBtn || 'Crop'}</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleOpenContinuousCamera('front', true)}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-white text-slate-900 px-3 py-1.5 text-xs font-bold hover:bg-slate-100 shadow-sm transition-colors"
                   >
                     <Camera className="h-3.5 w-3.5" />
-                    <span>{r?.retakeFrontSide || 'Retake Front'}</span>
+                    <span>{r?.retakeFrontSide || 'Retake'}</span>
                   </button>
                   <button
                     type="button"
@@ -855,7 +921,7 @@ export default function NicPhotoUpload({
                     className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 text-white px-3 py-1.5 text-xs font-bold hover:bg-slate-700 shadow-sm transition-colors"
                   >
                     <Upload className="h-3.5 w-3.5" />
-                    <span>Upload New</span>
+                    <span>{r?.uploadNew || 'Upload New'}</span>
                   </button>
                 </div>
               </div>
@@ -874,14 +940,23 @@ export default function NicPhotoUpload({
                     {r?.step2Back || 'Back Side'}
                   </span>
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs z-10">
+                <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-xs z-10 flex-wrap p-2">
+                  <button
+                    type="button"
+                    onClick={() => openCropperForFile(backImage, 'back')}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-brand-600 text-white px-3 py-1.5 text-xs font-bold hover:bg-brand-500 shadow-sm transition-colors"
+                    title={r?.cropPhotoBtn || 'Crop / Adjust'}
+                  >
+                    <Crop className="h-3.5 w-3.5" />
+                    <span>{r?.cropPhotoBtn || 'Crop'}</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleOpenContinuousCamera('back', true)}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-white text-slate-900 px-3 py-1.5 text-xs font-bold hover:bg-slate-100 shadow-sm transition-colors"
                   >
                     <Camera className="h-3.5 w-3.5" />
-                    <span>{r?.retakeBackSide || 'Retake Back'}</span>
+                    <span>{r?.retakeBackSide || 'Retake'}</span>
                   </button>
                   <button
                     type="button"
@@ -892,7 +967,7 @@ export default function NicPhotoUpload({
                     className="inline-flex items-center gap-1.5 rounded-xl bg-slate-800 text-white px-3 py-1.5 text-xs font-bold hover:bg-slate-700 shadow-sm transition-colors"
                   >
                     <Upload className="h-3.5 w-3.5" />
-                    <span>Upload New</span>
+                    <span>{r?.uploadNew || 'Upload New'}</span>
                   </button>
                 </div>
               </div>
@@ -901,7 +976,7 @@ export default function NicPhotoUpload({
             {/* Bottom Actions for Review State */}
             <div className="flex items-center justify-between pt-1">
               <span className="text-xs text-slate-500 dark:text-slate-400">
-                Hover over photos to retake or replace either side.
+                {r?.hoverToRetake || 'Hover over photos to retake, crop, or replace either side.'}
               </span>
               <button
                 type="button"
@@ -957,7 +1032,7 @@ export default function NicPhotoUpload({
 
                 <div className="space-y-1">
                   <div className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 dark:bg-brand-950/80 text-brand-700 dark:text-brand-300 border border-brand-200/80 dark:border-brand-800/60 px-3 py-0.5 text-[11px] font-bold">
-                    {activeStep === 'front' ? 'Step 1 of 2' : 'Step 2 of 2'}
+                    {r?.stepOfTwo ? fill(r.stepOfTwo, { step: activeStep === 'front' ? 1 : 2 }) : (activeStep === 'front' ? 'Step 1 of 2' : 'Step 2 of 2')}
                   </div>
                   <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">
                     {activeStep === 'front'
@@ -1016,7 +1091,18 @@ export default function NicPhotoUpload({
         singleStepOnly={cameraModalConfig.singleStepOnly}
         onCaptureFront={onFrontChange}
         onCaptureBack={onBackChange}
+        onOpenCrop={(snap, st) => openCropperForFile(snap, st)}
         onClose={() => setCameraModalConfig((prev) => ({ ...prev, isOpen: false }))}
+        r={r}
+      />
+
+      {/* Interactive ID Card Cropper Modal */}
+      <NicCropModal
+        isOpen={cropModalConfig.isOpen}
+        imageSrc={cropModalConfig.imageSrc}
+        step={cropModalConfig.step}
+        onConfirm={handleCropConfirm}
+        onCancel={() => setCropModalConfig({ isOpen: false, imageSrc: null, step: 'front' })}
         r={r}
       />
     </>

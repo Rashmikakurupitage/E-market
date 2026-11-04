@@ -26,11 +26,11 @@ exports.getPhoto = async (req, res) => {
   }
 };
 
-// A seller or customer sets or replaces their own photo
+// A seller, customer, or admin sets or replaces their own photo
 exports.setPhoto = async (req, res) => {
   try {
-    if (!['CUSTOMER', 'SELLER'].includes(req.user.role)) {
-      return res.status(403).json({ code: 'UNAUTHORIZED_ROLE', message: 'Only seller and customer accounts have a profile photo.' });
+    if (!['CUSTOMER', 'SELLER', 'SUPER_ADMIN'].includes(req.user.role)) {
+      return res.status(403).json({ code: 'UNAUTHORIZED_ROLE', message: 'Unauthorized role.' });
     }
     const image = String(req.body?.image || '');
     const match = DATA_URL.exec(image);

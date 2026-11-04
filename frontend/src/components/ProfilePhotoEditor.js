@@ -140,6 +140,7 @@ export default function ProfilePhotoEditor({ user, name, onChanged, onAuthError 
   // Re-clamp whenever zoom, rotation, or image dimensions change
   useEffect(() => {
     if (!naturalDimensions.width) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPan((prev) => clampOffset(prev.x, prev.y, zoom, rotation));
   }, [zoom, rotation, naturalDimensions, clampOffset]);
 

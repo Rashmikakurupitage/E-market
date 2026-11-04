@@ -77,7 +77,7 @@ function SellerLine({ product }) {
         </div>
         {seller.district && (
           <p className="flex items-center gap-1 text-xs text-ink/55">
-            <MapPin className="h-3 w-3" />
+            <MapPin className="h-3 w-3 text-red-500 shrink-0" />
             {seller.district}
           </p>
         )}

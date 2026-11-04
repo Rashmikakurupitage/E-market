@@ -15,6 +15,7 @@ import { PageArt } from '../../src/components/Art';
 import { DISTRICTS, isStrongPassword } from '../../src/lib/catalog';
 import { parseNic } from '../../src/lib/nicInfo';
 import NicPhotoUpload, { shrinkImage } from '../../src/components/NicPhotoUpload';
+import Face3DVerificationModal, { Face3DVerificationCard } from '../../src/components/Face3DVerification';
 
 // Same rules as the backend (authController.js)
 const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
@@ -23,6 +24,7 @@ const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 const emailErrorText = (data, r) => {
   if (data?.code === 'NIC_FRONT_REQUIRED') return r.nicFrontRequired || 'Front side photo of your NIC is essential.';
   if (data?.code === 'NIC_BACK_REQUIRED') return r.nicBackRequired || 'Back side photo of your NIC is essential.';
+  if (data?.code === 'FACE_VERIFICATION_REQUIRED') return r.faceVerificationRequired || '3D Face identification and liveness verification is required.';
   if (data?.code === 'WOMEN_ONLY') return r.nicWomenOnly;
   if (data?.code === 'INVALID_NIC') return r.nicIncorrect;
   if (data?.code === 'EMAIL_TYPO') return fill(r.emailTypo, { suggestion: data.suggestion });
@@ -76,6 +78,9 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
   const [nicTouched, setNicTouched] = useState(false);
   const [nicFront, setNicFront] = useState('');
   const [nicBack, setNicBack] = useState('');
+  const [facePhoto, setFacePhoto] = useState('');
+  const [faceVerification, setFaceVerification] = useState(null);
+  const [isFaceModalOpen, setIsFaceModalOpen] = useState(false);
   const [scanningNic, setScanningNic] = useState(false);
   const [scanFeedback, setScanFeedback] = useState(null);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -209,6 +214,9 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
     const errors = {};
     if (!nicFront) errors.nicFront = r.nicFrontRequired || 'Front side photo of your NIC is essential.';
     if (!nicBack) errors.nicBack = r.nicBackRequired || 'Back side photo of your NIC is essential.';
+    if (!facePhoto) {
+      errors.facePhoto = r.faceVerificationRequired || '3D Face identification and liveness verification is required for seller registration.';
+    }
     if (!formData.nicNumber) {
       errors.nic = r.nicHint || 'NIC number is required (auto-filled from photos).';
     } else if (!nicInfo.valid) {
@@ -239,7 +247,9 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
     const errors = validate();
     setFieldErrors(errors);
     if (Object.keys(errors).length > 0) {
-      if (errors.nicFront || errors.nicBack || (errors.nic && nicInfo?.gender === 'male')) {
+      if (errors.facePhoto) {
+        document.getElementById('faceVerificationSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (errors.nicFront || errors.nicBack || (errors.nic && nicInfo?.gender === 'male')) {
         document.getElementById('nicPhotosSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else {
         const firstKey = Object.keys(errors)[0];
@@ -271,6 +281,8 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         facebookUrl: formData.facebookUrl.trim(),
         nicFront: nicFront || null,
         nicBack: nicBack || null,
+        facePhoto: facePhoto || null,
+        faceVerification: faceVerification || null,
       });
 
       // Log the new seller straight in
@@ -286,7 +298,10 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         setError(r.networkError);
       } else {
         const respData = err.response.data;
-        if (respData?.code === 'NIC_FRONT_REQUIRED') {
+        if (respData?.code === 'FACE_VERIFICATION_REQUIRED') {
+          setFieldErrors((prev) => ({ ...prev, facePhoto: r.faceVerificationRequired || '3D Face identification and liveness verification is required.' }));
+          document.getElementById('faceVerificationSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (respData?.code === 'NIC_FRONT_REQUIRED') {
           setFieldErrors((prev) => ({ ...prev, nicFront: r.nicFrontRequired || 'Front side photo of your NIC is essential.' }));
           document.getElementById('nicPhotosSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else if (respData?.code === 'NIC_BACK_REQUIRED') {
@@ -321,7 +336,12 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
 
       {/* 1. Personal details */}
       <fieldset className="space-y-4">
-        <SectionTitle number={1}>{r.sectionPersonal}</SectionTitle>
+        <SectionTitle number={1}>
+          <span>{r.sectionPersonal}</span>
+          <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-red-700 dark:bg-red-950/80 dark:text-red-300 ring-1 ring-red-400/40">
+            {r.faceEssentialBadge || 'ESSENTIAL · MANDATORY KYC'}
+          </span>
+        </SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="firstName" label={r.firstName} required>
             <input
@@ -380,6 +400,21 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
             r={r}
           />
 
+          {/* 3D Face Biometric Identification & Verification (Essential KYC) */}
+          <div className="sm:col-span-2">
+            <Face3DVerificationCard
+              facePhoto={facePhoto}
+              faceVerification={faceVerification}
+              onStartVerification={() => setIsFaceModalOpen(true)}
+              onRemovePhoto={() => {
+                setFacePhoto('');
+                setFaceVerification(null);
+              }}
+              r={r}
+              error={fieldErrors.facePhoto}
+            />
+          </div>
+
           <Field id="nicNumber" label={r.nic} required hint={r.nicHint} error={fieldErrors.nic || nicProblem}>
             <input
               id="nicNumber"
@@ -389,12 +424,12 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
               tabIndex={-1}
               placeholder={r.nicPlaceholderAuto || "Auto-filled from photos"}
               value={formData.nicNumber}
-              className={`${inputClass(!!(fieldErrors.nic || nicProblem))} cursor-not-allowed bg-slate-50 font-mono tracking-wider`}
+              className={`${inputClass(!!(fieldErrors.nic || nicProblem))} cursor-not-allowed bg-slate-50 text-sm font-sans tracking-normal`}
               aria-invalid={!!(fieldErrors.nic || nicProblem)}
             />
           </Field>
           <Field id="dateOfBirth" label={r.dateOfBirth} hint={r.dateOfBirthHint}>
-            <input id="dateOfBirth" name="dateOfBirth" type="text" readOnly tabIndex={-1} placeholder="dd/mm/yyyy" value={birthDate ? birthDate.split("-").reverse().join("/") : ""} className={`${inputClass(false)} cursor-not-allowed bg-slate-50`} />
+            <input id="dateOfBirth" name="dateOfBirth" type="text" readOnly tabIndex={-1} placeholder="dd/mm/yyyy" value={birthDate ? birthDate.split("-").reverse().join("/") : ""} className={`${inputClass(false)} cursor-not-allowed bg-slate-50 text-sm font-sans tracking-normal`} />
           </Field>
           <Field id="password" label={r.password || 'Password'} required hint={r.passwordRule} error={fieldErrors.password}>
             <PasswordInput id="password" name="password" autoComplete="new-password" value={formData.password} onChange={handleChange} hasError={!!fieldErrors.password} placeholder="" showLabel={r.showPassword} hideLabel={r.hidePassword} />
@@ -485,6 +520,17 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
           </Link>
         </p>
       </div>
+
+      <Face3DVerificationModal
+        isOpen={isFaceModalOpen}
+        onComplete={(result) => {
+          setFacePhoto(result.photo);
+          setFaceVerification(result);
+          setFieldErrors((prev) => ({ ...prev, facePhoto: undefined }));
+        }}
+        onClose={() => setIsFaceModalOpen(false)}
+        r={r}
+      />
     </form>
   );
 }
@@ -571,7 +617,12 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
       )}
 
       <fieldset className="space-y-4">
-        <SectionTitle number={1}>{r.sectionPersonal}</SectionTitle>
+        <SectionTitle number={1}>
+          <span>{r.sectionPersonal}</span>
+          <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-red-700 dark:bg-red-950/80 dark:text-red-300 ring-1 ring-red-400/40">
+            {r.faceEssentialBadge || 'ESSENTIAL · MANDATORY KYC'}
+          </span>
+        </SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="firstName" label={r.firstName} required>
             <input

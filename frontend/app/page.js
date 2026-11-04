@@ -95,7 +95,7 @@ const BENEFIT_LOOK = [
   { icon: ShieldCheck, tile: 'bg-slate-100 text-slate-800 ring-1 ring-slate-200' },
   { icon: WhatsAppIcon, tile: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' },
   { icon: HandHeart, tile: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200' },
-  { icon: MapPin, tile: 'bg-blue-50 text-blue-700 ring-1 ring-blue-200' },
+  { icon: MapPin, tile: 'bg-red-50 text-red-600 ring-1 ring-red-200' },
 ];
 
 const STEP_LOOK = [
@@ -456,8 +456,8 @@ export default function Home() {
                 </div>
               </div>
               <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/90 p-2.5 shadow-2xs">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                  <MapPin className="h-5 w-5" />
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500">
+                  <MapPin className="h-5 w-5 text-red-500" />
                 </span>
                 <div>
                   <p className="text-sm font-extrabold text-slate-900">25 Districts</p>
@@ -725,7 +725,7 @@ export default function Home() {
               <div className="flex flex-wrap items-center gap-2.5">
                 {/* District Filter */}
                 <div className="flex items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors">
-                  <MapPin className="h-3.5 w-3.5 text-magenta" />
+                  <MapPin className="h-3.5 w-3.5 text-red-500" />
                   <select
                     value={selectedDistrict}
                     onChange={(e) => setSelectedDistrict(e.target.value)}
@@ -793,7 +793,7 @@ export default function Home() {
                   )}
                   {selectedDistrict !== 'all' && (
                     <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 font-semibold text-emerald-800">
-                      <MapPin className="h-3 w-3" />
+                      <MapPin className="h-3 w-3 text-red-500" />
                       <span>{selectedDistrict}</span>
                       <button
                         type="button"

@@ -5,15 +5,13 @@ import Link from 'next/link';
 import {
   LogOut,
   Menu,
-  Home,
   X,
   ArrowRight,
   ArrowLeft,
   ChevronLeft,
   ChevronRight,
   Store,
-  ExternalLink,
-  ShieldCheck
+  ExternalLink
 } from 'lucide-react';
 import Logo from './Logo';
 import ThemeToggle from './ThemeToggle';
@@ -108,9 +106,56 @@ export default function DashboardSidebar({
   const s = TEXT[lang] || TEXT.en;
   const [collapsed, setCollapsed] = useState(false);
   const [openOnPhone, setOpenOnPhone] = useState(false);
+  const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    let lastY = typeof window !== 'undefined' ? Math.max(window.scrollY, 0) : 0;
+    let ticking = false;
+
+    const handleScroll = () => {
+      const currentY = Math.max(window.scrollY, 0);
+      const diff = currentY - lastY;
+
+      // Prevent overscroll bounce at bottom of document from flipping header visibility
+      const maxScroll = typeof document !== 'undefined'
+        ? (document.documentElement.scrollHeight - window.innerHeight)
+        : 999999;
+      if (currentY >= maxScroll - 15) {
+        ticking = false;
+        return;
+      }
+
+      if (openOnPhone) {
+        setHidden(false);
+        lastY = currentY;
+      } else if (currentY <= 60) {
+        setHidden(false);
+        lastY = currentY;
+      } else if (diff > 5) {
+        setHidden(true);
+        lastY = currentY;
+      } else if (diff < -5) {
+        setHidden(false);
+        lastY = currentY;
+      }
+
+      ticking = false;
+    };
+
+    const onScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(handleScroll);
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, [openOnPhone]);
 
   useEffect(() => {
     const prefs = readPrefs();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCollapsed(Boolean(prefs.collapsed));
   }, []);
 
@@ -152,7 +197,7 @@ export default function DashboardSidebar({
   const statusBadgeText = statusLabel || roleLabel || s.portalBadge;
 
   return (
-    <div className="flex min-h-screen w-full bg-slate-50 text-ink dark:bg-slate-950 dark:text-white">
+    <div className="dashboard-canvas flex min-h-screen w-full bg-slate-50 text-ink dark:bg-slate-950 dark:text-white">
       {/* 1. DESKTOP SIDEBAR: Mounted flush against left edge */}
       <aside
         aria-label={menuLabel || 'Dashboard Navigation'}
@@ -177,13 +222,15 @@ export default function DashboardSidebar({
           {/* Brand Logo & Rail Toggle */}
           <div className={`flex items-center justify-between gap-2 px-1 ${rail ? 'flex-col gap-2' : ''}`}>
             <Link href={homeHref} className="flex items-center gap-2.5 min-w-0" title={s.home}>
-              <Logo className="h-8 w-auto shrink-0" />
+              <div className="relative flex h-9 w-9 shrink-0 items-center justify-center">
+                <Logo className="h-9 w-9 shrink-0 object-contain" />
+              </div>
               {!rail && (
                 <div className="min-w-0 leading-tight">
-                  <span className="block text-[11px] font-extrabold uppercase tracking-wider text-magenta">
+                  <span className="block whitespace-nowrap text-xs font-extrabold uppercase tracking-wider text-magenta">
                     Lanka Women
                   </span>
-                  <span className="block text-sm font-extrabold text-ink dark:text-white truncate">
+                  <span className="block whitespace-nowrap text-sm font-extrabold text-ink dark:text-white">
                     E-Market
                   </span>
                 </div>
@@ -202,7 +249,7 @@ export default function DashboardSidebar({
         </div>
 
         {/* Scrollable Navigation Area */}
-        <div className="flex-1 overflow-y-auto px-3 py-3.5 space-y-4">
+        <div className="flex-1 overflow-y-auto no-scrollbar px-3 py-3.5 space-y-4">
           {/* User Profile Capsule */}
           <div
             className={`flex items-center gap-3 rounded-2xl border border-ink/5 bg-sand/20 p-2.5 dark:border-white/5 dark:bg-slate-800/40 ${
@@ -319,24 +366,32 @@ export default function DashboardSidebar({
       {/* 2. MOBILE HEADER & SLIDE-OUT DRAWER (< lg screens) */}
       <div className="flex w-full flex-col lg:hidden">
         {/* Mobile Sticky Bar */}
-        <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-ink/10 bg-white/95 px-2.5 sm:px-4 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/95 shadow-2xs">
+        <header
+          style={{
+            transform: hidden && !openOnPhone ? 'translateY(-100%)' : 'translateY(0)',
+            transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+          }}
+          className={`sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-ink/10 bg-white/95 px-3 sm:px-5 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/95 shadow-2xs will-change-transform ${
+            hidden && !openOnPhone ? 'pointer-events-none' : ''
+          }`}
+        >
           {/* Back button */}
           <Link
             href={backHref}
-            className="flex items-center gap-1 sm:gap-1.5 rounded-xl border border-ink/10 bg-white/90 px-2 py-1 text-xs font-bold font-sans text-ink shadow-2xs dark:border-white/10 dark:bg-slate-800 dark:text-white"
+            className="flex items-center gap-1.5 sm:gap-2 rounded-xl border border-ink/10 bg-white/90 px-2.5 py-1.5 text-xs font-bold font-sans text-ink shadow-2xs dark:border-white/10 dark:bg-slate-800 dark:text-white"
           >
-            <ArrowLeft className="h-3.5 w-3.5 text-magenta" />
-            <span className="truncate max-w-[70px] xs:max-w-[90px]">{effectiveBackLabel}</span>
+            <ArrowLeft className="h-4 w-4 text-magenta" />
+            <span className="truncate max-w-[80px] xs:max-w-[110px]">{effectiveBackLabel}</span>
           </Link>
 
           {/* Active Section Identity */}
-          <div className="flex items-center gap-1.5 font-sans min-w-0 mx-1">
+          <div className="flex items-center gap-2 font-sans min-w-0 mx-1">
             {CurrentIcon && (
-              <span className="flex h-6 w-6 sm:h-7 sm:w-7 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-magenta/15 to-saffron/15 text-magenta dark:from-magenta/25 dark:to-saffron/25 dark:text-magenta-light">
-                <CurrentIcon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
+              <span className="flex h-7 w-7 sm:h-8 sm:w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-magenta/15 to-saffron/15 text-magenta dark:from-magenta/25 dark:to-saffron/25 dark:text-magenta-light">
+                <CurrentIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               </span>
             )}
-            <span className="font-extrabold font-sans text-xs text-ink dark:text-white truncate max-w-[90px] xs:max-w-[140px]">
+            <span className="font-extrabold font-sans text-xs sm:text-sm text-ink dark:text-white truncate max-w-[100px] xs:max-w-[160px]">
               {currentItem?.label || s.overview}
             </span>
           </div>
@@ -349,18 +404,18 @@ export default function DashboardSidebar({
                 onClick={onLogout}
                 title={t.logout || s.logout}
                 aria-label={t.logout || s.logout}
-                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-red-200/70 bg-red-50/70 text-red-600 shadow-2xs transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400"
+                className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-red-200/70 bg-red-50/70 text-red-600 shadow-2xs transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-400"
               >
-                <LogOut className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <LogOut className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
               </button>
             )}
             <button
               type="button"
               onClick={() => setOpenOnPhone(true)}
               aria-label={s.open}
-              className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-xl border border-ink/10 bg-white text-ink shadow-xs dark:border-white/10 dark:bg-slate-800 dark:text-white"
+              className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl border border-ink/10 bg-white text-ink shadow-xs dark:border-white/10 dark:bg-slate-800 dark:text-white"
             >
-              <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
+              <Menu className="h-4.5 w-4.5 sm:h-5 sm:w-5" />
             </button>
           </div>
         </header>
@@ -377,9 +432,18 @@ export default function DashboardSidebar({
             {/* Drawer Body */}
             <div className="relative flex w-72 max-w-[85vw] flex-1 flex-col border-r border-ink/10 bg-white p-4 shadow-2xl dark:border-white/10 dark:bg-slate-900 overflow-y-auto">
               <div className="flex items-center justify-between border-b border-ink/10 pb-3 dark:border-white/10">
-                <div className="flex items-center gap-2">
-                  <Logo className="h-8" />
-                  <span className="font-extrabold text-sm text-ink dark:text-white">Lanka Women</span>
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="relative flex h-8 w-8 shrink-0 items-center justify-center">
+                    <Logo className="h-8 w-8 shrink-0 object-contain" />
+                  </div>
+                  <div className="min-w-0 leading-tight">
+                    <span className="block whitespace-nowrap text-xs font-extrabold uppercase tracking-wider text-magenta">
+                      Lanka Women
+                    </span>
+                    <span className="block whitespace-nowrap text-sm font-extrabold text-ink dark:text-white">
+                      E-Market
+                    </span>
+                  </div>
                 </div>
                 <button
                   type="button"
@@ -463,42 +527,50 @@ export default function DashboardSidebar({
       </div>
 
       {/* 3. RIGHT MAIN CONTENT CANVAS */}
-      <div className="flex flex-1 flex-col min-w-0 max-w-full overflow-x-hidden">
+      <div className="flex flex-1 flex-col min-w-0 max-w-full overflow-x-clip">
         {/* Desktop Sticky Header Bar */}
         {!hideDesktopTopBar && (
-          <header className="sticky top-0 z-30 hidden lg:flex h-16 items-center justify-between border-b border-ink/10 bg-white/85 px-6 sm:px-8 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/85 shadow-2xs">
+          <header
+            style={{
+              transform: hidden ? 'translateY(-100%)' : 'translateY(0)',
+              transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
+            className={`sticky top-0 z-30 hidden lg:flex h-18 lg:h-[4.75rem] items-center justify-between border-b border-ink/10 bg-white/85 px-6 sm:px-8 backdrop-blur-md dark:border-white/10 dark:bg-slate-900/85 shadow-2xs will-change-transform ${
+              hidden ? 'pointer-events-none' : ''
+            }`}
+          >
             {/* Left: Enhanced Breadcrumb & Active Section Identity */}
-            <div className="flex items-center gap-3.5">
+            <div className="flex items-center gap-4">
               {/* In-site back shortcut */}
               <Link
                 href={backHref}
-                className="group inline-flex items-center gap-2 rounded-xl border border-ink/10 bg-white/90 px-3.5 py-1.5 text-xs font-bold font-sans text-ink/80 shadow-2xs backdrop-blur-xs transition-all hover:border-magenta/50 hover:bg-magenta/5 hover:text-magenta hover:shadow-xs active:scale-98 dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:border-magenta dark:hover:bg-magenta/20 dark:hover:text-white"
+                className="group inline-flex items-center gap-2 rounded-xl border border-ink/10 bg-white/90 px-4 py-2 text-xs sm:text-sm font-bold font-sans text-ink/80 shadow-2xs backdrop-blur-xs transition-all hover:border-magenta/50 hover:bg-magenta/5 hover:text-magenta hover:shadow-xs active:scale-98 dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:border-magenta dark:hover:bg-magenta/20 dark:hover:text-white"
               >
-                <ArrowLeft className="h-3.5 w-3.5 text-magenta transition-transform group-hover:-translate-x-1" />
+                <ArrowLeft className="h-4 w-4 text-magenta transition-transform group-hover:-translate-x-1" />
                 <span>{effectiveBackLabel}</span>
               </Link>
 
-              <ChevronRight className="h-4 w-4 text-ink/25 dark:text-white/25 shrink-0" aria-hidden="true" />
+              <ChevronRight className="h-4.5 w-4.5 text-ink/25 dark:text-white/25 shrink-0" aria-hidden="true" />
 
               {/* Active Section Identity */}
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3.5">
                 {CurrentIcon && (
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-magenta/15 via-magenta/10 to-saffron/15 text-magenta shadow-2xs ring-1 ring-magenta/20 dark:from-magenta/25 dark:via-magenta/20 dark:to-saffron/25 dark:text-magenta-light dark:ring-magenta/35">
-                    <CurrentIcon className="h-4.5 w-4.5" />
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-linear-to-br from-magenta/15 via-magenta/10 to-saffron/15 text-magenta shadow-2xs ring-1 ring-magenta/20 dark:from-magenta/25 dark:via-magenta/20 dark:to-saffron/25 dark:text-magenta-light dark:ring-magenta/35">
+                    <CurrentIcon className="h-5 w-5" />
                   </span>
                 )}
                 <div className="flex flex-col justify-center">
                   <div className="flex items-center gap-2.5">
-                    <span className="font-sans text-sm sm:text-base font-extrabold tracking-tight text-ink dark:text-white leading-tight">
+                    <span className="font-sans text-base sm:text-lg font-extrabold tracking-tight text-ink dark:text-white leading-tight">
                       {currentItem?.label || s.overview}
                     </span>
                     {/* Dynamic Status / Portal Indicator */}
-                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10px] font-bold font-sans tracking-wide ring-1 ${statusConfig.pill}`}>
+                    <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-[10.5px] font-bold font-sans tracking-wide ring-1 ${statusConfig.pill}`}>
                       <span className={`h-1.5 w-1.5 rounded-full ${statusConfig.dot}`} />
                       <span>{statusBadgeText}</span>
                     </span>
                   </div>
-                  <div className="flex items-center gap-1.5 text-[11px] font-medium font-sans text-ink/45 dark:text-slate-400">
+                  <div className="flex items-center gap-1.5 text-xs font-medium font-sans text-ink/50 dark:text-slate-400">
                     <span>{menuLabel || s.portalBadge}</span>
                     <span className="text-ink/20 dark:text-white/20">/</span>
                     <span className="font-semibold text-magenta dark:text-magenta-light">
@@ -515,16 +587,16 @@ export default function DashboardSidebar({
 
               <Link
                 href="/store"
-                className="hidden xl:inline-flex items-center gap-1.5 rounded-xl border border-ink/10 bg-white/90 px-3.5 py-1.5 text-xs font-bold font-sans text-ink/80 shadow-2xs transition-all hover:border-magenta hover:text-magenta dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-200"
+                className="hidden xl:inline-flex items-center gap-2 rounded-xl border border-ink/10 bg-white/90 px-4 py-2 text-xs sm:text-sm font-bold font-sans text-ink/80 shadow-2xs transition-all hover:border-magenta hover:text-magenta dark:border-white/10 dark:bg-slate-800/90 dark:text-slate-200"
                 title={s.visitStore}
               >
-                <Store className="h-3.5 w-3.5 text-magenta" />
+                <Store className="h-4 w-4 text-magenta" />
                 <span>{s.visitStore}</span>
-                <ExternalLink className="h-3 w-3 text-ink/40 dark:text-white/40" />
+                <ExternalLink className="h-3.5 w-3.5 text-ink/40 dark:text-white/40" />
               </Link>
 
-              <div className="flex items-center gap-2 pl-2 border-l border-ink/10 dark:border-white/10">
-                <ThemeToggle className="!h-8 !w-8" />
+              <div className="flex items-center gap-2.5 pl-2.5 border-l border-ink/10 dark:border-white/10">
+                <ThemeToggle className="!h-9 !w-9" />
                 <LanguageSelect />
 
                 {onLogout && (
@@ -533,9 +605,9 @@ export default function DashboardSidebar({
                     onClick={onLogout}
                     title={t.logout || s.logout}
                     aria-label={t.logout || s.logout}
-                    className="group inline-flex items-center gap-1.5 rounded-xl border border-red-200/80 bg-red-50/70 px-3 py-1.5 text-xs font-bold text-red-600 shadow-2xs transition-all duration-200 hover:border-red-300 hover:bg-red-100 hover:text-red-700 active:scale-95 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400 dark:hover:border-red-800 dark:hover:bg-red-950/60 dark:hover:text-red-300"
+                    className="group inline-flex items-center gap-1.5 rounded-xl border border-red-200/80 bg-red-50/70 px-3.5 py-2 text-xs sm:text-sm font-bold text-red-600 shadow-2xs transition-all duration-200 hover:border-red-300 hover:bg-red-100 hover:text-red-700 active:scale-95 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400 dark:hover:border-red-800 dark:hover:bg-red-950/60 dark:hover:text-red-300"
                   >
-                    <LogOut className="h-3.5 w-3.5 shrink-0 transition-transform group-hover:-translate-x-0.5" />
+                    <LogOut className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-0.5" />
                     <span>{t.logout || s.logout}</span>
                   </button>
                 )}
@@ -545,7 +617,7 @@ export default function DashboardSidebar({
         )}
 
         {/* Scrollable View Area */}
-        <div className="flex-1 p-3.5 sm:p-7 lg:p-8 xl:p-10 min-w-0 max-w-full overflow-x-hidden">{children}</div>
+        <div className="flex-1 p-3.5 sm:p-7 lg:p-8 xl:p-10 min-w-0 max-w-full overflow-x-clip">{children}</div>
       </div>
     </div>
   );

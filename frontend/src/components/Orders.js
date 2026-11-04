@@ -423,7 +423,7 @@ export function SellerOrders({ onAuthError }) {
                     <div>
                       <p className="text-xs font-semibold text-ink/50">{o.deliverTo}</p>
                       <p className="mt-1 flex items-start gap-1.5 text-ink/80">
-                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-saffron" />
+                        <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
                         <span className="whitespace-pre-line">
                           {order.deliveryAddress}
                           {'\n'}

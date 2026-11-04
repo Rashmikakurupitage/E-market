@@ -436,7 +436,7 @@ export default function AboutPage() {
                   {a.governanceP1} {a.governanceP2}
                 </p>
                 <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-slate-500">
-                  <MapPin className="h-4 w-4 text-brand-600" />
+                  <MapPin className="h-4 w-4 text-red-500" />
                   <span>{a.governanceOffice}</span>
                 </div>
               </div>

@@ -21,8 +21,8 @@ const rgba = ([r, g, b], a = 1) => (a >= 1 ? `rgb(${r} ${g} ${b})` : `rgb(${r} $
 const SLATE_TEXT = { 950: '#f8fafc', 900: '#f1f5f9', 800: '#e2e8f0', 700: '#cbd5e1', 600: '#b4bfd0', 500: '#94a3b8' };
 const SLATE_BG = { 50: '#1b1826', 100: '#221e2f', 200: '#2c2739', 300: '#3a3449', 800: '#2b2640', 900: '#241f35', 950: '#1c1829' };
 const SLATE_LINE = { 100: 0.08, 200: 0.12, 300: 0.18, 400: 0.25 };
-const TINT = { red: [239, 68, 68], amber: [245, 158, 11], rose: [244, 63, 94], brand: [200, 51, 111] };
-const TINT_TEXT = { red: '#fca5a5', amber: '#fcd34d', rose: '#fda4af', brand: 'var(--color-brand-100)' };
+const TINT = { red: [239, 68, 68], amber: [245, 158, 11], rose: [244, 63, 94], brand: [200, 51, 111], blue: [59, 130, 246] };
+const TINT_TEXT = { red: '#fca5a5', amber: '#fcd34d', rose: '#fda4af', brand: 'var(--color-brand-100)', blue: '#93c5fd' };
 
 function darkValue(prefix, color, shade, alpha) {
   const a = alpha === undefined ? 1 : alpha / 100;
@@ -95,7 +95,7 @@ const files = [];
   }
 })(path.join(root, 'src'));
 
-const TOKEN = /(?:[a-z-]+:)*(?:bg|text|border|ring|divide|from|via|to|outline)-(?:ink|white|cream|sand|slate-\d{2,3}|brand-\d{2,3}|red-\d{2,3}|amber-\d{2,3}|rose-\d{2,3}|magenta-dark|magenta|saffron|leaf)(?:\/\d{1,3})?(?![\w-])/g;
+const TOKEN = /(?:[a-z-]+:)*(?:bg|text|border|ring|divide|from|via|to|outline)-(?:ink|white|cream|sand|slate-\d{2,3}|brand-\d{2,3}|red-\d{2,3}|amber-\d{2,3}|rose-\d{2,3}|blue-\d{2,3}|magenta-dark|magenta|saffron|leaf)(?:\/\d{1,3})?(?![\w-])/g;
 const tokens = new Set();
 for (const file of files) for (const match of fs.readFileSync(file, 'utf8').match(TOKEN) || []) tokens.add(match);
 
@@ -116,7 +116,7 @@ for (const token of [...tokens].sort()) {
   const parts = token.split(':');
   const util = parts.pop();
   const variants = parts;
-  const m = util.match(/^(bg|text|border|ring|divide|from|via|to|outline)-(ink|white|cream|sand|magenta-dark|magenta|saffron|leaf|(?:slate|brand|red|amber|rose)-(\d+))(?:\/(\d+))?$/);
+  const m = util.match(/^(bg|text|border|ring|divide|from|via|to|outline)-(ink|white|cream|sand|magenta-dark|magenta|saffron|leaf|(?:slate|brand|red|amber|rose|blue)-(\d+))(?:\/(\d+))?$/);
   if (!m) continue;
   const [, prefix, colorPart, shade, alphaText] = m;
   const color = colorPart.includes('-') && !['magenta-dark'].includes(colorPart) ? colorPart.split('-')[0] : colorPart;

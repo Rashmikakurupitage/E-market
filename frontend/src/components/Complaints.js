@@ -15,10 +15,22 @@ const MIN_MESSAGE = 20;
 const MAX_MESSAGE = 1500;
 
 const STATUS_LOOK = {
-  OPEN: { icon: Clock, className: 'bg-turmeric/25 text-ink ring-turmeric/50' },
-  IN_REVIEW: { icon: Scale, className: 'bg-magenta/10 text-magenta ring-magenta/20' },
-  RESOLVED: { icon: CircleCheck, className: 'bg-leaf/15 text-leaf ring-leaf/30' },
-  DISMISSED: { icon: XCircle, className: 'bg-ink/5 text-ink/55 ring-ink/10' },
+  OPEN: {
+    icon: Clock,
+    className: 'bg-amber-100 text-amber-900 ring-amber-300/70 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-500/40',
+  },
+  IN_REVIEW: {
+    icon: Scale,
+    className: 'bg-blue-100 text-blue-800 ring-blue-300/70 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-500/40',
+  },
+  RESOLVED: {
+    icon: CircleCheck,
+    className: 'bg-emerald-100 text-emerald-800 ring-emerald-300/70 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-500/40',
+  },
+  DISMISSED: {
+    icon: XCircle,
+    className: 'bg-slate-100 text-slate-700 ring-slate-300/70 dark:bg-white/10 dark:text-slate-300 dark:ring-white/15',
+  },
 };
 
 const CHANGED_EVENT = 'lw-complaints-changed';

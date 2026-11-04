@@ -20,5 +20,7 @@ try {
   }
   if (/^(dots|lattice|waves)$/.test(pattern)) {
     themeDocument.setAttribute("data-pattern", pattern);
+  } else {
+    themeDocument.removeAttribute("data-pattern");
   }
 } catch {}

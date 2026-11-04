@@ -12,6 +12,8 @@ const {
   removeCustomer,
   listSellers,
   getSellerProducts,
+  getSellerVerification,
+  updateSellerPhotos,
   setSellerStatus,
   removeSeller,
   listProducts,
@@ -43,6 +45,8 @@ router.get('/customers', listCustomers);
 router.delete('/customers/:id', removeCustomer);
 
 router.get('/sellers', listSellers);
+router.get('/sellers/:id/verification', getSellerVerification);
+router.patch('/sellers/:id/photos', updateSellerPhotos);
 router.get('/sellers/:id/products', getSellerProducts);
 router.patch('/sellers/:id/status', setSellerStatus);
 router.delete('/sellers/:id', removeSeller);

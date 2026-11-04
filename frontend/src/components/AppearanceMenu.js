@@ -67,11 +67,12 @@ function Choices({ s }) {
 }
 
 // The palette button. In headers it opens a small panel; with `inline` the choices are shown in place (sidebars).
-export default function AppearanceMenu({ inline = false, className = '' }) {
+export default function AppearanceMenu({ inline = false, variant = 'light', className = '' }) {
   const { lang } = useLanguage();
   const s = TEXT[lang] || TEXT.en;
   const [open, setOpen] = useState(false);
   const box = useRef(null);
+  const isDarkVariant = variant === 'dark';
 
   useEffect(() => {
     if (!open) return undefined;
@@ -97,9 +98,17 @@ export default function AppearanceMenu({ inline = false, className = '' }) {
         aria-haspopup="true"
         aria-label={s.button}
         title={s.button}
-        className={`group relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/90 text-ink/80 shadow-2xs backdrop-blur-xs transition-all duration-300 hover:border-magenta hover:bg-magenta/5 hover:text-magenta active:scale-90 dark:border-white/20 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:border-white/40 dark:hover:bg-white/10 dark:hover:text-white dark:shadow-black/40 ${className}`}
+        className={
+          isDarkVariant
+            ? `group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-slate-900/90 text-slate-100 shadow-2xs backdrop-blur-xs transition-all duration-300 hover:border-white/40 hover:bg-slate-800 hover:text-white active:scale-90 ${className}`
+            : `group relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/90 text-slate-700 shadow-2xs backdrop-blur-xs transition-all duration-300 hover:border-magenta hover:bg-magenta/5 hover:text-magenta active:scale-90 dark:border-white/20 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:border-white/40 dark:hover:bg-slate-700 dark:hover:text-white dark:shadow-black/40 ${className}`
+        }
       >
-        <Palette className="h-[18px] w-[18px] transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
+        <Palette className={`h-4 w-4 transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110 ${
+          isDarkVariant
+            ? 'text-slate-100 group-hover:text-amber-300'
+            : 'text-slate-700 dark:text-slate-200 group-hover:text-magenta dark:group-hover:text-amber-300'
+        }`} />
       </button>
       {open && (
         <div role="dialog" aria-label={s.button} className="fixed inset-x-4 top-24 z-[70] mx-auto w-auto max-w-sm rounded-2xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 border border-ink/10 bg-white/95 p-4 text-ink shadow-2xl backdrop-blur-md dark:border-white/15 dark:bg-slate-900/95 dark:text-white dark:shadow-black/80">

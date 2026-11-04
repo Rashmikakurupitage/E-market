@@ -43,7 +43,7 @@ export default function AdminPortalShell({ children }) {
           </div>
 
           <div className="flex items-center gap-2">
-            <ThemeToggle className="!text-white/85 !ring-white/20 hover:!bg-white/10 hover:!text-white" />
+            <ThemeToggle variant="dark" />
             <LanguageSelect variant="dark" />
 
             {isDashboard && hydrated && isAdmin ? (

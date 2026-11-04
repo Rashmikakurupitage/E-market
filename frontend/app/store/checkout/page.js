@@ -61,7 +61,7 @@ function Summary({ groups, total, count }) {
               {fill(t.cart.from, { seller: group.sellerName || '—' })}
               {group.district && (
                 <span className="inline-flex items-center gap-0.5 text-ink/40">
-                  <MapPin className="h-3 w-3" />
+                  <MapPin className="h-3 w-3 text-red-500" />
                   {group.district}
                 </span>
               )}

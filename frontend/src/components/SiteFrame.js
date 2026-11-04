@@ -16,15 +16,15 @@ export default function SiteFrame({ children }) {
     pathname.startsWith('/account/');
 
   if (isDashboardRoute) {
-    return <div className="flex min-h-screen flex-1 flex-col w-full max-w-full min-w-0 overflow-x-hidden">{children}</div>;
+    return <div className="relative z-1 flex min-h-screen flex-1 flex-col w-full max-w-full min-w-0 overflow-x-clip">{children}</div>;
   }
 
   return (
-    <>
+    <div className="relative z-1 flex min-h-screen flex-1 flex-col w-full max-w-full min-w-0 overflow-x-clip">
       <SiteHeader />
-      <div className="flex flex-1 flex-col w-full max-w-full min-w-0 overflow-x-hidden">{children}</div>
+      <div className="flex flex-1 flex-col w-full max-w-full min-w-0 overflow-x-clip">{children}</div>
       <SiteFooter />
       <ScrollExtras />
-    </>
+    </div>
   );
 }

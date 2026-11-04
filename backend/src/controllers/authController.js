@@ -110,7 +110,8 @@ exports.register = async (req, res) => {
       messengerUrl,
       facebookUrl,
       nicFront,
-      nicBack
+      nicBack,
+      facePhoto
     } = req.body;
     const role = req.body.role || 'CUSTOMER';
     const nicNumberInput = req.body.nicNumber?.trim().toUpperCase();
@@ -165,6 +166,12 @@ exports.register = async (req, res) => {
           message: 'Back side photo of your NIC is essential for seller registration.'
         });
       }
+      if (!facePhoto || typeof facePhoto !== 'string' || !facePhoto.startsWith('data:image/')) {
+        return res.status(400).json({
+          code: 'FACE_VERIFICATION_REQUIRED',
+          message: '3D Face identification and liveness verification is required for high security.'
+        });
+      }
       if (!nicVault.isValidNic(nicNumberInput)) {
         return res.status(400).json({ code: 'INVALID_NIC', message: 'Enter a valid NIC number: 12 digits, or 9 digits followed by V or X.' });
       }
@@ -205,7 +212,7 @@ exports.register = async (req, res) => {
 
     const nicData = role === 'SELLER' ? nicVault.protect(nicNumberInput) : null;
     if (nicData) {
-      const holder = await prisma.sellerProfile.findUnique({ where: { nicHash: nicData.nicHash }, select: { user: { select: { id: true, emailVerifiedAt: true } } } });
+      const holder = await prisma.sellerProfile.findFirst({ where: { OR: [{ nicHash: nicData.nicHash }, { nicNumber: nicNumberInput }] }, select: { user: { select: { id: true, emailVerifiedAt: true } } } });
       if (holder?.user.emailVerifiedAt) {
         return res.status(409).json({ code: 'NIC_TAKEN', message: 'This NIC number is already registered.' });
       }
@@ -221,7 +228,7 @@ exports.register = async (req, res) => {
               create: {
                 businessName: businessName || 'My Business',
                 district: district || 'Colombo',
-                nicNumber: normalizedNicNumber,
+                nicNumber: nicNumberInput,
                 ...nicData,
                 dateOfBirth: nicInfo ? new Date(`${nicInfo.birthDate}T00:00:00.000Z`) : null,
                 firstName: profileFirstName || null,
@@ -242,8 +249,17 @@ exports.register = async (req, res) => {
           };
 
     const user = await prisma.user.create({
-      data: { email, phone, passwordHash, role, ...profile },
-      include: { sellerProfile: true, customerProfile: true }
+      data: {
+        email,
+        phone,
+        passwordHash,
+        role,
+        ...profile,
+        ...(facePhoto && typeof facePhoto === 'string' && facePhoto.startsWith('data:image/')
+          ? { profilePhoto: { create: { data: facePhoto } } }
+          : {})
+      },
+      include: { sellerProfile: true, customerProfile: true, profilePhoto: true }
     });
 
     // Email the 6-digit code. If it cannot be sent, undo the sign-up so the person can simply try again.
@@ -342,16 +358,21 @@ const maskEmail = (email) => {
   return `${name.slice(0, 2)}${'*'.repeat(Math.max(name.length - 2, 2))}@${domain}`;
 };
 
-const findByEmailAndNic = (role, profile) => (email, nicNumber) =>
-  prisma.user.findFirst({
+const findByEmailAndNic = (role, profile) => (email, nicNumber) => {
+  const nicFilter = profile === 'sellerProfile'
+    ? { OR: [{ nicNumber: { equals: nicNumber, mode: 'insensitive' } }, ...(nicVault.isValidNic(nicNumber) ? [{ nicHash: nicVault.hash(nicNumber) }] : [])] }
+    : { nicNumber: { equals: nicNumber, mode: 'insensitive' } };
+
+  return prisma.user.findFirst({
     where: {
       role,
       removedAt: null,
       email: { equals: email, mode: 'insensitive' },
-      [profile]: { is: { nicNumber: { equals: nicNumber, mode: 'insensitive' } } }
+      [profile]: { is: nicFilter }
     },
     include: { [profile]: true, profilePhoto: { select: { updatedAt: true } } }
   });
+};
 
 const LOGIN_TYPES = {
   seller: {

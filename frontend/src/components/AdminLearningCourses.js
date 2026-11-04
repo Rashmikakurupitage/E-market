@@ -410,7 +410,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
           />
         </label>
         {media && (
-          <button type="button" onClick={() => removeMedia(slot)} disabled={busy} aria-label={`${copy.removeMedia}: ${label}`} className="inline-flex h-9 w-9 items-center justify-center rounded-full text-red-700 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-50">
+          <button type="button" onClick={() => removeMedia(slot)} disabled={busy} aria-label={`${copy.removeMedia}: ${label}`} className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-red-600 text-white shadow-xs hover:bg-red-700 disabled:opacity-50 transition-colors">
             <Trash2 className="h-4 w-4" />
           </button>
         )}
@@ -516,7 +516,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
                 {mediaControl(`lesson-${index}-image`, 'image', `${copy.lesson} ${index + 1}: ${copy.lessonImage}`)}
                 {mediaControl(`lesson-${index}-video`, 'video', `${copy.lesson} ${index + 1}: ${copy.lessonVideo}`)}
                 {mediaControl(`lesson-${index}-audio`, 'audio', `${copy.lesson} ${index + 1}: ${copy.lessonAudio}`)}
-                <button type="button" onClick={() => removeLesson(index)} disabled={contentLanguage.lessons.length <= 1} className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" />{copy.removeLesson}</button>
+                <button type="button" onClick={() => removeLesson(index)} disabled={contentLanguage.lessons.length <= 1} className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-red-700 shadow-xs transition-colors disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" />{copy.removeLesson}</button>
               </fieldset>
             ))}
           </section>
@@ -549,7 +549,7 @@ export default function AdminLearningCourses({ onChanged, onAuthError }) {
                     ))}
                   </select>
                 </label>
-                <button type="button" onClick={() => removeQuestion(index)} disabled={contentLanguage.quiz.length <= 1} className="inline-flex items-center gap-1.5 text-xs font-semibold text-red-700 disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" />{copy.removeQuestion}</button>
+                <button type="button" onClick={() => removeQuestion(index)} disabled={contentLanguage.quiz.length <= 1} className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-red-700 shadow-xs transition-colors disabled:opacity-40"><Trash2 className="h-3.5 w-3.5" />{copy.removeQuestion}</button>
               </fieldset>
             ))}
           </section>

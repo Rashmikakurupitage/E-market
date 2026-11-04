@@ -14,11 +14,12 @@ const TEXT = {
 // Light / dark switch for the whole website.
 //   variant "button": one round icon button (headers)
 //   variant "segmented": a Light | Dark pill (menus); iconOnly hides the words
-export default function ThemeToggle({ variant = 'button', iconOnly = false, className = '' }) {
+export default function ThemeToggle({ variant = 'button', iconOnly = false, className = '', paletteClassName = '' }) {
   const { lang } = useLanguage();
   const s = TEXT[lang] || TEXT.en;
   const theme = useTheme();
   const dark = theme === 'dark';
+  const isDarkVariant = variant === 'dark';
 
   if (variant === 'segmented') {
     return (
@@ -67,15 +68,25 @@ export default function ThemeToggle({ variant = 'button', iconOnly = false, clas
         onClick={() => setTheme(dark ? 'light' : 'dark')}
         aria-label={dark ? s.toLight : s.toDark}
         title={dark ? s.toLight : s.toDark}
-        className={`group relative flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/90 text-ink/80 shadow-2xs backdrop-blur-xs transition-all duration-300 hover:border-magenta hover:bg-magenta/5 hover:text-magenta active:scale-90 dark:border-white/20 dark:bg-slate-800/90 dark:text-amber-300 dark:hover:border-amber-400/50 dark:hover:bg-amber-400/10 dark:hover:text-amber-200 dark:shadow-black/40 ${className}`}
+        className={
+          isDarkVariant
+            ? `group relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/20 bg-slate-900/90 text-slate-100 shadow-2xs backdrop-blur-xs transition-all duration-300 hover:border-white/40 hover:bg-slate-800 hover:text-white active:scale-90 ${className}`
+            : `group relative flex h-9 w-9 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-full border border-ink/15 bg-white/90 text-slate-700 shadow-2xs backdrop-blur-xs transition-all duration-300 hover:border-magenta hover:bg-magenta/5 hover:text-magenta active:scale-90 dark:border-white/20 dark:bg-slate-800/90 dark:text-slate-200 dark:hover:border-white/40 dark:hover:bg-slate-700 dark:hover:text-white dark:shadow-black/40 ${className}`
+        }
       >
         {dark ? (
-          <Sun className="h-[18px] w-[18px] text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.45)] transition-transform duration-300 group-hover:rotate-45 group-hover:scale-110" />
+          <Sun className="h-4 w-4 text-amber-400 drop-shadow-[0_0_6px_rgba(251,191,36,0.45)] transition-transform duration-300 group-hover:rotate-45 group-hover:scale-110" />
         ) : (
-          <Moon className="h-[18px] w-[18px] text-slate-700 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 group-hover:text-magenta" />
+          <Moon
+            className={`h-4 w-4 transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110 ${
+              isDarkVariant
+                ? 'text-slate-100 group-hover:text-amber-300'
+                : 'text-slate-700 dark:text-slate-200 group-hover:text-magenta dark:group-hover:text-amber-300'
+            }`}
+          />
         )}
       </button>
-      <AppearanceMenu className={className} />
+      <span className={`inline-flex shrink-0 ${paletteClassName}`}><AppearanceMenu variant={isDarkVariant ? 'dark' : 'light'} className={className} /></span>
     </span>
   );
 }
