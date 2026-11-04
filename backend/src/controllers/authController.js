@@ -611,67 +611,202 @@ exports.resendVerification = async (req, res) => {
 const resetKey = (userId) => `reset:${userId}`;
 
 // Customers and sellers only (admins use their own login). Removed accounts cannot reset.
-const findResettableUser = async (email) => {
+const findResettableUser = async (email, role) => {
+  const roleFilter = role && ['CUSTOMER', 'SELLER'].includes(role) ? { role } : { role: { in: ['CUSTOMER', 'SELLER'] } };
   const user = await prisma.user.findFirst({
-    where: { email: { equals: email, mode: 'insensitive' }, role: { in: ['CUSTOMER', 'SELLER'] }, removedAt: null },
+    where: { email: { equals: email, mode: 'insensitive' }, ...roleFilter, removedAt: null },
     include: { sellerProfile: true, customerProfile: true }
   });
   return user && !user.sellerProfile?.removedAt ? user : null;
 };
 
-// Step 1 - email a 6-digit code. The answer is always the same, so nobody can use this to find out who is registered.
+// Look up a user by Email, Phone, or NIC
+const findUserByIdentifier = async (rawInput, role) => {
+  const input = String(rawInput || '').trim();
+  if (!input) return null;
+
+  const roleFilter = role && ['CUSTOMER', 'SELLER'].includes(role) ? { role } : { role: { in: ['CUSTOMER', 'SELLER'] } };
+
+  // 1. Direct email lookup
+  if (input.includes('@')) {
+    const user = await prisma.user.findFirst({
+      where: { email: { equals: input, mode: 'insensitive' }, ...roleFilter, removedAt: null },
+      include: { sellerProfile: true, customerProfile: true }
+    });
+    if (user && !user.sellerProfile?.removedAt) return { user, matchedBy: 'email' };
+
+    // Check if the user exists under the other role (e.g. registered as Seller, but accessed Customer tab)
+    const otherUser = await prisma.user.findFirst({
+      where: { email: { equals: input, mode: 'insensitive' }, role: { in: ['CUSTOMER', 'SELLER'] }, removedAt: null },
+      include: { sellerProfile: true, customerProfile: true }
+    });
+    if (otherUser && !otherUser.sellerProfile?.removedAt) {
+      return { user: otherUser, matchedBy: 'email', wrongRole: true };
+    }
+    return null;
+  }
+
+  // 2. Phone number lookup (supports SL formats: 07XXXXXXXX, +947XXXXXXXX, 947XXXXXXXX)
+  const cleanPhone = input.replace(/[\s-]/g, '');
+  if (/^(?:\+94|94|0)?\d{9}$/.test(cleanPhone)) {
+    const rawNumber = cleanPhone.replace(/^\+?94/, '').replace(/^0/, '');
+    const phoneVariants = [
+      cleanPhone,
+      `0${rawNumber}`,
+      `94${rawNumber}`,
+      `+94${rawNumber}`
+    ];
+    const user = await prisma.user.findFirst({
+      where: { phone: { in: phoneVariants }, ...roleFilter, removedAt: null },
+      include: { sellerProfile: true, customerProfile: true }
+    });
+    if (user && !user.sellerProfile?.removedAt) return { user, matchedBy: 'phone' };
+  }
+
+  // 3. NIC lookup (for sellers via nicNumber/nicHash, for customers via nicNumber)
+  const cleanNic = input.toUpperCase().replace(/\s/g, '');
+  if (nicVault.isValidNic(cleanNic) || /^\d{9,12}[VX]?$/i.test(cleanNic)) {
+    // Check SellerProfile
+    if (!role || role === 'SELLER') {
+      const seller = await prisma.sellerProfile.findFirst({
+        where: {
+          OR: [
+            { nicNumber: { equals: cleanNic, mode: 'insensitive' } },
+            ...(nicVault.isValidNic(cleanNic) ? [{ nicHash: nicVault.hash(cleanNic) }] : [])
+          ],
+          removedAt: null
+        },
+        include: { user: { include: { sellerProfile: true, customerProfile: true } } }
+      });
+      if (seller?.user && !seller.user.removedAt) return { user: seller.user, matchedBy: 'nic' };
+    }
+
+    // Check CustomerProfile
+    if (!role || role === 'CUSTOMER') {
+      const customer = await prisma.customerProfile.findFirst({
+        where: { nicNumber: { equals: cleanNic, mode: 'insensitive' } },
+        include: { user: { include: { sellerProfile: true, customerProfile: true } } }
+      });
+      if (customer?.user && !customer.user.removedAt) return { user: customer.user, matchedBy: 'nic' };
+    }
+  }
+
+  return null;
+};
+
+// Step 1 - Find registered account & send 6-digit verification code to the original registered email
 exports.requestPasswordReset = async (req, res) => {
   try {
-    const email = String(req.body?.email || '').trim();
-    if (!email) {
+    const input = String(req.body?.email || req.body?.identifier || '').trim();
+    const accountId = req.body?.accountId ? String(req.body.accountId).trim() : null;
+    const originalEmailInput = req.body?.originalEmail ? String(req.body.originalEmail).trim() : null;
+    const requestedRole = req.body?.role ? String(req.body.role).toUpperCase() : null;
+
+    if (!input && !originalEmailInput) {
       return res.status(400).json({ code: 'MISSING_DETAILS', message: 'Enter your email.' });
     }
     if (!isEmailConfigured()) {
       return res.status(503).json({ code: 'SMTP_NOT_CONFIGURED', message: 'Email delivery is not configured on the server.' });
     }
 
-    const user = await findResettableUser(email);
-    if (user) {
-      const issued = otpStore.issue(resetKey(user.id));
-      if (issued.error === 'RESEND_TOO_SOON') {
-        return res.status(429).json({ code: issued.error, retryAfter: issued.retryAfter });
-      }
-      if (issued.error === 'TOO_MANY_CODES') {
-        return res.status(429).json({ code: issued.error });
-      }
+    let user = null;
 
-      let delivery;
-      const recipientName =
-        [user.sellerProfile?.firstName, user.sellerProfile?.lastName].filter(Boolean).join(' ') ||
-        user.sellerProfile?.businessName ||
-        user.customerProfile?.fullName ||
-        (user.role === 'CUSTOMER' ? 'Customer' : 'Seller');
-      try {
-        delivery = await sendLoginCode({
-          to: user.email,
-          businessName: recipientName,
-          code: issued.code,
-          minutes: issued.expiresInMinutes,
-          purpose: 'password-reset'
-        });
-      } catch (mailError) {
-        otpStore.discard(resetKey(user.id));
-        console.error('PASSWORD_RESET_EMAIL_ERROR:', mailError.message);
-        console.error('HINT:', explainMailError(mailError));
-        return res.status(502).json({ code: 'EMAIL_FAILED', message: 'Could not send the password reset email.' });
-      }
-
-      return res.json({
-        message: 'If this email is registered, a code has been sent to it.',
-        sentTo: maskEmail(user.email),
-        emailed: delivery.emailed,
-        expiresInMinutes: issued.expiresInMinutes,
-        resendAfterSeconds: issued.resendAfterSeconds,
-        ...(process.env.EMAIL_DEV_LOG_CODES === 'true' ? { devCode: issued.code } : {})
+    // Case 1: Confirming original registration email for a previously identified account
+    if (accountId) {
+      const targetUser = await prisma.user.findFirst({
+        where: { id: accountId, removedAt: null, role: { in: ['CUSTOMER', 'SELLER'] } },
+        include: { sellerProfile: true, customerProfile: true }
       });
+
+      if (!targetUser || targetUser.sellerProfile?.removedAt) {
+        return res.status(404).json({ code: 'ACCOUNT_NOT_FOUND', message: 'Account not found. Please try again.' });
+      }
+
+      const emailToVerify = (originalEmailInput || input).toLowerCase();
+      if (emailToVerify !== targetUser.email.toLowerCase()) {
+        return res.status(400).json({
+          code: 'ORIGINAL_EMAIL_REQUIRED',
+          emailHint: maskEmail(targetUser.email),
+          accountId: targetUser.id,
+          message: `The email address does not match your original registration email. Hint: ${maskEmail(targetUser.email)}. Please enter your original registered email.`
+        });
+      }
+
+      user = targetUser;
+    } else {
+      // Case 2: User entered Email, Phone, or NIC
+      const match = await findUserByIdentifier(input, requestedRole);
+
+      if (!match) {
+        return res.status(404).json({
+          code: 'ACCOUNT_NOT_FOUND',
+          message: 'No registered account found with this information. Only your original registration email can receive the password reset code.'
+        });
+      }
+
+      if (match.wrongRole) {
+        const correctRoleName = match.user.role === 'SELLER' ? 'Seller' : 'Customer';
+        return res.status(400).json({
+          code: 'WRONG_ROLE',
+          role: correctRoleName,
+          message: `This email is registered as a ${correctRoleName}. Please switch to the ${correctRoleName} tab.`
+        });
+      }
+
+      // If matched by Phone or NIC, the account is found but the user hasn't proven their original registered email yet!
+      // Return the encrypted hint and prompt them to enter the original registration email.
+      if (match.matchedBy !== 'email') {
+        return res.status(200).json({
+          originalEmailRequired: true,
+          accountId: match.user.id,
+          emailHint: maskEmail(match.user.email),
+          role: match.user.role,
+          message: 'Account found. For security, please enter the original registered email address you used when registering to receive the verification code.'
+        });
+      }
+
+      user = match.user;
     }
 
-    res.json({ message: 'If this email is registered, a code has been sent to it.', expiresInMinutes: 10, resendAfterSeconds: 60 });
+    const issued = otpStore.issue(resetKey(user.id));
+    if (issued.error === 'RESEND_TOO_SOON') {
+      return res.status(429).json({ code: issued.error, retryAfter: issued.retryAfter });
+    }
+    if (issued.error === 'TOO_MANY_CODES') {
+      return res.status(429).json({ code: issued.error });
+    }
+
+    let delivery;
+    const recipientName =
+      [user.sellerProfile?.firstName, user.sellerProfile?.lastName].filter(Boolean).join(' ') ||
+      user.sellerProfile?.businessName ||
+      user.customerProfile?.fullName ||
+      (user.role === 'CUSTOMER' ? 'Customer' : 'Seller');
+    try {
+      delivery = await sendLoginCode({
+        to: user.email,
+        businessName: recipientName,
+        code: issued.code,
+        minutes: issued.expiresInMinutes,
+        purpose: 'password-reset'
+      });
+    } catch (mailError) {
+      otpStore.discard(resetKey(user.id));
+      console.error('PASSWORD_RESET_EMAIL_ERROR:', mailError.message);
+      console.error('HINT:', explainMailError(mailError));
+      return res.status(502).json({ code: 'EMAIL_FAILED', message: 'Could not send the password reset email.' });
+    }
+
+    return res.json({
+      success: true,
+      message: 'A 6-digit verification code has been sent to your original registered Gmail.',
+      sentTo: maskEmail(user.email),
+      email: user.email,
+      emailed: delivery.emailed,
+      expiresInMinutes: issued.expiresInMinutes,
+      resendAfterSeconds: issued.resendAfterSeconds,
+      ...(process.env.EMAIL_DEV_LOG_CODES === 'true' ? { devCode: issued.code } : {})
+    });
   } catch (error) {
     console.error('PASSWORD_RESET_REQUEST_ERROR:', error);
     res.status(500).json({ message: 'Server error.' });
@@ -683,12 +818,13 @@ exports.verifyPasswordResetCode = async (req, res) => {
   try {
     const email = String(req.body?.email || '').trim();
     const code = String(req.body?.code || '').trim();
+    const role = req.body?.role ? String(req.body.role).toUpperCase() : null;
 
     if (!email || !/^\d{6}$/.test(code)) {
       return res.status(400).json({ code: 'WRONG_CODE', message: 'Enter the 6-digit code.' });
     }
 
-    const user = await findResettableUser(email);
+    const user = await findResettableUser(email, role);
     if (!user) {
       return res.status(400).json({ code: 'WRONG_CODE', message: 'The code is not valid. Please ask for a new one.' });
     }
