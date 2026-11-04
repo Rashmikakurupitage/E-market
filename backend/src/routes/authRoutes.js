@@ -6,6 +6,7 @@ const {
   verifyEmail,
   resendVerification,
   requestPasswordReset,
+  verifyPasswordResetCode,
   resetPassword,
   requestSellerLoginCode,
   verifySellerLoginCode,
@@ -27,6 +28,7 @@ router.post('/login', login);
 router.post('/verify-email', verifyEmail);
 router.post('/resend-verification', resendVerification);
 router.post('/forgot-password', requestPasswordReset);
+router.post('/verify-reset-code', verifyPasswordResetCode);
 router.post('/reset-password', resetPassword);
 
 // Seller login: email + NIC, then the 6-digit code sent by email

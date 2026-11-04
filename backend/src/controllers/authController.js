@@ -678,24 +678,88 @@ exports.requestPasswordReset = async (req, res) => {
   }
 };
 
-// Step 2 - check the code and save the new password
-exports.resetPassword = async (req, res) => {
+// Step 2 - verify whether the 6-digit OTP code is correct before showing the new password form
+exports.verifyPasswordResetCode = async (req, res) => {
   try {
     const email = String(req.body?.email || '').trim();
     const code = String(req.body?.code || '').trim();
-    const newPassword = req.body?.newPassword;
 
     if (!email || !/^\d{6}$/.test(code)) {
       return res.status(400).json({ code: 'WRONG_CODE', message: 'Enter the 6-digit code.' });
     }
-    if (!isStrongPassword(newPassword)) {
-      return res.status(400).json({ code: 'WEAK_PASSWORD', message: 'Password must have at least 8 characters, one capital letter, and one number or symbol.' });
-    }
 
     const user = await findResettableUser(email);
-    const result = user ? otpStore.verify(resetKey(user.id), code) : 'WRONG_CODE';
+    if (!user) {
+      return res.status(400).json({ code: 'WRONG_CODE', message: 'The code is not valid. Please ask for a new one.' });
+    }
+
+    const result = otpStore.verify(resetKey(user.id), code);
     if (result !== 'OK') {
       return res.status(400).json({ code: result, message: 'The code is not valid. Please ask for a new one.' });
+    }
+
+    // Generate a temporary JWT reset token valid for 15 minutes
+    const resetToken = jwt.sign(
+      { userId: user.id, email: user.email, purpose: 'PASSWORD_RESET' },
+      process.env.JWT_SECRET || 'fallback_secret',
+      { expiresIn: '15m' }
+    );
+
+    return res.json({
+      success: true,
+      verified: true,
+      resetToken,
+      message: 'Code verified successfully.'
+    });
+  } catch (error) {
+    console.error('VERIFY_PASSWORD_RESET_CODE_ERROR:', error);
+    res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+// Step 3 - check the resetToken (or code fallback) and save the new password
+exports.resetPassword = async (req, res) => {
+  try {
+    const email = String(req.body?.email || '').trim();
+    const code = String(req.body?.code || '').trim();
+    const resetToken = req.body?.resetToken;
+    const newPassword = req.body?.newPassword;
+
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({
+        code: 'WEAK_PASSWORD',
+        message: 'Password must have at least 8 characters, one capital letter, and one number or symbol.'
+      });
+    }
+
+    let user = null;
+
+    if (resetToken) {
+      try {
+        const decoded = jwt.verify(resetToken, process.env.JWT_SECRET || 'fallback_secret');
+        if (decoded.purpose !== 'PASSWORD_RESET') {
+          return res.status(400).json({ code: 'INVALID_TOKEN', message: 'Invalid or expired session. Please request a new code.' });
+        }
+        user = await prisma.user.findFirst({
+          where: { id: decoded.userId, removedAt: null },
+          include: { sellerProfile: true, customerProfile: true }
+        });
+      } catch (tokenErr) {
+        return res.status(400).json({ code: 'CODE_EXPIRED', message: 'Verification session expired. Please request a new code.' });
+      }
+    } else {
+      if (!email || !/^\d{6}$/.test(code)) {
+        return res.status(400).json({ code: 'WRONG_CODE', message: 'Enter the 6-digit code.' });
+      }
+      user = await findResettableUser(email);
+      const result = user ? otpStore.verify(resetKey(user.id), code) : 'WRONG_CODE';
+      if (result !== 'OK') {
+        return res.status(400).json({ code: result, message: 'The code is not valid. Please ask for a new one.' });
+      }
+    }
+
+    if (!user) {
+      return res.status(400).json({ code: 'WRONG_CODE', message: 'User not found or code expired.' });
     }
 
     const isSeller = user.role === 'SELLER';
