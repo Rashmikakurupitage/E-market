@@ -5,8 +5,8 @@ import API from './api';
 
 // The pictures that ship with the website (used until an admin uploads their own)
 export const BUILTIN_WALLPAPERS = [
-  { id: 'builtin-collage-gold', src: '/wallpapers/collage-gold.jpg', custom: false },
   { id: 'builtin-hero', src: '/hero_main.jpg', custom: false },
+  { id: 'builtin-collage-gold', src: '/wallpapers/collage-gold.jpg', custom: false },
   { id: 'builtin-collage-teal', src: '/wallpapers/collage-teal.jpg', custom: false },
   { id: 'builtin-tea-pickers', src: '/wallpapers/tea-pickers.jpg', custom: false },
   { id: 'builtin-collage-pink', src: '/wallpapers/collage-pink.jpg', custom: false },

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-  Search, ArrowRight, Megaphone, HandCoins, Laptop, PackageSearch, ChevronDown, ShieldCheck, HandHeart, MapPin,
+  Search, ArrowRight, Megaphone, HandCoins, Laptop, PackageSearch, ShieldCheck, HandHeart, MapPin,
   Scissors, Shirt, Sprout, Soup, Sparkles, PackageCheck, Store, BookOpen, Tag, Plus, CircleHelp,
 } from 'lucide-react';
 import API from '../src/lib/api';
@@ -202,88 +202,82 @@ export default function Home() {
   return (
     <>
       {/* Hero */}
-      <section className="relative isolate">
-        <div className="mx-auto grid max-w-7xl items-center gap-14 px-4 pb-16 pt-8 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:pt-12">
-          {/* Text and search */}
-          <div className="relative lg:col-span-7">
-            <Sparkle className="pointer-events-none absolute -top-2 right-[18%] hidden h-7 w-7 animate-twinkle text-turmeric sm:block" />
-            <Sparkle className="pointer-events-none absolute right-[6%] top-40 hidden h-4 w-4 animate-twinkle text-magenta/70 [animation-delay:-1.2s] sm:block" />
-            <p className="glass inline-flex animate-fade-up items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold text-ink/80 sm:text-sm">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-saffron opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-saffron" />
-              </span>
+      <section className="px-3 pb-10 pt-3 sm:px-6 sm:pb-14 sm:pt-5">
+        <div className="mx-auto grid max-w-7xl overflow-hidden rounded-[30px] bg-[#f4ebe2] shadow-[0_24px_70px_-38px_rgba(54,37,34,0.35)] sm:rounded-[38px] lg:min-h-[590px] lg:grid-cols-2">
+          {/* The maker's work leads the page, especially on small screens. */}
+          <div className="relative order-1 min-h-[270px] overflow-hidden sm:min-h-[390px] lg:order-2 lg:min-h-[590px]">
+            <HeroSlideshow {...wallpapers} controlsPosition="top-right" />
+            <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-44 bg-linear-to-t from-ink/35 to-transparent" />
+          </div>
+
+          {/* Search and clear next steps for customers and women entrepreneurs. */}
+          <div className="order-2 flex flex-col justify-center px-5 py-8 sm:px-9 sm:py-10 lg:order-1 lg:px-12 lg:py-14 xl:px-16">
+            <p className="inline-flex w-fit items-center gap-2 rounded-full bg-white/75 px-3.5 py-2 text-[11px] font-bold leading-tight text-magenta-dark ring-1 ring-magenta/10 sm:text-xs">
+              <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-saffron" />
               {h.badge}
             </p>
 
             <HeroTitle />
 
-            <p className="mt-6 max-w-xl animate-fade-up text-base leading-relaxed text-ink/70 [animation-delay:240ms] sm:text-lg">
+            <p className="mt-4 max-w-xl text-sm leading-7 text-ink/70 sm:mt-5 sm:text-base sm:leading-8">
               {t.heroSub}
             </p>
 
             <form
               onSubmit={handleSearch}
               role="search"
-              className="glass mt-8 flex max-w-xl animate-fade-up items-center gap-2 rounded-full p-1.5 transition-shadow duration-300 [animation-delay:360ms] focus-within:ring-4 focus-within:ring-turmeric/40"
+              className="mt-6 flex max-w-xl items-center gap-2 rounded-2xl border border-ink/10 bg-white p-1.5 shadow-sm transition-shadow focus-within:ring-4 focus-within:ring-magenta/10 sm:mt-8"
             >
-              <label htmlFor="product-search" className="sr-only">
-                {t.searchBtn}
-              </label>
-              <Search className="ml-3 hidden h-5 w-5 shrink-0 text-ink/45 sm:block" aria-hidden="true" />
+              <label htmlFor="product-search" className="sr-only">{t.searchBtn}</label>
+              <Search className="ml-3 h-5 w-5 shrink-0 text-ink/40" aria-hidden="true" />
               <input
                 id="product-search"
                 type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t.searchPlaceholder}
-                className="min-w-0 flex-1 bg-transparent px-3 py-3 text-sm text-ink placeholder:text-ink/45 focus:outline-none sm:text-base"
+                className="min-w-0 flex-1 bg-transparent px-1 py-3 text-sm text-ink placeholder:text-ink/45 focus:outline-none sm:text-base"
               />
               <button
                 type="submit"
                 aria-label={t.searchBtn}
-                className="btn-shine flex h-11 shrink-0 items-center gap-2 rounded-full bg-magenta px-5 text-white shadow-lg shadow-magenta/30 transition-colors duration-200 hover:bg-magenta-dark active:scale-95"
+                className="flex h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-magenta px-4 text-white transition-colors hover:bg-magenta-dark active:scale-[0.98] sm:px-5"
               >
-                <Search className="h-5 w-5 sm:hidden" />
-                <span className="hidden text-sm font-semibold sm:inline">{t.searchBtn}</span>
+                <span className="text-sm font-semibold">{t.searchBtn}</span>
+                <ArrowRight className="hidden h-4 w-4 sm:block" />
               </button>
             </form>
 
-            {/* Quick category buttons */}
-            <div className="mt-5 flex animate-fade-up flex-wrap items-center gap-2 [animation-delay:480ms]">
-              <span className="text-xs font-semibold text-ink/60">{h.popular}</span>
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              <span className="mr-1 text-xs font-semibold text-ink/50">{h.popular}</span>
               {CATEGORIES.slice(0, 3).map((value) => (
                 <button
                   key={value}
                   type="button"
                   onClick={() => chooseCategory(value)}
-                  className="glass rounded-full px-3.5 py-1.5 text-xs font-semibold text-ink/80 transition-all duration-200 hover:-translate-y-0.5 hover:bg-white hover:text-ink"
+                  className="rounded-full border border-ink/10 bg-white/55 px-3 py-1.5 text-xs font-semibold text-ink/75 transition-colors hover:border-magenta/30 hover:bg-white hover:text-magenta-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-magenta"
                 >
                   {t.categories[value]}
                 </button>
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={scrollToProducts}
-              className="btn-shine group mt-8 hidden animate-fade-up items-center gap-2 rounded-full bg-ink py-2 pl-6 pr-2 text-sm font-semibold text-white shadow-xl shadow-ink/20 transition-colors duration-200 [animation-delay:600ms] hover:bg-magenta sm:inline-flex"
-            >
-              {h.seeProducts}
-              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15">
-                <ChevronDown className="h-4 w-4 animate-bounce-soft" />
-              </span>
-            </button>
-          </div>
-
-          {/* Photo */}
-          <div className="relative mx-auto w-full max-w-md animate-zoom-in [animation-delay:200ms] lg:col-span-5 lg:max-w-none">
-            <div aria-hidden="true" className="absolute -right-6 -top-6 -z-10 h-[88%] w-[88%] animate-morph bg-linear-to-br from-magenta/25 via-saffron/20 to-turmeric/35" />
-            <DotGrid className="absolute -left-10 top-16 -z-10 hidden w-24 text-magenta/35 sm:block" />
-            <div aria-hidden="true" className="absolute -bottom-10 right-4 -z-10 h-28 w-28 animate-spin-slow rounded-full border-2 border-dashed border-saffron/60" />
-            <Sparkle className="absolute -right-4 top-8 h-8 w-8 animate-twinkle text-turmeric [animation-delay:-0.6s] sm:-right-8" />
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[48px_160px_48px_160px] shadow-2xl shadow-magenta/20 ring-8 ring-white/60 sm:rounded-[48px_200px_48px_200px]">
-              <HeroSlideshow {...wallpapers} />
+            <div className="mt-7 flex flex-wrap items-center gap-3 sm:mt-9">
+              <button
+                type="button"
+                onClick={scrollToProducts}
+                className="inline-flex min-h-12 items-center gap-2 rounded-full bg-ink px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:-translate-y-0.5 hover:bg-magenta focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-magenta"
+              >
+                {h.seeProducts}
+                <ArrowRight className="h-4 w-4" />
+              </button>
+              <Link
+                href="/register"
+                className="inline-flex min-h-12 items-center gap-2 rounded-full px-4 py-3 text-sm font-bold text-ink/75 transition-colors hover:bg-white/70 hover:text-magenta-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-magenta"
+              >
+                <Store className="h-4 w-4" />
+                {t.navSellers}
+              </Link>
             </div>
           </div>
         </div>
@@ -297,7 +291,7 @@ export default function Home() {
             return (
               <li
                 key={benefit.title}
-                className="glass group flex animate-fade-up items-start gap-3 rounded-[28px] p-5"
+                className="group flex animate-fade-up items-start gap-3 rounded-2xl border border-ink/5 bg-white/85 p-4 shadow-sm transition-shadow hover:shadow-md sm:rounded-[22px] sm:p-5"
                 style={{ animationDelay: `${650 + index * 100}ms` }}
               >
                 <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl transition-transform duration-300 group-hover:-rotate-6 group-hover:scale-110 ${tile}`}>
@@ -322,7 +316,7 @@ export default function Home() {
         <DotGrid className="absolute bottom-8 right-4 -z-10 hidden w-24 text-magenta/30 md:block" />
         <Sparkle className="pointer-events-none absolute right-[22%] top-14 hidden h-5 w-5 animate-twinkle text-turmeric md:block" />
         <SectionTitle title={h.categoriesTitle} sub={h.categoriesSub} />
-        <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="mt-8 grid grid-cols-2 gap-3 sm:mt-10 sm:grid-cols-3 sm:gap-4 lg:grid-cols-5">
           {CATEGORIES.map((value, index) => {
             const { icon: Icon, tile } = CATEGORY_LOOK[value] || DEFAULT_LOOK;
             const active = category === value;
@@ -333,12 +327,12 @@ export default function Home() {
                   type="button"
                   onClick={() => chooseCategory(value)}
                   aria-pressed={active}
-                  className={`glass group flex flex-col items-center rounded-[28px] p-5 text-center transition-all duration-300 hover:-translate-y-1.5 hover:bg-white/90 ${
+                  className={`group flex h-full flex-col items-center rounded-[22px] border border-ink/5 bg-white/80 p-4 text-center shadow-sm transition-all duration-300 hover:-translate-y-1 hover:bg-white hover:shadow-lg sm:rounded-[26px] sm:p-5 ${
                     active ? 'ring-2 ring-ink' : ''
                   }`}
                 >
                   <span
-                    className={`flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg transition-transform duration-500 group-hover:-rotate-6 group-hover:scale-110 ${tile}`}
+                    className={`flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm transition-transform duration-300 group-hover:-rotate-3 group-hover:scale-105 sm:h-14 sm:w-14 ${tile}`}
                   >
                     <Icon className="h-7 w-7" />
                   </span>

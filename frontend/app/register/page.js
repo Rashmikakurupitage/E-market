@@ -77,7 +77,10 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const nextValue = name === 'firstName' || name === 'lastName'
+      ? value.replace(/^\s*\p{L}/u, (firstLetter) => firstLetter.toLocaleUpperCase())
+      : value;
+    setFormData({ ...formData, [name]: nextValue });
     if (fieldErrors[name]) setFieldErrors({ ...fieldErrors, [name]: undefined });
   };
 
@@ -234,10 +237,10 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         <SectionTitle number={1}>{r.sectionPersonal}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="firstName" label={r.firstName} required>
-            <input id="firstName" name="firstName" type="text" required autoComplete="given-name" value={formData.firstName} onChange={handleChange} className={inputClass(false)} />
+            <input id="firstName" name="firstName" type="text" required autoComplete="given-name" autoCapitalize="words" value={formData.firstName} onChange={handleChange} className={inputClass(false)} />
           </Field>
           <Field id="lastName" label={r.lastName} required>
-            <input id="lastName" name="lastName" type="text" required autoComplete="family-name" value={formData.lastName} onChange={handleChange} className={inputClass(false)} />
+            <input id="lastName" name="lastName" type="text" required autoComplete="family-name" autoCapitalize="words" value={formData.lastName} onChange={handleChange} className={inputClass(false)} />
           </Field>
           <Field id="email" label={r.email} required>
             <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />

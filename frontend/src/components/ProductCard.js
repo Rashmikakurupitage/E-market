@@ -46,8 +46,9 @@ export default function ProductCard({ product }) {
   const seller = getSeller(product);
   const example = !product.sellerId;
   const image = product.images?.[0];
-  const whatsapp = example ? '' : toWhatsAppNumber(seller.whatsappNo);
-  const messenger = example ? null : messengerLink(product);
+  const outOfStock = product.stock === 0;
+  const whatsapp = example || outOfStock ? '' : toWhatsAppNumber(seller.whatsappNo);
+  const messenger = example || outOfStock ? null : messengerLink(product);
   const whatsappLink = !example && whatsapp
     ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(
         `Hello! I'm interested in "${product.title}" on Lanka Women E-Market.`
@@ -154,7 +155,7 @@ export default function ProductCard({ product }) {
           ) : (
             <span className="flex w-full items-center justify-center gap-2 rounded-full bg-sand/70 px-3 py-3 text-sm font-semibold text-ink/40">
               <WhatsAppIcon className="h-5 w-5" />
-              {t.whatsappUnavailable}
+              {outOfStock ? t.cart.outOfStock : t.whatsappUnavailable}
             </span>
           )}
           {canContact && messenger && (

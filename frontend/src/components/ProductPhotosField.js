@@ -54,9 +54,9 @@ function shrink(file, max = 1200) {
   });
 }
 
-// Up to 5 photos for one product: upload pictures, or paste a link to a picture. The first photo is the main one.
+// Sellers explicitly choose the customer-facing preview; it is moved to the first position for storefronts.
 // value: array of picture sources (data URLs or links); onChange gets the new array.
-export default function ProductPhotosField({ value, onChange }) {
+export default function ProductPhotosField({ value, onChange, onPreviewChange }) {
   const { t } = useLanguage();
   const p = t.productPhotos;
   const [link, setLink] = useState('');
@@ -64,6 +64,7 @@ export default function ProductPhotosField({ value, onChange }) {
   const [busy, setBusy] = useState(false);
   const [cropFiles, setCropFiles] = useState([]);
   const [cropIndex, setCropIndex] = useState(0);
+  const [hasPreview, setHasPreview] = useState(false);
   const croppedPhotos = useRef([]);
   const full = value.length >= MAX_PHOTOS;
 
@@ -135,35 +136,60 @@ export default function ProductPhotosField({ value, onChange }) {
     onChange([...value, text]);
   };
 
-  const makeMain = (index) => onChange([value[index], ...value.filter((_, i) => i !== index)]);
-  const remove = (index) => onChange(value.filter((_, i) => i !== index));
+  const choosePreview = (index) => {
+    setHasPreview(true);
+    onPreviewChange?.(true);
+    onChange([value[index], ...value.filter((_, i) => i !== index)]);
+  };
+  const remove = (index) => {
+    if (index === 0 && hasPreview) {
+      setHasPreview(false);
+      onPreviewChange?.(false);
+    }
+    onChange(value.filter((_, i) => i !== index));
+  };
 
   return (
     <div>
       <div className="flex items-baseline justify-between gap-3">
-        <span className="text-sm font-semibold text-slate-700">{p.title}</span>
+        <span className="text-sm font-semibold text-slate-700">{p.title} <span className="text-red-600">*</span></span>
         <span className="text-xs font-semibold text-slate-500">{fill(p.count, { count: value.length, max: MAX_PHOTOS })}</span>
+      </div>
+
+      <div className="mt-2 rounded-2xl border border-ink/10 bg-sand/25 p-3">
+        <p className="mb-2 text-xs font-bold text-ink/70">{p.previewLabel}</p>
+        {hasPreview && value[0] ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={value[0]} alt={p.previewLabel} className="mx-auto aspect-square w-full max-w-xs rounded-xl bg-white object-cover ring-1 ring-ink/10" />
+        ) : (
+          <div className="mx-auto flex aspect-square w-full max-w-xs items-center justify-center rounded-xl border border-dashed border-ink/20 bg-white/70 px-4 text-center text-xs font-medium text-ink/55">
+            {p.errors.previewRequired}
+          </div>
+        )}
       </div>
 
       {value.length > 0 && (
         <ul className="mt-2 grid grid-cols-3 gap-2.5 sm:grid-cols-5">
           {value.map((src, index) => (
-            <li key={src.slice(-40) + index} className="relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" className="aspect-square w-full rounded-xl object-cover ring-1 ring-ink/10" />
-              {index === 0 ? (
-                <span className="absolute bottom-1 left-1 inline-flex items-center gap-0.5 rounded-full bg-magenta px-1.5 py-0.5 text-[10px] font-bold text-white">
-                  <Star className="h-2.5 w-2.5" />
-                  {p.main}
-                </span>
-              ) : (
-                <button type="button" onClick={() => makeMain(index)} title={p.makeMain} className="absolute bottom-1 left-1 rounded-full bg-white/90 px-1.5 py-0.5 text-[10px] font-bold text-ink shadow hover:bg-magenta hover:text-white">
-                  {p.makeMain}
+            <li key={src.slice(-40) + index} className="min-w-0">
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={src} alt="" className="aspect-square w-full rounded-xl object-cover ring-1 ring-ink/10" />
+                {index === 0 && hasPreview && (
+                  <span className="absolute bottom-1 left-1 inline-flex max-w-[calc(100%-0.5rem)] items-center gap-0.5 rounded-full bg-magenta px-1.5 py-1 text-[9px] font-bold leading-tight text-white">
+                    <Star className="h-2.5 w-2.5 shrink-0" />
+                    <span className="truncate">{p.previewSelected}</span>
+                  </span>
+                )}
+                <button type="button" onClick={() => remove(index)} aria-label={p.remove} title={p.remove} className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-white shadow ring-2 ring-white hover:bg-red-600">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+              {!(index === 0 && hasPreview) && (
+                <button type="button" onClick={() => choosePreview(index)} title={p.selectPreview} className="mt-1.5 flex min-h-8 w-full items-center justify-center rounded-lg bg-white px-1.5 py-1 text-center text-[10px] font-bold leading-tight text-ink ring-1 ring-ink/10 transition hover:bg-magenta hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-magenta">
+                  {p.selectPreview}
                 </button>
               )}
-              <button type="button" onClick={() => remove(index)} aria-label={p.remove} title={p.remove} className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-white shadow ring-2 ring-white hover:bg-red-600">
-                <X className="h-3.5 w-3.5" />
-              </button>
             </li>
           ))}
         </ul>

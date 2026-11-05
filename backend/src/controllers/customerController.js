@@ -130,7 +130,7 @@ exports.syncCart = async (req, res) => {
     const productIds = [...merged.keys()];
     const products = await prisma.product.findMany({
       where: { id: { in: productIds }, isPublished: true, price: { not: null }, seller: { status: 'APPROVED', removedAt: null } },
-      select: { id: true, title: true, images: true, category: true, price: true, discountPercent: true, discountEndsAt: true, sellerId: true, seller: { select: { businessName: true, district: true, whatsappNo: true } } },
+      select: { id: true, title: true, images: true, category: true, price: true, stock: true, discountPercent: true, discountEndsAt: true, sellerId: true, seller: { select: { businessName: true, district: true, whatsappNo: true } } },
     });
     const { discountOf } = require('../utils/discount');
     const found = new Set(products.map((product) => product.id));
@@ -142,7 +142,7 @@ exports.syncCart = async (req, res) => {
       const discount = discountOf(product);
       return {
         id: product.id, title: product.title, price: discount ? discount.salePrice : Number(product.price),
-        image: product.images[0] || null, category: product.category, sellerId: product.sellerId,
+        image: product.images[0] || null, category: product.category, sellerId: product.sellerId, stock: product.stock,
         sellerName: product.seller.businessName || '', district: product.seller.district || '',
         whatsappNo: product.seller.whatsappNo || '', quantity,
       };

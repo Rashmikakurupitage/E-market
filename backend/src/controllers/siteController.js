@@ -10,7 +10,7 @@ const MAX_WALLPAPERS = 8;
 const MAX_BYTES = 1.5 * 1024 * 1024;
 const SECONDS = [4, 6, 8, 10, 15, 20];
 // The pictures that ship with the website (public/hero_main.jpg, public/artisan_carver.jpg and public/wallpapers/*)
-const BUILTIN_IDS = ['builtin-collage-gold', 'builtin-hero', 'builtin-collage-teal', 'builtin-tea-pickers', 'builtin-collage-pink', 'builtin-collage-violet', 'builtin-artisan', 'builtin-collage-green', 'builtin-kitchen', 'builtin-collage-indigo', 'builtin-basketry', 'builtin-collage-earth', 'builtin-tea-woman', 'builtin-masks', 'builtin-cane-market', 'builtin-spices'];
+const BUILTIN_IDS = ['builtin-hero', 'builtin-collage-gold', 'builtin-collage-teal', 'builtin-tea-pickers', 'builtin-collage-pink', 'builtin-collage-violet', 'builtin-artisan', 'builtin-collage-green', 'builtin-kitchen', 'builtin-collage-indigo', 'builtin-basketry', 'builtin-collage-earth', 'builtin-tea-woman', 'builtin-masks', 'builtin-cane-market', 'builtin-spices'];
 const DATA_URL = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/;
 
 const serverError = (res, label, error) => {

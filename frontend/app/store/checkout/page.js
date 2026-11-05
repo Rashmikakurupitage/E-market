@@ -9,7 +9,7 @@ import API from '../../../src/lib/api';
 import { useLanguage, fill } from '../../../src/lib/i18n';
 import { useHydrated, useSession } from '../../../src/lib/auth';
 import { DISTRICTS, formatPrice } from '../../../src/lib/catalog';
-import { clearCart, groupBySeller, removeFromCart, useCart } from '../../../src/lib/cart';
+import { clearCart, groupBySeller, removeFromCart, updateCartProductSnapshots, useCart } from '../../../src/lib/cart';
 import { Field, inputClass, primaryButtonClass } from '../../../src/components/form';
 import { PageArt, Sparkle, Squiggle } from '../../../src/components/Art';
 
@@ -210,7 +210,7 @@ export default function CheckoutPage() {
         }
       }
       const res = await API.post('/orders', {
-        items: items.map((item) => ({ productId: item.id, quantity: item.quantity })),
+        items: items.map((item) => ({ productId: item.id, quantity: item.quantity, expectedPrice: item.price })),
         delivery: { name: form.name, phone: form.phone, address: form.address, district: form.district },
         note: form.note,
       });
@@ -225,6 +225,10 @@ export default function CheckoutPage() {
       } else if (code === 'UNAVAILABLE') {
         removeFromCart(data.productIds || []);
         setServerError(c.errors.UNAVAILABLE);
+      } else if (code === 'PRICE_CHANGED' || code === 'OUT_OF_STOCK') {
+        updateCartProductSnapshots(data.productUpdates || []);
+        setCheckoutStep(0);
+        setServerError(c.errors[code]);
       } else if (['NAME', 'PHONE', 'ADDRESS', 'DISTRICT', 'NOTE'].includes(code)) {
         setErrors({ [code.toLowerCase()]: c.errors[code] });
       } else {
@@ -313,6 +317,11 @@ export default function CheckoutPage() {
                 <section className="rounded-[32px] bg-white p-6 shadow-xl shadow-ink/5 ring-1 ring-ink/5 sm:p-8">
                   <h2 className="text-xl font-bold text-ink sm:text-2xl">{c.reviewHeading}</h2>
                   <p className="mt-2 text-sm leading-relaxed text-ink/65">{c.reviewText}</p>
+                  {serverError && (
+                    <p role="alert" className="mt-4 flex items-start gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-900 ring-1 ring-amber-200">
+                      <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />{serverError}
+                    </p>
+                  )}
                   <div className="mt-6 rounded-2xl bg-cream p-4 ring-1 ring-ink/5">
                     <p className="flex items-center gap-2 text-sm font-semibold text-ink">
                       <ShoppingBag className="h-4 w-4 text-magenta" />

@@ -74,8 +74,9 @@ function StatCard({ icon: Icon, label, value, sub, tone = 'green', delay = 0 }) 
 function AddProductModal({ onClose, onAdded }) {
   const { t } = useLanguage();
   const f = t.dash.form;
-  const [form, setForm] = useState({ title: '', price: '', category: CATEGORIES[0], discountPercent: '', discountEndsAt: '', messengerUrl: '', description: '' });
+  const [form, setForm] = useState({ title: '', price: '', stock: '0', category: CATEGORIES[0], discountPercent: '', discountEndsAt: '', messengerUrl: '', description: '' });
   const [photos, setPhotos] = useState([]);
+  const [hasPhotoPreview, setHasPhotoPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -95,6 +96,14 @@ function AddProductModal({ onClose, onAdded }) {
   const submit = async (e) => {
     e.preventDefault();
     setError('');
+    if (photos.length === 0) {
+      setError(t.productPhotos.errors.required);
+      return;
+    }
+    if (!hasPhotoPreview) {
+      setError(t.productPhotos.errors.previewRequired);
+      return;
+    }
     if (cleanMessengerUrl(form.messengerUrl) === null) {
       setMessengerError(f.messengerInvalid);
       document.getElementById('messengerUrl')?.focus();
@@ -108,6 +117,7 @@ function AddProductModal({ onClose, onAdded }) {
         description: form.description.trim(),
         category: form.category,
         price: form.price === '' ? null : Number(form.price),
+        stock: form.stock === '' ? null : Number(form.stock),
         discountPercent: form.discountPercent === '' ? null : Number(form.discountPercent),
         discountEndsAt: form.discountEndsAt || null,
         images: photos,
@@ -116,7 +126,7 @@ function AddProductModal({ onClose, onAdded }) {
       onAdded();
     } catch (err) {
       const code = err.response?.data?.code;
-      setError(code === 'TOO_MANY_IMAGES' || code === 'INVALID_IMAGE' ? t.productPhotos.errors[code] : t.discount.errors[code] || (err.response?.status === 413 ? t.productPhotos.errors.big : f.error));
+      setError(code === 'INVALID_STOCK' ? f.stockInvalid : code === 'PRODUCT_IMAGE_REQUIRED' ? t.productPhotos.errors.required : code === 'TOO_MANY_IMAGES' || code === 'INVALID_IMAGE' ? t.productPhotos.errors[code] : t.discount.errors[code] || (err.response?.status === 413 ? t.productPhotos.errors.big : f.error));
       setSaving(false);
     }
   };
@@ -162,6 +172,9 @@ function AddProductModal({ onClose, onAdded }) {
               </select>
             </Field>
           </div>
+          <Field id="stock" label={f.stock} hint={f.stockHint}>
+            <input id="stock" name="stock" type="number" min="0" max="1000000" step="1" inputMode="numeric" value={form.stock} onChange={update} className={inputClass(false)} placeholder={f.stockUntracked} />
+          </Field>
           <div className="grid gap-4 sm:grid-cols-2">
             <Field id="discount-percent" label={t.discount.percent} hint={t.discount.percentHint}>
               <input
@@ -204,7 +217,14 @@ function AddProductModal({ onClose, onAdded }) {
               <strong className="font-bold text-red-600">{formatPrice(Math.round(Number(form.price) * (100 - Number(form.discountPercent))) / 100)}</strong>
             </div>
           )}
-          <ProductPhotosField value={photos} onChange={setPhotos} />
+          <ProductPhotosField
+            value={photos}
+            onChange={setPhotos}
+            onPreviewChange={(selected) => {
+              setHasPhotoPreview(selected);
+              if (selected) setError('');
+            }}
+          />
           <Field id="messengerUrl" label={f.messenger} hint={f.messengerHint} error={messengerError}>
             <input id="messengerUrl" name="messengerUrl" type="text" inputMode="url" value={form.messengerUrl} onChange={update} aria-invalid={!!messengerError} className={inputClass(messengerError)} placeholder="m.me/yourshop" />
           </Field>
@@ -245,6 +265,8 @@ export default function Dashboard() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [productToRemove, setProductToRemove] = useState(null);
   const [productToDiscount, setProductToDiscount] = useState(null);
+  const [stockDrafts, setStockDrafts] = useState({});
+  const [savingStockId, setSavingStockId] = useState(null);
   const [notice, setNotice] = useState('');
   const [section, setSection] = useState('overview'); // 'overview' | 'products' | 'orders' | 'settings'
 
@@ -314,6 +336,29 @@ export default function Dashboard() {
 
   const discountSaved = (updatedProduct) => {
     setProducts((current) => current.map((product) => product.id === updatedProduct.id ? updatedProduct : product));
+  };
+
+  const saveProductStock = async (product) => {
+    setSavingStockId(product.id);
+    setNotice('');
+    const rawStock = stockDrafts[product.id] ?? (product.stock == null ? '' : String(product.stock));
+    try {
+      const { data } = await API.patch(`/products/${encodeURIComponent(product.id)}/stock`, {
+        stock: rawStock === '' ? null : Number(rawStock),
+      });
+      setProducts((current) => current.map((item) => item.id === product.id ? { ...item, ...data.product } : item));
+      setStockDrafts((current) => { const next = { ...current }; delete next[product.id]; return next; });
+      setNotice(d.stockSaved);
+    } catch (error) {
+      if (isAuthError(error)) {
+        clearSession();
+        router.replace('/login');
+      } else {
+        setNotice(d.stockError);
+      }
+    } finally {
+      setSavingStockId(null);
+    }
   };
 
   // Called by the confirm box; throwing keeps the box open with an error message
@@ -506,6 +551,29 @@ export default function Dashboard() {
                     <p className="truncate text-xs text-slate-500">
                       {t.categories[product.category] || product.category} · <PriceTag product={product} />
                     </p>
+                    <div className="mt-2 flex max-w-xs items-center gap-2">
+                      <label htmlFor={`stock-${product.id}`} className="sr-only">{d.stock}: {product.title}</label>
+                      <input
+                        id={`stock-${product.id}`}
+                        type="number"
+                        min="0"
+                        max="1000000"
+                        step="1"
+                        inputMode="numeric"
+                        value={stockDrafts[product.id] ?? (product.stock == null ? '' : String(product.stock))}
+                        onChange={(event) => setStockDrafts((current) => ({ ...current, [product.id]: event.target.value }))}
+                        placeholder={d.stockUntracked}
+                        className="w-24 rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-800 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => saveProductStock(product)}
+                        disabled={savingStockId === product.id}
+                        className="rounded-lg bg-brand-50 px-2.5 py-1.5 text-xs font-semibold text-brand-700 hover:bg-brand-100 disabled:opacity-50"
+                      >
+                        {savingStockId === product.id ? d.savingStock : d.saveStock}
+                      </button>
+                    </div>
                   </div>
                   <span className="hidden rounded-full bg-brand-50 px-2.5 py-1 text-xs font-semibold text-brand-700 sm:inline">
                     +{product.clicksThisWeek || 0} {d.thisWeek}

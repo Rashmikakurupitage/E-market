@@ -178,6 +178,8 @@ model Product {
   description     String
   category        String
   images          String[]
+  // Null means the seller has not enabled inventory tracking for this product.
+  stock           Int?
   productImages   ProductImage[]
   price           Decimal?
   // A seller's discount: percent off the price, optionally until the end of a day

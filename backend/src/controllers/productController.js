@@ -8,6 +8,7 @@ const { withDiscount, readDiscount } = require('../utils/discount');
 // Uploaded pictures are saved in the database and replaced by the address they are served from.
 const MAX_PHOTOS = 5;
 const MAX_PHOTO_BYTES = 600 * 1024;
+const MAX_STOCK = 1000000;
 const PHOTO_DATA_URL = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/;
 
 const publicBase = (req) => (process.env.PUBLIC_API_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
@@ -48,6 +49,11 @@ const readPhotos = (input, req) => {
 exports.createProduct = async (req, res) => {
   try {
     const { title, description, category, images, price } = req.body;
+    const stockInput = req.body.stock;
+    const stock = stockInput === '' || stockInput === undefined || stockInput === null ? null : Number(stockInput);
+    if (stock !== null && (!Number.isInteger(stock) || stock < 0 || stock > MAX_STOCK)) {
+      return res.status(400).json({ code: 'INVALID_STOCK', message: `Stock must be a whole number from 0 to ${MAX_STOCK}, or empty to leave tracking off.` });
+    }
 
     // Optional Facebook Messenger chat link, so customers can also chat there instead of only on WhatsApp
     const messengerUrl = cleanMessengerUrl(req.body.messengerUrl);
@@ -58,6 +64,9 @@ exports.createProduct = async (req, res) => {
     const photos = readPhotos(images, req);
     if (photos.error) {
       return res.status(400).json(photos.error);
+    }
+    if (photos.urls.length === 0) {
+      return res.status(400).json({ code: 'PRODUCT_IMAGE_REQUIRED', message: 'Add at least one product photo.' });
     }
 
     // Optional discount (a seller can also add or change it later)
@@ -85,6 +94,7 @@ exports.createProduct = async (req, res) => {
         description,
         category,
         images: photos.urls,
+        stock,
         productImages: { create: photos.uploads },
         price: price ? parseFloat(price) : null,
         messengerUrl: messengerUrl || null,
@@ -330,6 +340,26 @@ exports.setDiscount = async (req, res) => {
   } catch (error) {
     console.error('SET_DISCOUNT_ERROR:', error);
     res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+// Sellers can opt into inventory tracking for one of their own products. Null turns tracking off.
+exports.setStock = async (req, res) => {
+  try {
+    const seller = await prisma.sellerProfile.findUnique({ where: { userId: req.user.userId }, select: { id: true } });
+    if (!seller) return res.status(403).json({ code: 'NOT_SELLER', message: 'Only sellers can update stock.' });
+    const input = req.body?.stock;
+    const stock = input === null || input === '' ? null : Number(input);
+    if (stock !== null && (!Number.isInteger(stock) || stock < 0 || stock > MAX_STOCK)) {
+      return res.status(400).json({ code: 'INVALID_STOCK', message: `Stock must be a whole number from 0 to ${MAX_STOCK}, or empty to leave tracking off.` });
+    }
+    const updated = await prisma.product.updateMany({ where: { id: String(req.params.id), sellerId: seller.id }, data: { stock } });
+    if (updated.count === 0) return res.status(404).json({ code: 'NOT_FOUND', message: 'Product not found.' });
+    const product = await prisma.product.findUnique({ where: { id: String(req.params.id) } });
+    res.json({ product: withDiscount(product) });
+  } catch (error) {
+    console.error('SET_PRODUCT_STOCK_ERROR:', error);
+    res.status(500).json({ message: 'Could not update product stock.' });
   }
 };
 

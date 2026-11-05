@@ -85,8 +85,8 @@ function StoreCard({ product, onOpen }) {
   const example = isExample(product);
   const image = product.images?.[0];
   const { canContact } = useCanContact();
-  const whatsapp = canContact && !example ? whatsappOrderLink(product) : null;
-  const messenger = canContact && !example ? messengerLink(product) : null;
+  const whatsapp = canContact && !example && product.stock !== 0 ? whatsappOrderLink(product) : null;
+  const messenger = canContact && !example && product.stock !== 0 ? messengerLink(product) : null;
 
   return (
     <article className="store-product-card group flex h-full flex-col rounded-[26px] border border-white/90 bg-white p-2.5 shadow-[0_8px_26px_rgba(34,30,26,0.07)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_42px_rgba(34,30,26,0.14)] sm:rounded-[30px] sm:p-3">
@@ -154,19 +154,19 @@ function StoreCard({ product, onOpen }) {
               {s.exampleButton}
             </span>
           ) : !whatsapp && canContact ? (
-            <span className="flex-1 text-xs leading-snug text-ink/55">{t.whatsappUnavailable}</span>
+            <span className="flex-1 text-xs leading-snug text-ink/55">{product.stock === 0 ? t.cart.outOfStock : t.whatsappUnavailable}</span>
           ) : null}
           {!example && (
             <button
               type="button"
               onClick={() => { addToCart(product); openCart(); }}
-              aria-label={s.addToCart}
-              title={s.addToCart}
-              disabled={product.price === null || product.price === undefined}
+              aria-label={product.stock === 0 ? t.cart.outOfStock : s.addToCart}
+              title={product.stock === 0 ? t.cart.outOfStock : s.addToCart}
+              disabled={product.price === null || product.price === undefined || product.stock === 0}
               className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-ink text-white transition-colors hover:bg-magenta disabled:cursor-not-allowed disabled:opacity-50 sm:h-11 sm:w-auto sm:flex-1 sm:gap-1.5 sm:px-3 sm:text-sm"
             >
               <ShoppingCart className="h-4 w-4 shrink-0" />
-              <span className="hidden truncate sm:inline">{s.addToCart}</span>
+              <span className="hidden truncate sm:inline">{product.stock === 0 ? t.cart.outOfStock : s.addToCart}</span>
             </button>
           )}
           {whatsapp && (
@@ -267,8 +267,8 @@ function QuickView({ product, session, onClose }) {
   const [photoIndex, setPhotoIndex] = useState(0);
   const image = photos[photoIndex] || photos[0];
   const { canContact } = useCanContact();
-  const whatsapp = canContact && !example ? whatsappOrderLink(product) : null;
-  const messenger = canContact && !example ? messengerLink(product) : null;
+  const whatsapp = canContact && !example && product.stock !== 0 ? whatsappOrderLink(product) : null;
+  const messenger = canContact && !example && product.stock !== 0 ? messengerLink(product) : null;
 
   useEffect(() => {
     const onKey = (event) => event.key === 'Escape' && onClose();
@@ -357,11 +357,11 @@ function QuickView({ product, session, onClose }) {
                 <button
                   type="button"
                   onClick={() => { addToCart(product); openCart(); }}
-                  disabled={product.price === null || product.price === undefined}
+                  disabled={product.price === null || product.price === undefined || product.stock === 0}
                   className="inline-flex items-center justify-center gap-2 rounded-full bg-ink px-5 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-magenta disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <ShoppingCart className="h-4 w-4" />
-                  {s.addToCart}
+                  {product.stock === 0 ? t.cart.outOfStock : s.addToCart}
                 </button>
               )}
               {example ? (
