@@ -23,12 +23,25 @@ export const BUILTIN_WALLPAPERS = [
   { id: 'builtin-spices', src: '/wallpapers/spices.jpg', custom: false },
 ];
 
-// Every wallpaper in use: the built-in pictures an admin has not removed, then the uploaded ones
+// Every wallpaper in use: built-in + uploaded, with per-wallpaper durations
 export function allWallpapers(state) {
   const builtin = state?.builtin ? BUILTIN_WALLPAPERS.filter((item) => state.builtin.includes(item.id)) : BUILTIN_WALLPAPERS;
-  const custom = (state?.custom || []).map((item) => ({ id: item.id, src: `${API.defaults.baseURL}/site/wallpaper/${item.id}?v=${item.version}`, custom: true }));
-  const all = [...builtin, ...custom];
-  return all.length > 0 ? all : [BUILTIN_WALLPAPERS[0]];
+  const custom = (state?.custom || []).map((item) => ({
+    id: item.id,
+    src: `${API.defaults.baseURL}/site/wallpaper/${item.id}?v=${item.version}`,
+    custom: true
+  }));
+  const defaultSeconds = state?.seconds || 6;
+  const all = [...builtin, ...custom].map((item) => {
+    const customTime = state?.timings?.[item.id];
+    const duration = (typeof customTime === 'number' && customTime >= 2) ? customTime : defaultSeconds;
+    return {
+      ...item,
+      duration,
+      hasCustomDuration: typeof customTime === 'number' && customTime >= 2
+    };
+  });
+  return all.length > 0 ? all : [{ ...BUILTIN_WALLPAPERS[0], duration: defaultSeconds, hasCustomDuration: false }];
 }
 
 // What the home page shows: all of them in turn, or the single one the admin chose to keep
@@ -38,7 +51,7 @@ export function shownWallpapers(state) {
   return [all.find((item) => item.id === state?.active) || all[0]];
 }
 
-// Home page wallpapers: { slides, rotate, seconds }
+// Home page wallpapers: { slides, rotate, seconds, timings, transition }
 export function useWallpapers() {
   const [state, setState] = useState(null);
 
@@ -53,7 +66,13 @@ export function useWallpapers() {
   }, []);
 
   // Until the settings arrive, show the first built-in picture so the page never flashes empty
-  if (!state) return { slides: [BUILTIN_WALLPAPERS[0]], rotate: false, seconds: 6 };
+  if (!state) return { slides: [BUILTIN_WALLPAPERS[0]], rotate: false, seconds: 6, timings: {}, transition: 'fade' };
   const slides = shownWallpapers(state);
-  return { slides, rotate: state.rotate !== false && slides.length > 1, seconds: state.seconds || 6 };
+  return {
+    slides,
+    rotate: state.rotate !== false && slides.length > 1,
+    seconds: state.seconds || 6,
+    timings: state.timings || {},
+    transition: state.transition || 'fade'
+  };
 }

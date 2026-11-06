@@ -7,6 +7,7 @@ import {
   ChevronDown, ChevronUp, Eye, EyeOff, Trash2, CircleCheck, CircleAlert, LoaderCircle,
   Users, UserRound, CalendarDays, ShieldCheck, Star, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw, BookOpen, X,
   Lock, Copy, Check, ZoomIn, Camera, Scan, Clock, Plus,
+  Play, Layers,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -22,6 +23,7 @@ import WhatsAppIcon from '../../src/components/WhatsAppIcon';
 import DashboardSidebar from '../../src/components/DashboardSidebar';
 import AdminOverview from '../../src/components/AdminOverview';
 import { allWallpapers, shownWallpapers, BUILTIN_WALLPAPERS } from '../../src/lib/siteImage';
+import HeroSlideshow from '../../src/components/HeroSlideshow';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
 import AdminLearningCourses from '../../src/components/AdminLearningCourses';
 import { CameraModal, shrinkImage } from '../../src/components/NicPhotoUpload';
@@ -1883,11 +1885,13 @@ function shrinkPicture(file) {
 function WallpaperPanel({ onChanged, onAuthError }) {
   const { t } = useLanguage();
   const p = t.sitePicture || {};
-  const [state, setState] = useState(null); // { custom, rotate, seconds, active }
+  const [state, setState] = useState(null); // { custom, rotate, seconds, active, timings }
   const [previews, setPreviews] = useState([]); // array of chosen pictures before they are added
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [customSeconds, setCustomSeconds] = useState('6');
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'slideshow'
+  const [selectedSlideId, setSelectedSlideId] = useState(null);
 
   useEffect(() => {
     let ignore = false;
@@ -1906,6 +1910,9 @@ function WallpaperPanel({ onChanged, onAuthError }) {
 
   const wallpapers = allWallpapers(state);
   const shownId = state ? (shownWallpapers(state)[0]?.id) : null;
+  const activeSlideId = selectedSlideId || wallpapers[0]?.id;
+  const activeWallpaper = wallpapers.find((w) => w.id === activeSlideId) || wallpapers[0];
+
   // True once an admin has uploaded or removed anything, so "restore the originals" makes sense
   const changedFromOriginal = state ? state.custom.length > 0 || state.builtin.length < BUILTIN_WALLPAPERS.length : false;
 
@@ -1980,24 +1987,71 @@ function WallpaperPanel({ onChanged, onAuthError }) {
   const remove = (wallpaper) => run(() => API.delete(`/admin/site/wallpapers/${wallpaper.id}`), p.removed);
   const reset = () => run(() => API.delete('/admin/site/wallpapers'), p.resetDone);
 
-  const applySeconds = (val) => {
+  // Set default hold seconds (applied to any wallpaper without an individual custom time)
+  const applyDefaultSeconds = (val) => {
     const num = Math.max(2, Math.min(300, Math.round(Number(val) || 6)));
     setCustomSeconds(String(num));
-    saveSettings({ seconds: num }, p.settingsSaved || 'Hold time updated.');
+    saveSettings({ seconds: num }, p.settingsSaved || 'Default hold time updated.');
+  };
+
+  // Set individual hold duration for one specific wallpaper
+  const setWallpaperDuration = (id, val) => {
+    const num = Math.max(2, Math.min(300, Math.round(Number(val) || 6)));
+    const nextTimings = { ...(state?.timings || {}), [id]: num };
+    saveSettings({ timings: nextTimings }, `Duration set to ${num}s for this wallpaper.`);
+  };
+
+  // Revert a specific wallpaper back to default hold duration
+  const resetWallpaperDuration = (id) => {
+    const nextTimings = { ...(state?.timings || {}) };
+    delete nextTimings[id];
+    saveSettings({ timings: nextTimings }, 'Reverted wallpaper to default duration.');
+  };
+
+  // Reset all wallpapers to default duration
+  const resetAllToDefault = () => {
+    saveSettings({ timings: {} }, 'All wallpapers set to default duration.');
   };
 
   const rotating = state ? state.rotate : true;
   const currentHoldSeconds = state?.seconds || 6;
   const PRESET_SECONDS = [3, 5, 8, 10, 15, 20, 30, 60];
+  const customTimingsCount = Object.keys(state?.timings || {}).length;
 
   return (
     <div className="space-y-6 p-5 sm:p-6">
-      <div>
-        <h2 className="flex items-center gap-2 font-sans text-sm font-bold uppercase tracking-wider text-slate-800">
-          <ImageIcon className="h-4 w-4 text-magenta" />
-          {p.title}
-        </h2>
-        <p className="mt-2 text-sm text-slate-600">{p.intro}</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 className="flex items-center gap-2 font-sans text-sm font-bold uppercase tracking-wider text-slate-800">
+            <ImageIcon className="h-4 w-4 text-magenta" />
+            {p.title}
+          </h2>
+          <p className="mt-1 text-sm text-slate-600">{p.intro}</p>
+        </div>
+
+        {/* View Mode Switcher: Grid vs Live Slideshow */}
+        <div className="inline-flex items-center rounded-2xl bg-slate-100 p-1 text-xs font-bold text-slate-700 shadow-inner">
+          <button
+            type="button"
+            onClick={() => setViewMode('grid')}
+            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 transition-all ${
+              viewMode === 'grid' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Layers className="h-3.5 w-3.5 text-magenta" />
+            <span>Grid View</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('slideshow')}
+            className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 transition-all ${
+              viewMode === 'slideshow' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            <Play className="h-3.5 w-3.5 text-magenta" />
+            <span>Slideshow Player</span>
+          </button>
+        </div>
       </div>
 
       {error && (
@@ -2007,7 +2061,7 @@ function WallpaperPanel({ onChanged, onAuthError }) {
         </div>
       )}
 
-      {/* Rotate or keep one + Hold duration time */}
+      {/* Rotate or keep one + Default hold duration */}
       <div className="rounded-[24px] bg-cream p-5 ring-1 ring-ink/5 space-y-5">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -2027,17 +2081,30 @@ function WallpaperPanel({ onChanged, onAuthError }) {
           </button>
         </div>
 
-        {/* Hold Time Control (Display duration for each wallpaper before moving to another) */}
+        {/* Global Default Duration */}
         {rotating && state && (
           <div className="border-t border-ink/10 pt-4 space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <label htmlFor="wallpaper-custom-seconds" className="flex items-center gap-1.5 font-semibold text-slate-800 text-sm">
+              <label htmlFor="wallpaper-default-seconds" className="flex items-center gap-1.5 font-semibold text-slate-800 text-sm">
                 <Clock className="h-4 w-4 text-magenta" />
-                <span>{p.interval || 'Hold duration before moving to next wallpaper'}</span>
+                <span>Default Slideshow Hold Time</span>
               </label>
-              <span className="inline-flex items-center gap-1 rounded-full bg-magenta/10 px-2.5 py-0.5 text-xs font-bold text-magenta">
-                {currentHoldSeconds}s
-              </span>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center gap-1 rounded-full bg-magenta/10 px-2.5 py-0.5 text-xs font-bold text-magenta">
+                  {currentHoldSeconds}s default
+                </span>
+                {customTimingsCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={resetAllToDefault}
+                    disabled={busy}
+                    className="text-[11px] font-semibold text-brand-700 hover:underline"
+                    title="Clear individual timings and apply default time to all"
+                  >
+                    Reset all to {currentHoldSeconds}s
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Quick preset buttons */}
@@ -2047,8 +2114,8 @@ function WallpaperPanel({ onChanged, onAuthError }) {
                   key={sec}
                   type="button"
                   disabled={busy}
-                  onClick={() => applySeconds(sec)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition-all ${
+                  onClick={() => applyDefaultSeconds(sec)}
+                  className={`rounded-full px-3 py-1 text-xs font-bold transition-all ${
                     currentHoldSeconds === sec
                       ? 'bg-magenta text-white shadow-sm ring-2 ring-magenta'
                       : 'bg-white text-slate-700 ring-1 ring-ink/10 hover:bg-slate-100 hover:text-ink'
@@ -2059,7 +2126,7 @@ function WallpaperPanel({ onChanged, onAuthError }) {
               ))}
             </div>
 
-            {/* Custom slider & numeric input */}
+            {/* Slider & numeric input */}
             <div className="flex items-center gap-3 pt-1">
               <input
                 id="wallpaper-seconds-range"
@@ -2069,89 +2136,312 @@ function WallpaperPanel({ onChanged, onAuthError }) {
                 step="1"
                 value={currentHoldSeconds}
                 disabled={busy}
-                onChange={(e) => applySeconds(Number(e.target.value))}
+                onChange={(e) => applyDefaultSeconds(Number(e.target.value))}
                 className="h-2 flex-1 cursor-pointer appearance-none rounded-lg bg-slate-200 accent-magenta"
-                aria-label="Hold duration slider"
+                aria-label="Default hold duration slider"
               />
               <div className="flex items-center gap-1">
                 <input
-                  id="wallpaper-custom-seconds"
+                  id="wallpaper-default-seconds"
                   type="number"
                   min="2"
                   max="300"
                   value={customSeconds}
                   disabled={busy}
                   onChange={(e) => setCustomSeconds(e.target.value)}
-                  onBlur={() => applySeconds(customSeconds)}
-                  onKeyDown={(e) => e.key === 'Enter' && applySeconds(customSeconds)}
+                  onBlur={() => applyDefaultSeconds(customSeconds)}
+                  onKeyDown={(e) => e.key === 'Enter' && applyDefaultSeconds(customSeconds)}
                   className="w-16 rounded-xl border border-ink/15 bg-white px-2 py-1 text-center font-mono text-sm font-bold text-ink focus:border-magenta focus:outline-none"
                 />
                 <span className="text-xs font-medium text-slate-500">sec</span>
               </div>
             </div>
             <p className="text-xs text-slate-500">
-              Each wallpaper holds on screen for this duration before transitioning to the next. Visitors can also hover or hold to pause.
+              This default time applies to all wallpapers. You can also customize the exact hold duration for each wallpaper below.
             </p>
           </div>
         )}
       </div>
 
-      {/* Wallpapers List */}
-      <div>
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="font-bold text-ink">{rotating ? p.listTitle : p.keepTitle}</p>
-            <p className="mt-1 text-sm text-slate-600">{rotating ? p.listHint : p.keepHint}</p>
+      {/* MODE 1: LIVE SLIDESHOW PLAYER & ACTIVE SLIDE DURATION CONTROLLER */}
+      {viewMode === 'slideshow' && (
+        <div className="rounded-[28px] bg-slate-900 p-5 text-white shadow-xl ring-1 ring-white/10 space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Play className="h-4 w-4 text-magenta" />
+              <h3 className="font-bold text-sm sm:text-base">Live Slideshow Player Preview</h3>
+            </div>
+            <span className="rounded-full bg-white/10 px-2.5 py-0.5 text-xs text-slate-300">
+              {wallpapers.length} slides
+            </span>
           </div>
-          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
-            {wallpapers.length} {wallpapers.length === 1 ? 'wallpaper' : 'wallpapers'}
-          </span>
-        </div>
 
-        {!state ? (
-          <div className="skeleton mt-4 h-40 rounded-[24px]" />
-        ) : (
-          <ul className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-            {wallpapers.map((wallpaper) => {
-              const selected = !rotating && shownId === wallpaper.id;
-              return (
-                <li key={wallpaper.id} className="relative group">
-                  <button
-                    type="button"
-                    disabled={rotating || busy}
-                    onClick={() => saveSettings({ active: wallpaper.id }, p.keptSaved)}
-                    aria-pressed={selected}
-                    className={`block w-full overflow-hidden rounded-[22px] text-left ring-2 transition-all ${
-                      selected ? 'ring-magenta shadow-lg' : 'ring-ink/10'
-                    } ${rotating ? 'cursor-default' : 'hover:ring-magenta/50 cursor-pointer'}`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={wallpaper.src} alt="" className="aspect-[4/5] w-full object-cover transition-transform duration-300 group-hover:scale-105" />
-                    {selected && (
-                      <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-magenta px-2.5 py-1 text-[11px] font-bold text-white shadow">
-                        <CircleCheck className="h-3.5 w-3.5" />
-                        {p.showing || 'Showing'}
-                      </span>
-                    )}
-                  </button>
-                  {wallpapers.length > 1 && (
+          {/* Embedded Slideshow View */}
+          <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full overflow-hidden rounded-[20px] ring-1 ring-white/15 bg-slate-950">
+            <HeroSlideshow
+              slides={wallpapers}
+              rotate={rotating}
+              seconds={currentHoldSeconds}
+              timings={state?.timings || {}}
+              showArrows={true}
+              showProgressBar={true}
+            />
+          </div>
+
+          {/* Active Slide Duration Controller */}
+          {activeWallpaper && (
+            <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">Selected Wallpaper Duration</p>
+                  <p className="text-sm font-bold text-white mt-0.5">
+                    {activeWallpaper.custom ? `Custom Wallpaper (${activeWallpaper.id})` : activeWallpaper.id.replace('builtin-', '').replace('-', ' ')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-magenta px-3 py-1 text-xs font-extrabold text-white shadow">
+                    <Clock className="h-3.5 w-3.5" />
+                    {activeWallpaper.duration}s
+                  </span>
+                  {activeWallpaper.hasCustomDuration && (
                     <button
                       type="button"
+                      onClick={() => resetWallpaperDuration(activeWallpaper.id)}
                       disabled={busy}
-                      onClick={() => remove(wallpaper)}
-                      aria-label={p.remove}
-                      title={p.remove}
-                      className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-red-600 text-white shadow-md transition-colors hover:bg-red-700 disabled:opacity-60"
+                      className="rounded-full border border-white/20 bg-white/10 px-2.5 py-1 text-xs font-semibold text-slate-300 hover:bg-white/20 transition-colors"
+                      title="Revert this wallpaper to default duration"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      Reset to {currentHoldSeconds}s
                     </button>
                   )}
-                </li>
-              );
-            })}
-          </ul>
-        )}
-      </div>
+                </div>
+              </div>
+
+              {/* Quick Stepper & Presets for this slide */}
+              <div className="flex flex-wrap items-center gap-2 pt-1">
+                <span className="text-xs text-slate-300 font-semibold mr-1">Set duration:</span>
+                <button
+                  type="button"
+                  onClick={() => setWallpaperDuration(activeWallpaper.id, Math.max(2, activeWallpaper.duration - 1))}
+                  disabled={busy || activeWallpaper.duration <= 2}
+                  className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-bold hover:bg-white/20 disabled:opacity-40"
+                >
+                  -1s
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWallpaperDuration(activeWallpaper.id, Math.min(300, activeWallpaper.duration + 1))}
+                  disabled={busy || activeWallpaper.duration >= 300}
+                  className="rounded-lg bg-white/10 px-2.5 py-1 text-xs font-bold hover:bg-white/20 disabled:opacity-40"
+                >
+                  +1s
+                </button>
+                {PRESET_SECONDS.map((sec) => (
+                  <button
+                    key={sec}
+                    type="button"
+                    onClick={() => setWallpaperDuration(activeWallpaper.id, sec)}
+                    disabled={busy}
+                    className={`rounded-lg px-2.5 py-1 text-xs font-bold transition-all ${
+                      activeWallpaper.duration === sec
+                        ? 'bg-magenta text-white shadow-sm'
+                        : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                    }`}
+                  >
+                    {sec}s
+                  </button>
+                ))}
+              </div>
+
+              {/* Thumbnails to quickly select slide */}
+              <div className="pt-2 border-t border-white/10">
+                <p className="text-[11px] font-semibold text-slate-400 mb-2">Click thumbnail to select and set its time:</p>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+                  {wallpapers.map((w) => (
+                    <button
+                      key={w.id}
+                      type="button"
+                      onClick={() => setSelectedSlideId(w.id)}
+                      className={`relative shrink-0 overflow-hidden rounded-xl ring-2 transition-all ${
+                        activeSlideId === w.id ? 'ring-magenta scale-105 shadow-md' : 'ring-white/20 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={w.src} alt="" className="h-14 w-12 object-cover" />
+                      <span className="absolute bottom-0 inset-x-0 bg-black/70 text-[9px] font-mono text-center text-white py-0.5">
+                        {w.duration}s
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODE 2: WALLPAPERS GRID VIEW (WITH INDIVIDUAL DURATION CONTROL ON EACH CARD) */}
+      {viewMode === 'grid' && (
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="font-bold text-ink">{rotating ? p.listTitle : p.keepTitle}</p>
+              <p className="mt-1 text-sm text-slate-600">{rotating ? p.listHint : p.keepHint}</p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+                {wallpapers.length} wallpapers
+              </span>
+            </div>
+          </div>
+
+          {!state ? (
+            <div className="skeleton mt-4 h-40 rounded-[24px]" />
+          ) : (
+            <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {wallpapers.map((wallpaper, index) => {
+                const selected = !rotating && shownId === wallpaper.id;
+                const duration = wallpaper.duration;
+                const hasCustom = wallpaper.hasCustomDuration;
+
+                return (
+                  <li key={wallpaper.id} className="relative group rounded-[24px] border border-ink/10 bg-white p-2.5 shadow-xs transition-shadow hover:shadow-md">
+                    <div className="relative overflow-hidden rounded-[18px]">
+                      <button
+                        type="button"
+                        disabled={rotating || busy}
+                        onClick={() => saveSettings({ active: wallpaper.id }, p.keptSaved)}
+                        aria-pressed={selected}
+                        className={`block w-full text-left transition-all ${
+                          selected ? 'ring-2 ring-magenta shadow-md' : ''
+                        } ${rotating ? 'cursor-default' : 'hover:opacity-95 cursor-pointer'}`}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={wallpaper.src}
+                          alt=""
+                          className="aspect-[4/5] w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        {selected && (
+                          <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-magenta px-2.5 py-1 text-[11px] font-bold text-white shadow">
+                            <CircleCheck className="h-3.5 w-3.5" />
+                            {p.showing || 'Showing'}
+                          </span>
+                        )}
+                        <span className="absolute bottom-2 left-2 rounded-full bg-black/60 backdrop-blur-md px-2 py-0.5 text-[10px] font-bold text-white">
+                          #{index + 1}
+                        </span>
+                      </button>
+
+                      {/* Remove button */}
+                      {wallpapers.length > 1 && (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => remove(wallpaper)}
+                          aria-label={p.remove}
+                          title={p.remove}
+                          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-red-600/90 text-white shadow-md transition-colors hover:bg-red-700 disabled:opacity-60"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {/* DECIDE TIME FOR EACH WALLPAPER IN SLIDESHOW */}
+                    <div className="mt-3 space-y-2 px-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="flex items-center gap-1 font-semibold text-slate-700">
+                          <Clock className="h-3.5 w-3.5 text-magenta" />
+                          <span>Hold time:</span>
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                            hasCustom
+                              ? 'bg-magenta/10 text-magenta ring-1 ring-magenta/20'
+                              : 'bg-slate-100 text-slate-500'
+                          }`}
+                        >
+                          {hasCustom ? `${duration}s (Custom)` : `${duration}s (Default)`}
+                        </span>
+                      </div>
+
+                      {/* Stepper & input controls */}
+                      <div className="flex items-center justify-between gap-1.5">
+                        <div className="flex items-center rounded-xl border border-ink/15 bg-slate-50 p-0.5">
+                          <button
+                            type="button"
+                            onClick={() => setWallpaperDuration(wallpaper.id, Math.max(2, duration - 1))}
+                            disabled={busy || duration <= 2}
+                            title="Decrease hold time by 1s"
+                            className="flex h-6 w-6 items-center justify-center rounded-lg text-xs font-bold text-slate-700 hover:bg-white transition-colors disabled:opacity-40"
+                          >
+                            -
+                          </button>
+                          <input
+                            type="number"
+                            min="2"
+                            max="300"
+                            value={hasCustom ? duration : ''}
+                            placeholder={`${currentHoldSeconds}`}
+                            disabled={busy}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === '' || Number(val) <= 0) {
+                                resetWallpaperDuration(wallpaper.id);
+                              } else {
+                                setWallpaperDuration(wallpaper.id, val);
+                              }
+                            }}
+                            className="w-10 bg-transparent text-center font-mono text-xs font-bold text-ink focus:outline-none"
+                            title="Custom hold time in seconds"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setWallpaperDuration(wallpaper.id, Math.min(300, duration + 1))}
+                            disabled={busy || duration >= 300}
+                            title="Increase hold time by 1s"
+                            className="flex h-6 w-6 items-center justify-center rounded-lg text-xs font-bold text-slate-700 hover:bg-white transition-colors disabled:opacity-40"
+                          >
+                            +
+                          </button>
+                        </div>
+
+                        {/* Reset button if custom */}
+                        {hasCustom ? (
+                          <button
+                            type="button"
+                            onClick={() => resetWallpaperDuration(wallpaper.id)}
+                            disabled={busy}
+                            className="rounded-lg px-2 py-1 text-[11px] font-semibold text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            title="Reset to default duration"
+                          >
+                            Reset
+                          </button>
+                        ) : (
+                          <div className="flex gap-1">
+                            {[5, 10].map((quickSec) => (
+                              <button
+                                key={quickSec}
+                                type="button"
+                                onClick={() => setWallpaperDuration(wallpaper.id, quickSec)}
+                                disabled={busy}
+                                className="rounded-md border border-ink/10 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-slate-600 hover:border-magenta hover:text-magenta transition-colors"
+                              >
+                                {quickSec}s
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
 
       {/* Add One or More Wallpapers */}
       <div className="flex flex-col gap-3 rounded-[24px] border border-dashed border-ink/20 p-5 bg-slate-50/50">

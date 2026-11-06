@@ -33,11 +33,20 @@ const readSettings = async () => {
   } catch {
     saved = {};
   }
+  const timings = typeof saved.timings === 'object' && saved.timings !== null && !Array.isArray(saved.timings)
+    ? Object.fromEntries(
+        Object.entries(saved.timings)
+          .filter(([id, val]) => typeof id === 'string' && isValidSeconds(val))
+          .map(([id, val]) => [id, Math.round(Number(val))])
+      )
+    : {};
   return {
     rotate: saved.rotate !== false, // rotating is the default
     seconds: isValidSeconds(saved.seconds) ? Math.round(Number(saved.seconds)) : 6,
     active: typeof saved.active === 'string' ? saved.active : null,
-    removed: Array.isArray(saved.removed) ? saved.removed.filter((id) => BUILTIN_IDS.includes(id)) : []
+    removed: Array.isArray(saved.removed) ? saved.removed.filter((id) => BUILTIN_IDS.includes(id)) : [],
+    timings,
+    transition: typeof saved.transition === 'string' ? saved.transition : 'fade'
   };
 };
 
@@ -193,6 +202,12 @@ exports.removeWallpaper = async (req, res) => {
     } else {
       await prisma.siteSetting.deleteMany({ where: { key: keyFor(id) } });
     }
+    // Clean up timings or active selection for the removed wallpaper
+    if (settings.timings && settings.timings[id]) {
+      const nextTimings = { ...settings.timings };
+      delete nextTimings[id];
+      settings.timings = nextTimings;
+    }
     // If the wallpaper that was being kept is gone, fall back to the first one
     if (settings.active === id) settings.active = null;
     await writeSettings(settings);
@@ -202,7 +217,7 @@ exports.removeWallpaper = async (req, res) => {
   }
 };
 
-// Rotate on or off, how often, and which single wallpaper stays when rotation is off
+// Rotate on or off, how often, per-wallpaper timings, and which single wallpaper stays when rotation is off
 exports.saveWallpaperSettings = async (req, res) => {
   try {
     const current = await readSettings();
@@ -210,8 +225,24 @@ exports.saveWallpaperSettings = async (req, res) => {
     const next = {
       ...current,
       rotate: typeof body.rotate === 'boolean' ? body.rotate : current.rotate,
-      seconds: isValidSeconds(body.seconds) ? Math.round(Number(body.seconds)) : current.seconds
+      seconds: isValidSeconds(body.seconds) ? Math.round(Number(body.seconds)) : current.seconds,
+      transition: typeof body.transition === 'string' ? body.transition : current.transition
     };
+    if (body.timings !== undefined) {
+      if (body.timings === null || Object.keys(body.timings).length === 0) {
+        next.timings = {};
+      } else if (typeof body.timings === 'object' && !Array.isArray(body.timings)) {
+        const updatedTimings = { ...current.timings };
+        for (const [id, sec] of Object.entries(body.timings)) {
+          if (sec === null || sec === undefined || sec === '' || Number(sec) === 0) {
+            delete updatedTimings[id];
+          } else if (isValidSeconds(sec)) {
+            updatedTimings[id] = Math.round(Number(sec));
+          }
+        }
+        next.timings = updatedTimings;
+      }
+    }
     if (body.active !== undefined) {
       if (body.active === null) {
         next.active = null;
