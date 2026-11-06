@@ -14,9 +14,77 @@ const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
 const MAX_AUDIO_BYTES = 100 * 1024 * 1024;
 const COURSE_ID_PATTERN = /^(?:[1-6]|[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i;
 const MEDIA_SLOT_PATTERN = /^(?:cover-image|lesson-(?:[0-9]|[1-9]\d)-image|lesson-(?:[0-9]|[1-9]\d)-(?:video|audio))$/;
+const TRANSLATION_BATCH_TEXTS = 100;
+const TRANSLATION_BATCH_CHARACTERS = 20000;
 
 const validText = (value, maxLength) =>
   typeof value === 'string' && value.trim().length > 0 && value.length <= maxLength;
+
+function flattenTranslation(translation) {
+  return [
+    translation.title,
+    translation.description,
+    translation.duration,
+    ...translation.lessons.flatMap(({ title, body }) => [title, body]),
+    ...translation.quiz.flatMap(({ question, options }) => [question, ...options]),
+  ];
+}
+
+function splitTranslationBatches(texts) {
+  const batches = [];
+  let batch = [];
+  let characterCount = 0;
+  for (const text of texts) {
+    if (batch.length && (
+      batch.length >= TRANSLATION_BATCH_TEXTS ||
+      characterCount + text.length > TRANSLATION_BATCH_CHARACTERS
+    )) {
+      batches.push(batch);
+      batch = [];
+      characterCount = 0;
+    }
+    batch.push(text);
+    characterCount += text.length;
+  }
+  if (batch.length) batches.push(batch);
+  return batches;
+}
+
+async function translateTexts(texts, sourceLanguage, targetLanguage, apiKey) {
+  const translated = [];
+  const batches = splitTranslationBatches(texts);
+  for (let offset = 0; offset < batches.length; offset += 4) {
+    const results = await Promise.all(batches.slice(offset, offset + 4).map(async (batch) => {
+      const url = new URL('https://translation.googleapis.com/language/translate/v2');
+      url.searchParams.set('key', apiKey);
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          q: batch,
+          source: sourceLanguage,
+          target: targetLanguage,
+          format: 'text',
+        }),
+        signal: AbortSignal.timeout(30000),
+      });
+      if (!response.ok) {
+        console.error('LEARNING_COURSE_TRANSLATION_PROVIDER_ERROR:', response.status);
+        throw new Error('translation-provider');
+      }
+      const result = await response.json();
+      const translations = result?.data?.translations;
+      if (!Array.isArray(translations) || translations.length !== batch.length ||
+        translations.some((item) => typeof item?.translatedText !== 'string' || !item.translatedText.trim())) {
+        console.error('LEARNING_COURSE_TRANSLATION_PROVIDER_ERROR: Invalid response');
+        throw new Error('translation-provider');
+      }
+      return translations.map(({ translatedText }) => translatedText);
+    }));
+    translated.push(...results.flat());
+  }
+  return translated;
+}
 
 function normalizeTranslation(translation) {
   if (!translation || typeof translation !== 'object' || Array.isArray(translation)) return null;
@@ -145,6 +213,64 @@ exports.listPublicCourses = async (req, res) => {
   } catch (error) {
     console.error('LEARNING_COURSES_PUBLIC_LIST_ERROR:', error);
     res.status(500).json({ message: 'Could not load learning courses.' });
+  }
+};
+
+exports.translateCourseContent = async (req, res) => {
+  const { sourceLanguage, content: input } = req.body || {};
+  if (!LANGUAGES.includes(sourceLanguage)) {
+    return res.status(400).json({
+      code: 'INVALID_TRANSLATION_SOURCE',
+      message: 'Choose a supported source language.',
+    });
+  }
+  const source = normalizeTranslation(input);
+  if (!source) {
+    return res.status(400).json({
+      code: 'INVALID_TRANSLATION_CONTENT',
+      message: 'Complete the course content in the selected source language.',
+    });
+  }
+  const apiKey = process.env.GOOGLE_TRANSLATE_API_KEY?.trim();
+  if (!apiKey) {
+    return res.status(503).json({
+      code: 'TRANSLATION_NOT_CONFIGURED',
+      message: 'Course translation is not configured.',
+    });
+  }
+
+  try {
+    const texts = flattenTranslation(source);
+    const targets = LANGUAGES.filter((language) => language !== sourceLanguage);
+    const translatedByLanguage = await Promise.all(targets.map(async (language) => [
+      language,
+      await translateTexts(texts, sourceLanguage, language, apiKey),
+    ]));
+    const result = { [sourceLanguage]: source };
+    for (const [language, translatedTexts] of translatedByLanguage) {
+      let index = 0;
+      result[language] = {
+        title: translatedTexts[index++],
+        description: translatedTexts[index++],
+        duration: translatedTexts[index++],
+        lessons: source.lessons.map(() => ({
+          title: translatedTexts[index++],
+          body: translatedTexts[index++],
+        })),
+        quiz: source.quiz.map(({ options, answerIndex }) => ({
+          question: translatedTexts[index++],
+          options: options.map(() => translatedTexts[index++]),
+          answerIndex,
+        })),
+      };
+    }
+    res.json({ translations: result });
+  } catch (error) {
+    console.error('LEARNING_COURSE_TRANSLATION_ERROR:', error?.name || error?.message || 'Unknown error');
+    res.status(502).json({
+      code: 'TRANSLATION_FAILED',
+      message: 'Course translation failed. Please try again.',
+    });
   }
 };
 

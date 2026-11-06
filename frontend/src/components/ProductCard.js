@@ -20,7 +20,7 @@ const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sr
 // Counts the click for the seller's dashboard. Sample products (no sellerId) are skipped.
 export function trackContactClick(product, platform = 'WHATSAPP') {
   if (!product.sellerId) return;
-  API.post('/products/track-click', { productId: product.id, platform }).catch(() => { });
+  API.post('/products/track-click', { productId: product.id, platform }).catch(() => {});
 }
 
 export const trackWhatsAppClick = (product) => trackContactClick(product, 'WHATSAPP');
@@ -63,8 +63,8 @@ export default function ProductCard({ product, onOpen }) {
   const messenger = example || outOfStock ? null : messengerLink(product);
   const whatsappLink = !example && whatsapp
     ? `https://wa.me/${whatsapp}?text=${encodeURIComponent(
-      `Hello! I'm interested in "${product.title}" on Lanka Women E-Market.`
-    )}`
+        `Hello! I'm interested in "${product.title}" on Lanka Women E-Market.`
+      )}`
     : null;
 
   return (
