@@ -40,13 +40,19 @@ const readSettings = async () => {
           .map(([id, val]) => [id, Math.round(Number(val))])
       )
     : {};
+  const displayMode = saved.displayMode === 'grid' ? 'grid' : 'slideshow';
+  const selected = Array.isArray(saved.selected)
+    ? saved.selected.filter((id) => typeof id === 'string')
+    : null;
   return {
     rotate: saved.rotate !== false, // rotating is the default
     seconds: isValidSeconds(saved.seconds) ? Math.round(Number(saved.seconds)) : 6,
     active: typeof saved.active === 'string' ? saved.active : null,
     removed: Array.isArray(saved.removed) ? saved.removed.filter((id) => BUILTIN_IDS.includes(id)) : [],
     timings,
-    transition: typeof saved.transition === 'string' ? saved.transition : 'fade'
+    transition: typeof saved.transition === 'string' ? saved.transition : 'fade',
+    displayMode,
+    selected
   };
 };
 
@@ -208,6 +214,9 @@ exports.removeWallpaper = async (req, res) => {
       delete nextTimings[id];
       settings.timings = nextTimings;
     }
+    if (Array.isArray(settings.selected)) {
+      settings.selected = settings.selected.filter((item) => item !== id);
+    }
     // If the wallpaper that was being kept is gone, fall back to the first one
     if (settings.active === id) settings.active = null;
     await writeSettings(settings);
@@ -217,7 +226,7 @@ exports.removeWallpaper = async (req, res) => {
   }
 };
 
-// Rotate on or off, how often, per-wallpaper timings, and which single wallpaper stays when rotation is off
+// Rotate on or off, how often, per-wallpaper timings, displayMode, and which single wallpaper stays when rotation is off
 exports.saveWallpaperSettings = async (req, res) => {
   try {
     const current = await readSettings();
@@ -226,8 +235,16 @@ exports.saveWallpaperSettings = async (req, res) => {
       ...current,
       rotate: typeof body.rotate === 'boolean' ? body.rotate : current.rotate,
       seconds: isValidSeconds(body.seconds) ? Math.round(Number(body.seconds)) : current.seconds,
-      transition: typeof body.transition === 'string' ? body.transition : current.transition
+      transition: typeof body.transition === 'string' ? body.transition : current.transition,
+      displayMode: body.displayMode === 'grid' ? 'grid' : (body.displayMode === 'slideshow' ? 'slideshow' : current.displayMode)
     };
+    if (body.selected !== undefined) {
+      if (body.selected === null || !Array.isArray(body.selected)) {
+        next.selected = null;
+      } else {
+        next.selected = body.selected.filter((item) => typeof item === 'string');
+      }
+    }
     if (body.timings !== undefined) {
       if (body.timings === null || Object.keys(body.timings).length === 0) {
         next.timings = {};

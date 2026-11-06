@@ -14,6 +14,7 @@ import { CATEGORIES, SAMPLE_PRODUCTS, getSeller, withSampleProducts } from '../s
 import ProductCard from '../src/components/ProductCard';
 import { useWallpapers } from '../src/lib/siteImage';
 import HeroSlideshow from '../src/components/HeroSlideshow';
+import HeroWallpapersGrid from '../src/components/HeroWallpapersGrid';
 import HomeImpact from '../src/components/HomeImpact';
 import WhatsAppIcon from '../src/components/WhatsAppIcon';
 import Reveal from '../src/components/Reveal';
@@ -515,7 +516,11 @@ export default function Home() {
             </div>
 
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[48px_160px_48px_160px] shadow-2xl shadow-slate-900/10 ring-8 ring-white sm:rounded-[48px_200px_48px_200px]">
-              <HeroSlideshow {...wallpapers} />
+              {wallpapers.displayMode === 'grid' ? (
+                <HeroWallpapersGrid slides={wallpapers.slides} />
+              ) : (
+                <HeroSlideshow {...wallpapers} />
+              )}
             </div>
           </div>
         </div>
