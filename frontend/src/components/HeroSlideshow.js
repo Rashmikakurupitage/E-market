@@ -6,21 +6,29 @@ import Image from 'next/image';
 // The home page picture: fades from one wallpaper to the next, or shows a single one
 export default function HeroSlideshow({ slides, rotate, seconds, controlsPosition = 'bottom' }) {
   const [index, setIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
   const count = slides.length;
   const current = count > 0 ? index % count : 0;
+  const holdDuration = Math.max(2, Number(seconds) || 6);
 
   useEffect(() => {
-    if (!rotate || count < 2) return undefined;
+    if (!rotate || count < 2 || isPaused) return undefined;
     // Visitors who ask their device for less motion keep a still picture
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined;
     const timer = setInterval(() => {
       if (!document.hidden) setIndex((value) => (value + 1) % count);
-    }, seconds * 1000);
+    }, holdDuration * 1000);
     return () => clearInterval(timer);
-  }, [rotate, count, seconds, index]);
+  }, [rotate, count, holdDuration, isPaused]);
 
   return (
-    <>
+    <div
+      className="relative h-full w-full select-none"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={() => setIsPaused(true)}
+      onTouchEnd={() => setIsPaused(false)}
+    >
       {slides.map((slide, position) => (
         <Image
           key={slide.id}
@@ -48,6 +56,6 @@ export default function HeroSlideshow({ slides, rotate, seconds, controlsPositio
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 }

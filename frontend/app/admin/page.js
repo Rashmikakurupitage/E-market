@@ -6,7 +6,7 @@ import {
   BadgeCheck, Package, Search, MapPin, Mail, Phone, IdCard, ArrowLeft,
   ChevronDown, ChevronUp, Eye, EyeOff, Trash2, CircleCheck, CircleAlert, LoaderCircle,
   Users, UserRound, CalendarDays, ShieldCheck, Star, UserPlus, LayoutDashboard, Flag, ImageIcon, Upload, RotateCcw, BookOpen, X,
-  Lock, Copy, Check, ZoomIn, Camera, Scan,
+  Lock, Copy, Check, ZoomIn, Camera, Scan, Clock, Plus,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -1882,21 +1882,27 @@ function shrinkPicture(file) {
 // Admin: the home page wallpapers. They rotate on their own, or the admin keeps one single wallpaper.
 function WallpaperPanel({ onChanged, onAuthError }) {
   const { t } = useLanguage();
-  const p = t.sitePicture;
+  const p = t.sitePicture || {};
   const [state, setState] = useState(null); // { custom, rotate, seconds, active }
-  const [preview, setPreview] = useState(null); // a chosen picture, before it is added
+  const [previews, setPreviews] = useState([]); // array of chosen pictures before they are added
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [customSeconds, setCustomSeconds] = useState('6');
 
   useEffect(() => {
     let ignore = false;
     API.get('/site/settings')
-      .then((res) => !ignore && setState(res.data))
-      .catch(() => !ignore && setError(p.errors.generic));
+      .then((res) => {
+        if (!ignore) {
+          setState(res.data);
+          setCustomSeconds(String(res.data?.seconds || 6));
+        }
+      })
+      .catch(() => !ignore && setError(p.errors?.generic || 'Failed to load wallpaper settings.'));
     return () => {
       ignore = true;
     };
-  }, [p.errors.generic]);
+  }, [p.errors?.generic]);
 
   const wallpapers = allWallpapers(state);
   const shownId = state ? (shownWallpapers(state)[0]?.id) : null;
@@ -1906,7 +1912,15 @@ function WallpaperPanel({ onChanged, onAuthError }) {
   const fail = (err) => {
     if (isAuthError(err)) return onAuthError();
     const code = err.response?.data?.code;
-    setError(code === 'TOO_MANY' ? p.errors.tooMany : code === 'LAST_ONE' ? p.errors.lastOne : err.response?.status === 413 ? p.errors.big : p.errors.generic);
+    setError(
+      code === 'TOO_MANY'
+        ? (p.errors?.tooMany || 'Maximum wallpapers limit reached.')
+        : code === 'LAST_ONE'
+        ? (p.errors?.lastOne || 'At least one wallpaper must remain.')
+        : err.response?.status === 413
+        ? (p.errors?.big || 'One or more pictures are too large.')
+        : (p.errors?.generic || 'Failed to update wallpapers.')
+    );
   };
 
   const run = async (request, message) => {
@@ -1915,6 +1929,7 @@ function WallpaperPanel({ onChanged, onAuthError }) {
     try {
       const res = await request();
       setState(res.data);
+      if (res.data?.seconds) setCustomSeconds(String(res.data.seconds));
       if (message) onChanged(message);
       return true;
     } catch (err) {
@@ -1927,29 +1942,53 @@ function WallpaperPanel({ onChanged, onAuthError }) {
 
   const saveSettings = (changes, message) => run(() => API.put('/admin/site/wallpaper-settings', changes), message);
 
-  const choose = async (event) => {
-    const file = event.target.files?.[0];
+  const chooseMultiple = async (event) => {
+    const files = Array.from(event.target.files || []);
     event.target.value = '';
-    if (!file) return;
+    if (files.length === 0) return;
     setError('');
-    if (!/^image\/(jpeg|png|webp)$/.test(file.type)) {
-      setError(p.errors.type);
+
+    const invalid = files.find((f) => !/^image\/(jpeg|png|webp)$/.test(f.type));
+    if (invalid) {
+      setError(p.errors?.type || 'Choose JPG, PNG or WebP picture(s).');
       return;
     }
+
     try {
-      setPreview(await shrinkPicture(file));
+      setBusy(true);
+      const converted = await Promise.all(files.map((file) => shrinkPicture(file)));
+      setPreviews((prev) => [...prev, ...converted]);
     } catch {
-      setError(p.errors.type);
+      setError(p.errors?.type || 'Failed to process images.');
+    } finally {
+      setBusy(false);
     }
   };
 
-  const add = async () => {
-    if (await run(() => API.post('/admin/site/wallpapers', { image: preview }), p.added)) setPreview(null);
+  const removePreview = (index) => {
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
+
+  const addWallpapers = async () => {
+    if (previews.length === 0) return;
+    const count = previews.length;
+    const msg = count === 1 ? (p.added || 'Wallpaper added.') : `${count} wallpapers added successfully.`;
+    const ok = await run(() => API.post('/admin/site/wallpapers', { images: previews }), msg);
+    if (ok) setPreviews([]);
+  };
+
   const remove = (wallpaper) => run(() => API.delete(`/admin/site/wallpapers/${wallpaper.id}`), p.removed);
   const reset = () => run(() => API.delete('/admin/site/wallpapers'), p.resetDone);
 
+  const applySeconds = (val) => {
+    const num = Math.max(2, Math.min(300, Math.round(Number(val) || 6)));
+    setCustomSeconds(String(num));
+    saveSettings({ seconds: num }, p.settingsSaved || 'Hold time updated.');
+  };
+
   const rotating = state ? state.rotate : true;
+  const currentHoldSeconds = state?.seconds || 6;
+  const PRESET_SECONDS = [3, 5, 8, 10, 15, 20, 30, 60];
 
   return (
     <div className="space-y-6 p-5 sm:p-6">
@@ -1962,14 +2001,14 @@ function WallpaperPanel({ onChanged, onAuthError }) {
       </div>
 
       {error && (
-        <div role="alert" className="flex items-start gap-2.5 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-700">
+        <div role="alert" className="flex items-start gap-2.5 rounded-2xl border border-red-200 bg-red-50 p-3.5 text-sm text-red-700 animate-fade-in">
           <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
           {error}
         </div>
       )}
 
-      {/* Rotate or keep one */}
-      <div className="rounded-[24px] bg-cream p-5 ring-1 ring-ink/5">
+      {/* Rotate or keep one + Hold duration time */}
+      <div className="rounded-[24px] bg-cream p-5 ring-1 ring-ink/5 space-y-5">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="font-bold text-ink">{p.rotateTitle}</p>
@@ -1988,28 +2027,86 @@ function WallpaperPanel({ onChanged, onAuthError }) {
           </button>
         </div>
 
+        {/* Hold Time Control (Display duration for each wallpaper before moving to another) */}
         {rotating && state && (
-          <div className="mt-4 flex flex-wrap items-center gap-3 text-sm">
-            <label htmlFor="wallpaper-seconds" className="font-semibold text-slate-700">{p.interval}</label>
-            <select
-              id="wallpaper-seconds"
-              value={state.seconds}
-              disabled={busy}
-              onChange={(event) => saveSettings({ seconds: Number(event.target.value) }, p.settingsSaved)}
-              className={`${inputClass(false)} !w-auto`}
-            >
-              {[4, 6, 8, 10, 15, 20].map((value) => (
-                <option key={value} value={value}>{fill(p.seconds, { count: value })}</option>
+          <div className="border-t border-ink/10 pt-4 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <label htmlFor="wallpaper-custom-seconds" className="flex items-center gap-1.5 font-semibold text-slate-800 text-sm">
+                <Clock className="h-4 w-4 text-magenta" />
+                <span>{p.interval || 'Hold duration before moving to next wallpaper'}</span>
+              </label>
+              <span className="inline-flex items-center gap-1 rounded-full bg-magenta/10 px-2.5 py-0.5 text-xs font-bold text-magenta">
+                {currentHoldSeconds}s
+              </span>
+            </div>
+
+            {/* Quick preset buttons */}
+            <div className="flex flex-wrap items-center gap-2">
+              {PRESET_SECONDS.map((sec) => (
+                <button
+                  key={sec}
+                  type="button"
+                  disabled={busy}
+                  onClick={() => applySeconds(sec)}
+                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition-all ${
+                    currentHoldSeconds === sec
+                      ? 'bg-magenta text-white shadow-sm ring-2 ring-magenta'
+                      : 'bg-white text-slate-700 ring-1 ring-ink/10 hover:bg-slate-100 hover:text-ink'
+                  }`}
+                >
+                  {sec}s
+                </button>
               ))}
-            </select>
+            </div>
+
+            {/* Custom slider & numeric input */}
+            <div className="flex items-center gap-3 pt-1">
+              <input
+                id="wallpaper-seconds-range"
+                type="range"
+                min="2"
+                max="120"
+                step="1"
+                value={currentHoldSeconds}
+                disabled={busy}
+                onChange={(e) => applySeconds(Number(e.target.value))}
+                className="h-2 flex-1 cursor-pointer appearance-none rounded-lg bg-slate-200 accent-magenta"
+                aria-label="Hold duration slider"
+              />
+              <div className="flex items-center gap-1">
+                <input
+                  id="wallpaper-custom-seconds"
+                  type="number"
+                  min="2"
+                  max="300"
+                  value={customSeconds}
+                  disabled={busy}
+                  onChange={(e) => setCustomSeconds(e.target.value)}
+                  onBlur={() => applySeconds(customSeconds)}
+                  onKeyDown={(e) => e.key === 'Enter' && applySeconds(customSeconds)}
+                  className="w-16 rounded-xl border border-ink/15 bg-white px-2 py-1 text-center font-mono text-sm font-bold text-ink focus:border-magenta focus:outline-none"
+                />
+                <span className="text-xs font-medium text-slate-500">sec</span>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500">
+              Each wallpaper holds on screen for this duration before transitioning to the next. Visitors can also hover or hold to pause.
+            </p>
           </div>
         )}
       </div>
 
-      {/* Wallpapers */}
+      {/* Wallpapers List */}
       <div>
-        <p className="font-bold text-ink">{rotating ? p.listTitle : p.keepTitle}</p>
-        <p className="mt-1 text-sm text-slate-600">{rotating ? p.listHint : p.keepHint}</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-bold text-ink">{rotating ? p.listTitle : p.keepTitle}</p>
+            <p className="mt-1 text-sm text-slate-600">{rotating ? p.listHint : p.keepHint}</p>
+          </div>
+          <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">
+            {wallpapers.length} {wallpapers.length === 1 ? 'wallpaper' : 'wallpapers'}
+          </span>
+        </div>
 
         {!state ? (
           <div className="skeleton mt-4 h-40 rounded-[24px]" />
@@ -2018,20 +2115,22 @@ function WallpaperPanel({ onChanged, onAuthError }) {
             {wallpapers.map((wallpaper) => {
               const selected = !rotating && shownId === wallpaper.id;
               return (
-                <li key={wallpaper.id} className="relative">
+                <li key={wallpaper.id} className="relative group">
                   <button
                     type="button"
                     disabled={rotating || busy}
                     onClick={() => saveSettings({ active: wallpaper.id }, p.keptSaved)}
                     aria-pressed={selected}
-                    className={`block w-full overflow-hidden rounded-[22px] text-left ring-2 transition-all ${selected ? 'ring-magenta shadow-lg' : 'ring-ink/10'} ${rotating ? 'cursor-default' : 'hover:ring-magenta/50'}`}
+                    className={`block w-full overflow-hidden rounded-[22px] text-left ring-2 transition-all ${
+                      selected ? 'ring-magenta shadow-lg' : 'ring-ink/10'
+                    } ${rotating ? 'cursor-default' : 'hover:ring-magenta/50 cursor-pointer'}`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={wallpaper.src} alt="" className="aspect-[4/5] w-full object-cover" />
+                    <img src={wallpaper.src} alt="" className="aspect-[4/5] w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                     {selected && (
                       <span className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full bg-magenta px-2.5 py-1 text-[11px] font-bold text-white shadow">
                         <CircleCheck className="h-3.5 w-3.5" />
-                        {p.showing}
+                        {p.showing || 'Showing'}
                       </span>
                     )}
                   </button>
@@ -2054,39 +2153,119 @@ function WallpaperPanel({ onChanged, onAuthError }) {
         )}
       </div>
 
-      {/* Add a wallpaper */}
-      <div className="flex flex-col gap-3 md:max-w-md">
-        {preview && (
-          <div>
-            <p className="mb-2 text-xs font-semibold text-slate-500">{p.newPicture}</p>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={preview} alt="" className="aspect-[4/5] w-40 rounded-[22px] object-cover shadow-md ring-1 ring-ink/10" />
+      {/* Add One or More Wallpapers */}
+      <div className="flex flex-col gap-3 rounded-[24px] border border-dashed border-ink/20 p-5 bg-slate-50/50">
+        <div className="flex items-center justify-between">
+          <p className="font-bold text-ink text-sm flex items-center gap-2">
+            <Upload className="h-4 w-4 text-magenta" />
+            <span>Add One or More Wallpapers</span>
+          </p>
+          {previews.length > 0 && (
+            <span className="rounded-full bg-magenta/10 px-2.5 py-0.5 text-xs font-bold text-magenta">
+              {previews.length} selected
+            </span>
+          )}
+        </div>
+
+        {/* Selected Previews Gallery */}
+        {previews.length > 0 && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {previews.map((src, index) => (
+                <div key={index} className="relative overflow-hidden rounded-[18px] ring-1 ring-ink/10 shadow-sm aspect-[4/5]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={src} alt={`Preview ${index + 1}`} className="h-full w-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => removePreview(index)}
+                    disabled={busy}
+                    title="Remove this preview"
+                    aria-label="Remove picture"
+                    className="absolute top-1.5 right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-ink/75 text-white hover:bg-red-600 transition-colors"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                  <span className="absolute bottom-1.5 left-1.5 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-bold text-white">
+                    #{index + 1}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <button
+                type="button"
+                onClick={addWallpapers}
+                disabled={busy}
+                className={`${primaryButtonClass} flex-1 min-w-[200px]`}
+              >
+                {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CircleCheck className="h-4 w-4" />}
+                <span>
+                  {busy
+                    ? (p.saving || 'Uploading...')
+                    : previews.length === 1
+                    ? 'Upload 1 Wallpaper'
+                    : `Upload ${previews.length} Wallpapers`}
+                </span>
+              </button>
+
+              <label className="inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 py-2.5 text-xs font-bold text-ink hover:bg-slate-100 transition-colors">
+                <Plus className="h-3.5 w-3.5" />
+                <span>Add more</span>
+                <input
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={chooseMultiple}
+                  disabled={busy || !state}
+                  className="sr-only"
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setPreviews([])}
+                disabled={busy}
+                className="rounded-full border border-ink/15 px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-sand/60"
+              >
+                {p.cancel || 'Clear'}
+              </button>
+            </div>
           </div>
         )}
 
-        {preview ? (
-          <div className="flex gap-2">
-            <button type="button" onClick={add} disabled={busy} className={`${primaryButtonClass} flex-1`}>
-              {busy ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <CircleCheck className="h-4 w-4" />}
-              {busy ? p.saving : p.add}
-            </button>
-            <button type="button" onClick={() => setPreview(null)} disabled={busy} className="rounded-full border border-ink/15 px-5 py-3 text-sm font-semibold text-ink/70 hover:bg-sand/60">
-              {p.cancel}
-            </button>
-          </div>
-        ) : (
-          <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 px-5 py-3 text-sm font-semibold text-ink transition-colors hover:bg-sand/60">
-            <Upload className="h-4 w-4" />
-            {p.choose}
-            <input type="file" accept="image/jpeg,image/png,image/webp" onChange={choose} disabled={busy || !state} className="sr-only" />
+        {/* Upload Trigger Button when no previews */}
+        {previews.length === 0 && (
+          <label className="flex flex-col items-center justify-center gap-2 cursor-pointer rounded-[20px] border-2 border-dashed border-magenta/30 bg-white p-6 text-center transition-all hover:border-magenta hover:bg-magenta/5 group">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-magenta/10 text-magenta transition-transform group-hover:scale-110">
+              <Upload className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-bold text-slate-800">{p.choose || 'Choose Wallpaper(s)'}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Click to select 1 or multiple wallpapers</p>
+            </div>
+            <input
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp"
+              onChange={chooseMultiple}
+              disabled={busy || !state}
+              className="sr-only"
+            />
           </label>
         )}
+
         <p className="text-xs text-slate-500">{p.hint}</p>
 
-        {changedFromOriginal && !preview && (
-          <button type="button" onClick={reset} disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-3 text-sm font-semibold text-red-600 ring-1 ring-red-200 transition-colors hover:bg-red-50 disabled:opacity-60">
-            <RotateCcw className="h-4 w-4" />
-            {p.reset}
+        {changedFromOriginal && previews.length === 0 && (
+          <button
+            type="button"
+            onClick={reset}
+            disabled={busy}
+            className="inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold text-red-600 ring-1 ring-red-200 transition-colors hover:bg-red-50 disabled:opacity-60 self-start"
+          >
+            <RotateCcw className="h-3.5 w-3.5" />
+            <span>{p.reset || 'Reset to built-in wallpapers'}</span>
           </button>
         )}
       </div>

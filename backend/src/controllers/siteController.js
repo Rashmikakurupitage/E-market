@@ -6,9 +6,13 @@ const prisma = require('../config/db');
 const WALLPAPER_PREFIX = 'wallpaper:';
 const LEGACY_KEY = 'heroImage';
 const SETTINGS_KEY = 'wallpaperSettings';
-const MAX_WALLPAPERS = 8;
+const MAX_WALLPAPERS = 24;
 const MAX_BYTES = 1.5 * 1024 * 1024;
-const SECONDS = [4, 6, 8, 10, 15, 20];
+const isValidSeconds = (sec) => {
+  const num = Number(sec);
+  return Number.isFinite(num) && num >= 2 && num <= 300;
+};
+const SECONDS = [2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 60];
 // The pictures that ship with the website (public/hero_main.jpg, public/artisan_carver.jpg and public/wallpapers/*)
 const BUILTIN_IDS = ['builtin-collage-gold', 'builtin-hero', 'builtin-collage-teal', 'builtin-tea-pickers', 'builtin-collage-pink', 'builtin-collage-violet', 'builtin-artisan', 'builtin-collage-green', 'builtin-kitchen', 'builtin-collage-indigo', 'builtin-basketry', 'builtin-collage-earth', 'builtin-tea-woman', 'builtin-masks', 'builtin-cane-market', 'builtin-spices'];
 const DATA_URL = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/;
@@ -31,7 +35,7 @@ const readSettings = async () => {
   }
   return {
     rotate: saved.rotate !== false, // rotating is the default
-    seconds: SECONDS.includes(saved.seconds) ? saved.seconds : 6,
+    seconds: isValidSeconds(saved.seconds) ? Math.round(Number(saved.seconds)) : 6,
     active: typeof saved.active === 'string' ? saved.active : null,
     removed: Array.isArray(saved.removed) ? saved.removed.filter((id) => BUILTIN_IDS.includes(id)) : []
   };
@@ -129,22 +133,41 @@ const currentState = async () => {
 
 exports.addWallpaper = async (req, res) => {
   try {
-    const image = String(req.body?.image || '');
-    const match = DATA_URL.exec(image);
-    const bytes = match ? Buffer.from(match[2], 'base64') : null;
-    if (!bytes || bytes.length === 0) {
+    const rawImages = Array.isArray(req.body?.images)
+      ? req.body.images
+      : req.body?.image ? [req.body.image] : [];
+
+    if (rawImages.length === 0) {
       return res.status(400).json({ code: 'IMAGE_TYPE', message: 'Choose a JPG, PNG or WebP picture.' });
     }
-    if (bytes.length > MAX_BYTES) {
-      return res.status(413).json({ code: 'IMAGE_BIG', message: 'The picture is too large.' });
+
+    const validated = [];
+    for (const img of rawImages) {
+      const str = String(img || '');
+      const match = DATA_URL.exec(str);
+      const bytes = match ? Buffer.from(match[2], 'base64') : null;
+      if (!bytes || bytes.length === 0) {
+        return res.status(400).json({ code: 'IMAGE_TYPE', message: 'Choose a JPG, PNG or WebP picture.' });
+      }
+      if (bytes.length > MAX_BYTES) {
+        return res.status(413).json({ code: 'IMAGE_BIG', message: 'One or more pictures are too large.' });
+      }
+      validated.push(str);
     }
+
     const existing = await prisma.siteSetting.count({ where: { OR: [{ key: { startsWith: WALLPAPER_PREFIX } }, { key: LEGACY_KEY }] } });
-    if (existing >= MAX_WALLPAPERS) {
-      return res.status(409).json({ code: 'TOO_MANY', message: `At most ${MAX_WALLPAPERS} uploaded wallpapers.` });
+    if (existing + validated.length > MAX_WALLPAPERS) {
+      return res.status(409).json({ code: 'TOO_MANY', message: `At most ${MAX_WALLPAPERS} uploaded wallpapers allowed. You have ${existing} and are adding ${validated.length}.` });
     }
-    const id = require('crypto').randomBytes(6).toString('hex');
-    await prisma.siteSetting.create({ data: { key: keyFor(id), value: image } });
-    res.status(201).json({ ...(await currentState()), added: id });
+
+    const crypto = require('crypto');
+    const addedIds = [];
+    for (const image of validated) {
+      const id = crypto.randomBytes(6).toString('hex');
+      await prisma.siteSetting.create({ data: { key: keyFor(id), value: image } });
+      addedIds.push(id);
+    }
+    res.status(201).json({ ...(await currentState()), added: addedIds[0], addedIds });
   } catch (error) {
     serverError(res, 'SITE_ADD_WALLPAPER_ERROR:', error);
   }
@@ -187,7 +210,7 @@ exports.saveWallpaperSettings = async (req, res) => {
     const next = {
       ...current,
       rotate: typeof body.rotate === 'boolean' ? body.rotate : current.rotate,
-      seconds: SECONDS.includes(Number(body.seconds)) ? Number(body.seconds) : current.seconds
+      seconds: isValidSeconds(body.seconds) ? Math.round(Number(body.seconds)) : current.seconds
     };
     if (body.active !== undefined) {
       if (body.active === null) {
