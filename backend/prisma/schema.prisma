@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/client"
 }
 
 datasource db {
@@ -326,4 +327,10 @@ model Complaint {
   @@index([sellerId])
   @@index([customerId])
   @@index([orderId])
+}
+
+model SiteSetting {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
 }
