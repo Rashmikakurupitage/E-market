@@ -163,7 +163,7 @@ async function sendLoginCode({ to, businessName, code, minutes, purpose = 'login
           <strong style="font-size:18px">Lanka Women E-Market</strong>
         </div>
         <div style="border:1px solid #e2e8f0;border-top:0;padding:24px;border-radius:0 0 12px 12px">
-          <p>Hello ${name},</p>
+          <p>Hello ${businessName || 'Valued User'},</p>
           <p>${wording.intro}</p>
           <p style="font-size:32px;font-weight:bold;letter-spacing:8px;color:#14693d;margin:16px 0">${code}</p>
           <p>It is valid for ${minutes} minutes and can be used once.</p>
