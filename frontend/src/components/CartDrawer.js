@@ -105,8 +105,13 @@ export default function CartDrawer() {
                           <p className="mt-0.5 text-xs text-ink/50">
                             {formatPrice(item.price)} {c.each}
                           </p>
+                          {Number.isInteger(item.stock) && (
+                            <p role={item.stock < item.quantity ? 'alert' : undefined} className={`mt-1 text-xs ${item.stock < item.quantity ? 'font-semibold text-red-600' : 'text-ink/45'}`}>
+                              {item.stock === 0 ? c.outOfStock : fill(c.stockLeft, { count: item.stock })}
+                            </p>
+                          )}
                           <div className="mt-2 flex items-center justify-between gap-2">
-                            <QuantityStepper size="sm" value={item.quantity} onChange={(qty) => setCartQuantity(item.id, qty)} />
+                            <QuantityStepper size="sm" value={item.quantity} max={Number.isInteger(item.stock) ? item.stock : undefined} onChange={(qty) => setCartQuantity(item.id, qty)} />
                             <span className="text-sm font-bold tabular-nums text-ink">{formatPrice(item.price * item.quantity)}</span>
                           </div>
                         </div>

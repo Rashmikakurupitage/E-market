@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LoaderCircle, CircleAlert, RefreshCw, ShoppingBag, UserRound, LayoutDashboard, ClipboardList, Flag, Settings } from 'lucide-react';
+import { LoaderCircle, CircleAlert, RefreshCw, ShoppingBag, UserRound, LayoutDashboard, ClipboardList, Flag, Settings, Heart } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
 import { useSession, useHydrated, clearSession, updateSessionUser, homePathFor } from '../../src/lib/auth';
@@ -17,6 +17,8 @@ import DashboardSidebar from '../../src/components/DashboardSidebar';
 import ProfilePhotoEditor from '../../src/components/ProfilePhotoEditor';
 import { profilePhotoUrl } from '../../src/lib/profilePhoto';
 import CustomerOverview from '../../src/components/CustomerOverview';
+import CustomerWishlist from '../../src/components/CustomerWishlist';
+import CustomerOrderAlerts from '../../src/components/CustomerOrderAlerts';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -50,7 +52,7 @@ export default function Account() {
   const [status, setStatus] = useState('loading'); // 'loading' | 'ready' | 'error'
   const [user, setUser] = useState(null);
   const [reloadKey, setReloadKey] = useState(0);
-  const [section, setSection] = useState('overview'); // 'overview' | 'orders' | 'complaints' | 'settings'
+  const [section, setSection] = useState('overview');
 
   const contactUpdated = useCallback((updatedUser) => {
     setUser(updatedUser);
@@ -136,6 +138,7 @@ export default function Account() {
   const menu = [
     { value: 'overview', label: t.admin.tabOverview, icon: LayoutDashboard },
     { value: 'orders', label: t.orders.myTitle, icon: ClipboardList },
+    { value: 'wishlist', label: t.customerFeatures?.wishlistTitle || 'Wishlist', icon: Heart },
     { value: 'complaints', label: t.complaints.myTitle, icon: Flag },
     { value: 'settings', label: t.contactEdit.title, icon: Settings },
   ];
@@ -154,6 +157,7 @@ export default function Account() {
         onLogout={loggedOut}
         menuLabel={c.accountTitle}
         backHref="/store"
+        stickyClass="lg:top-28" 
         card={{ icon: ShoppingBag, title: t.store.title, text: c.browse, label: c.browse, href: '/store' }}
       >
         {section === 'overview' && <>
@@ -210,6 +214,7 @@ export default function Account() {
         </>}
 
         {section === 'orders' && <CustomerOrders onAuthError={loggedOut} />}
+{section === 'wishlist' && <CustomerWishlist onAuthError={loggedOut} />}
         {section === 'complaints' && <CustomerComplaints onAuthError={loggedOut} />}
         {section === 'settings' && (
           <Reveal className="space-y-6">
@@ -228,6 +233,7 @@ export default function Account() {
               </div>
             </div>
             <ContactDetails user={user} onUpdated={contactUpdated} onAuthError={loggedOut} />
+            <CustomerOrderAlerts userId={user.id} onAuthError={loggedOut} />
           </Reveal>
         )}
       </DashboardSidebar>

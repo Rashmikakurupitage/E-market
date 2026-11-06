@@ -1,7 +1,7 @@
 'use client';
 
 import { useSyncExternalStore } from 'react';
-import { getSeller } from './catalog';
+import { effectivePrice, getSeller } from './catalog';
 
 // The shopping cart. It is kept in this browser (localStorage 'cart'), so it survives page reloads and logging in.
 // Each item: { id, title, price, image, category, sellerId, sellerName, district, whatsappNo, quantity }
@@ -55,7 +55,7 @@ function subscribe(listener) {
   };
 }
 
-const clampQuantity = (quantity) => Math.max(1, Math.min(MAX_QUANTITY, Math.floor(Number(quantity) || 1)));
+const clampQuantity = (quantity, maximum = MAX_QUANTITY) => Math.max(1, Math.min(maximum || 1, Math.floor(Number(quantity) || 1)));
 
 export function useCartItems() {
   return useSyncExternalStore(subscribe, readItems, () => EMPTY);
@@ -73,7 +73,15 @@ export function addToCart(product, quantity = 1) {
   const items = readItems();
   const existing = items.find((item) => item.id === product.id);
   if (existing) {
-    writeItems(items.map((item) => (item.id === product.id ? { ...item, quantity: clampQuantity(item.quantity + quantity) } : item)));
+    const max = Number.isInteger(product.stock) ? product.stock : MAX_QUANTITY;
+    writeItems(items.map((item) => (item.id === product.id ? {
+      ...item,
+      title: product.title || item.title,
+      price: Number(effectivePrice(product) ?? item.price),
+      image: product.images?.[0] || item.image,
+      stock: product.stock ?? null,
+      quantity: clampQuantity(item.quantity + quantity, max),
+    } : item)));
     return;
   }
   const seller = getSeller(product);
@@ -83,6 +91,7 @@ export function addToCart(product, quantity = 1) {
       id: product.id,
       title: product.title,
       price: Number(effectivePrice(product)),
+      stock: Number.isInteger(product.stock) ? product.stock : null,
       image: product.images?.[0] || null,
       category: product.category,
       sellerId: product.sellerId,
@@ -95,7 +104,10 @@ export function addToCart(product, quantity = 1) {
 }
 
 export function setCartQuantity(id, quantity) {
-  writeItems(readItems().map((item) => (item.id === id ? { ...item, quantity: clampQuantity(quantity) } : item)));
+  writeItems(readItems().map((item) => (item.id === id ? {
+    ...item,
+    quantity: clampQuantity(quantity, Number.isInteger(item.stock) ? Math.max(1, item.stock) : MAX_QUANTITY),
+  } : item)));
 }
 
 export function removeFromCart(ids) {
@@ -105,6 +117,18 @@ export function removeFromCart(ids) {
 
 export function clearCart() {
   writeItems([]);
+}
+
+export function replaceCartItems(items) {
+  writeItems(Array.isArray(items) ? items : []);
+}
+
+export function updateCartProductSnapshots(updates) {
+  const byId = new Map((updates || []).map((update) => [update.productId, update]));
+  writeItems(readItems().map((item) => {
+    const update = byId.get(item.id);
+    return update ? { ...item, ...(Number.isFinite(update.price) ? { price: update.price } : {}), stock: update.stock ?? null } : item;
+  }));
 }
 
 // Items grouped by seller, in the order they were first added: [{ sellerId, sellerName, district, items, subtotal }]

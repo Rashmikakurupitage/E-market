@@ -8,6 +8,7 @@ const { withDiscount, readDiscount } = require('../utils/discount');
 // Uploaded pictures are saved in the database and replaced by the address they are served from.
 const MAX_PHOTOS = 5;
 const MAX_PHOTO_BYTES = 600 * 1024;
+const MAX_STOCK = 1000000;
 const PHOTO_DATA_URL = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/;
 
 const publicBase = (req) => (process.env.PUBLIC_API_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
@@ -48,43 +49,60 @@ const readPhotos = (input, req) => {
 exports.createProduct = async (req, res) => {
   try {
     const { title, description, category, images, price } = req.body;
+    const stockInput = req.body.stock;
+    const stock = stockInput === '' || stockInput === undefined || stockInput === null ? null : Number(stockInput);
+    if (stock !== null && (!Number.isInteger(stock) || stock < 0 || stock > MAX_STOCK)) {
+      return res.status(400).json({ code: 'INVALID_STOCK', message: `Stock must be a whole number from 0 to ${MAX_STOCK}, or empty to leave tracking off.` });
+    }
 
-    // Optional Facebook Messenger chat link, so customers can also chat there instead of only on WhatsApp
+    // Optional Messenger chat link specific to this product
     const messengerUrl = cleanMessengerUrl(req.body.messengerUrl);
-    if (messengerUrl === null) {
-      return res.status(400).json({ code: 'INVALID_MESSENGER_URL', message: 'Enter a Facebook Messenger link, e.g. m.me/yourshop.' });
+    if (req.body.messengerUrl && !messengerUrl) {
+      return res.status(400).json({
+        code: 'INVALID_MESSENGER_LINK',
+        message: 'Enter a valid m.me link (e.g. m.me/yourpage) or a full Facebook / Messenger web address.'
+      });
     }
 
-    const photos = readPhotos(images, req);
-    if (photos.error) {
-      return res.status(400).json(photos.error);
-    }
-
-    // Optional discount (a seller can also add or change it later)
+    // Optional introductory discount
     const discount = readDiscount(req.body.discountPercent, req.body.discountEndsAt);
     if (discount.error) {
       return res.status(400).json(discount.error);
     }
     if (discount.percent && !price) {
-      return res.status(400).json({ code: 'DISCOUNT_NEEDS_PRICE', message: 'Set a price before giving a discount.' });
+      return res.status(400).json({
+        code: 'DISCOUNT_NEEDS_PRICE',
+        message: 'A product needs a price before you can give it a discount.'
+      });
     }
 
-    // Find the SellerProfile ID for the seller making this request.
+    if (!title || !description || !category) {
+      return res.status(400).json({ message: 'Title, Description සහ Category ඇතුළත් කිරීම අනිවාර්යයි.' });
+    }
+
+    // Photos: 0 to 5 links or uploaded pictures
+    const photos = readPhotos(images, req);
+    if (photos.error) {
+      return res.status(400).json(photos.error);
+    }
+
     const sellerProfile = await prisma.sellerProfile.findUnique({
       where: { userId: req.user.userId }
     });
 
     if (!sellerProfile) {
-      return res.status(403).json({ message: 'භාණ්ඩ එකතු කළ හැක්කේ ලියාපදිංචි අලෙවිකරුවන්ට පමණි.' });
+      return res.status(404).json({ message: 'Seller Profile එකක් හමු නොවීය.' });
     }
 
-    if (sellerProfile.status === 'REJECTED') {
+    // A seller an admin has removed can neither see nor add products
+    if (sellerProfile.removedAt) {
       return res.status(403).json({
-        code: 'SELLER_REJECTED',
-        message: 'ඔබේ අලෙවිකරු ගිණුම ප්‍රතික්ෂේප කර ඇත. ඔබට නව භාණ්ඩ එකතු කළ නොහැක.'
+        code: 'ACCOUNT_REMOVED',
+        message: 'This seller account has been removed.'
       });
     }
 
+    // Only approved sellers can publish products
     if (sellerProfile.status !== 'APPROVED') {
       return res.status(403).json({
         code: 'SELLER_NOT_APPROVED',
@@ -99,6 +117,7 @@ exports.createProduct = async (req, res) => {
         description,
         category,
         images: photos.urls,
+        stock,
         productImages: { create: photos.uploads },
         price: price ? parseFloat(price) : null,
         messengerUrl: messengerUrl || null,
@@ -118,10 +137,13 @@ exports.createProduct = async (req, res) => {
 // 2. Get all products (public search/filter).
 // True when the request carries a valid login token of a registered customer. Everyone else gets no seller contact details.
 const isCustomer = (req) => {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) return false;
+  let token = req.cookies?.lw_session;
+  if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+    token = req.headers.authorization.split(' ')[1];
+  }
+  if (!token) return false;
   try {
-    return jwt.verify(header.split(' ')[1], process.env.JWT_SECRET).role === 'CUSTOMER';
+    return jwt.verify(token, process.env.JWT_SECRET).role === 'CUSTOMER';
   } catch {
     return false;
   }
@@ -166,6 +188,7 @@ exports.getAllProducts = async (req, res) => {
             id: true,
             userId: true,
             businessName: true,
+            description: true,
             district: true,
             status: true,
             whatsappNo: true,
@@ -195,6 +218,7 @@ exports.getAllProducts = async (req, res) => {
         const sAverageRating = sReviewCount
           ? Math.round((sReviews.reduce((sum, r) => sum + r.rating, 0) / sReviewCount) * 10) / 10
           : 0;
+        const photoVersion = product.seller.user?.profilePhoto ? product.seller.user.profilePhoto.updatedAt.getTime() : null;
 
         formattedSeller = {
           id: product.seller.id,
@@ -207,7 +231,8 @@ exports.getAllProducts = async (req, res) => {
           messengerUrl: isCust ? product.seller.messengerUrl : null,
           reviewCount: sReviewCount,
           averageRating: sAverageRating,
-          photoVersion: product.seller.user?.profilePhoto ? product.seller.user.profilePhoto.updatedAt.getTime() : null
+          photoVersion,
+          ...(photoVersion ? { photoUrl: `${publicBase(req)}/api/profile/photo/${product.seller.userId}?v=${photoVersion}` } : {})
         };
       }
 
@@ -316,6 +341,7 @@ exports.getSellerOverview = async (req, res) => {
   }
 };
 
+// All products belonging to the logged-in seller, including their view and enquiry counts
 exports.getMyProducts = async (req, res) => {
   try {
     const sellerProfile = await prisma.sellerProfile.findUnique({
@@ -323,7 +349,7 @@ exports.getMyProducts = async (req, res) => {
     });
 
     if (!sellerProfile) {
-      return res.status(403).json({ message: 'මෙම පිටුව ලියාපදිංචි අලෙවිකරුවන්ට පමණි.' });
+      return res.status(404).json({ message: 'Seller Profile එකක් හමු නොවීය.' });
     }
 
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
@@ -331,8 +357,10 @@ exports.getMyProducts = async (req, res) => {
     const [products, recentClicks] = await Promise.all([
       prisma.product.findMany({
         where: { sellerId: sellerProfile.id },
-        include: { _count: { select: { analytics: true } } },
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
+        include: {
+          _count: { select: { analytics: true } }
+        }
       }),
       prisma.clickAnalytics.groupBy({
         by: ['productId'],
@@ -394,6 +422,26 @@ exports.setDiscount = async (req, res) => {
   }
 };
 
+// Sellers can opt into inventory tracking for one of their own products. Null turns tracking off.
+exports.setStock = async (req, res) => {
+  try {
+    const seller = await prisma.sellerProfile.findUnique({ where: { userId: req.user.userId }, select: { id: true } });
+    if (!seller) return res.status(403).json({ code: 'NOT_SELLER', message: 'Only sellers can update stock.' });
+    const input = req.body?.stock;
+    const stock = input === null || input === '' ? null : Number(input);
+    if (stock !== null && (!Number.isInteger(stock) || stock < 0 || stock > MAX_STOCK)) {
+      return res.status(400).json({ code: 'INVALID_STOCK', message: `Stock must be a whole number from 0 to ${MAX_STOCK}, or empty to leave tracking off.` });
+    }
+    const updated = await prisma.product.updateMany({ where: { id: String(req.params.id), sellerId: seller.id }, data: { stock } });
+    if (updated.count === 0) return res.status(404).json({ code: 'NOT_FOUND', message: 'Product not found.' });
+    const product = await prisma.product.findUnique({ where: { id: String(req.params.id) } });
+    res.json({ product: withDiscount(product) });
+  } catch (error) {
+    console.error('SET_PRODUCT_STOCK_ERROR:', error);
+    res.status(500).json({ message: 'Could not update product stock.' });
+  }
+};
+
 // 4. Delete a seller's product (only their own products).
 exports.deleteProduct = async (req, res) => {
   try {
@@ -402,59 +450,59 @@ exports.deleteProduct = async (req, res) => {
     });
 
     if (!sellerProfile) {
-      return res.status(403).json({ message: 'භාණ්ඩ ඉවත් කළ හැක්කේ ලියාපදිංචි අලෙවිකරුවන්ට පමණි.' });
+      return res.status(404).json({ message: 'Seller Profile එකක් හමු නොවීය.' });
     }
 
-    // Only delete when the product belongs to this seller (deleteMany matches on both ids)
-    const { count } = await prisma.product.deleteMany({
-      where: { id: String(req.params.id), sellerId: sellerProfile.id }
+    // A seller an admin has removed cannot delete products
+    if (sellerProfile.removedAt) {
+      return res.status(403).json({
+        code: 'ACCOUNT_REMOVED',
+        message: 'This seller account has been removed.'
+      });
+    }
+
+    // A seller can only delete a product they own
+    const product = await prisma.product.findFirst({
+      where: {
+        id: req.params.id,
+        sellerId: sellerProfile.id
+      }
     });
 
-    if (count === 0) {
-      return res.status(404).json({ message: 'භාණ්ඩය සොයාගත නොහැක.' });
+    if (!product) {
+      return res.status(404).json({ message: 'භාණ්ඩය හමු නොවීය, නැතහොත් එය මකා දැමීමට ඔබට අවසර නැත.' });
     }
 
-    // Its past WhatsApp click records stay in the database, with productId set to empty
-    res.json({ message: 'භාණ්ඩය ඉවත් කරන ලදී.' });
+    await prisma.product.delete({
+      where: { id: req.params.id }
+    });
+
+    res.json({ message: 'භාණ්ඩය සාර්ථකව ඉවත් කරන ලදී.' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });
   }
 };
 
-// 5. Social Media Redirection Tracking (WhatsApp/Messenger Click Track)
+// Track when a customer clicks on a product or enquiry button
 exports.trackClick = async (req, res) => {
   try {
-    const { productId, platform = 'WHATSAPP' } = req.body; // platform: "WHATSAPP" or "MESSENGER"
-
-    if (!['WHATSAPP', 'MESSENGER'].includes(platform)) {
-      return res.status(400).json({ message: 'Unknown platform' });
-    }
-
-    // The seller is taken from the product, so clicks can't be credited to someone else
-    // Only products that are actually on the website can be clicked
-    const product = productId
-      ? await prisma.product.findFirst({
-          where: { id: String(productId), isPublished: true, seller: { status: 'APPROVED' } },
-          select: { id: true, sellerId: true }
-        })
-      : null;
-
-    if (!product) {
-      return res.status(404).json({ message: 'Product not found' });
+    const { productId, sellerId, type } = req.body;
+    if (!type) {
+      return res.status(400).json({ message: 'Click type is required.' });
     }
 
     await prisma.clickAnalytics.create({
       data: {
-        sellerId: product.sellerId,
-        productId: product.id,
-        targetPlatform: platform
+        productId: productId || null,
+        sellerId: sellerId || null,
+        type
       }
     });
 
-    res.json({ message: 'Click tracked successfully!' });
+    res.status(201).json({ success: true });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: 'Tracking error' });
+    console.error('TRACK_CLICK_ERROR:', error);
+    res.status(500).json({ message: 'Server error.' });
   }
 };

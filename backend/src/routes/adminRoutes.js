@@ -27,6 +27,7 @@ const {
   createCourse,
   updateCourse,
   setCoursePublished,
+  translateCourseContent,
   uploadCourseMedia,
   deleteCourseMedia,
   getAdminCourseMedia,
@@ -64,6 +65,7 @@ router.put('/site/wallpaper-settings', saveWallpaperSettings);
 router.delete('/site/wallpapers', resetWallpapers);
 
 router.get('/learning-courses', listAdminCourses);
+router.post('/learning-courses/translate', translateCourseContent);
 router.post('/learning-courses', createCourse);
 router.put('/learning-courses/:courseId', updateCourse);
 router.patch('/learning-courses/:courseId/published', setCoursePublished);

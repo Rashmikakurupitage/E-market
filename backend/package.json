@@ -1,13 +1,11 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "Lanka Women E-Market Backend API",
+  "description": "",
   "main": "src/app.js",
   "scripts": {
-    "start": "nodemon --exec \"node --use-system-ca\" src/app.js",
-    "test-email": "node --use-system-ca scripts/test-email.js",
-    "add-admin": "node scripts/add-admin.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js"
   },
   "nodemonConfig": {
     "watch": [
@@ -20,13 +18,15 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "@prisma/client": "^5.22.0",
-    "bcryptjs": "^3.0.3",
+    "bcrypt": "^6.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.5",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.3",
     "nodemailer": "^10.0.14",
     "tesseract.js": "^7.0.0"

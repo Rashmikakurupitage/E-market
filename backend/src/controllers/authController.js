@@ -8,6 +8,7 @@ const nicVault = require('../utils/nicVault');
 const { parseNic } = require('../utils/nicInfo');
 const { scanNicImage } = require('../utils/nicOcr');
 const { sendLoginCode, explainMailError, isEmailConfigured } = require('../utils/mailer');
+const { setSessionCookie, clearSessionCookies } = require('../utils/authCookies');
 
 // Catch a wrong email before anything is sent: bad shape, a likely typo of a popular domain, or a domain that cannot receive mail
 const EMAIL_SHAPE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -57,7 +58,7 @@ const normalizeOptionalUrl = (value) => {
 
 const signToken = (user, expiresIn = '7d') =>
   jwt.sign(
-    { userId: user.id, role: user.role },
+    { userId: user.id, role: user.role, sessionVersion: user.sessionVersion || 0 },
     process.env.JWT_SECRET || 'fallback_secret',
     { expiresIn }
   );
@@ -336,6 +337,8 @@ exports.login = async (req, res) => {
       return res.status(403).json({ code: 'ACCOUNT_REMOVED', message: 'This account has been removed.' });
     }
 
+    setSessionCookie(res, user);
+
     res.json({
       message: 'සාර්ථකව Log විය!',
       token: signToken(user),
@@ -499,6 +502,8 @@ const verifyLoginCode = (type) => async (req, res) => {
       return res.status(400).json({ code: result, message: messages[result] });
     }
 
+    setSessionCookie(res, user, type.sessionLength);
+
     res.json({
       message: 'සාර්ථකව Log විය!',
       token: signToken(user, type.sessionLength),
@@ -553,6 +558,8 @@ exports.verifyEmail = async (req, res) => {
       data: updateData,
       include: { sellerProfile: true, customerProfile: true, profilePhoto: { select: { updatedAt: true } } }
     });
+
+    setSessionCookie(res, verified);
 
     res.json({
       message: isSeller
@@ -806,11 +813,13 @@ exports.resetPassword = async (req, res) => {
       data: {
         passwordHash: await bcrypt.hash(newPassword, 10),
         emailVerifiedAt: user.emailVerifiedAt || new Date(),
+        sessionVersion: { increment: 1 },
         ...(isSeller && user.sellerProfile && user.sellerProfile.status === 'PENDING'
           ? { sellerProfile: { update: { status: 'APPROVED' } } }
           : {})
       }
     });
+    clearSessionCookies(res);
     res.json({ message: 'Your password was changed. You can log in now.' });
   } catch (error) {
     console.error('PASSWORD_RESET_ERROR:', error);

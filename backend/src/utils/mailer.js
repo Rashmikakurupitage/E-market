@@ -126,9 +126,6 @@ const CODE_EMAILS = {
   'verify-email': {
     devLabel: 'Email verification code',
     subject: (code) => `${code} is your Lanka Women E-Market verification code`,
-    intro: 'Welcome! To finish creating and approving your account, enter this code:',
-    si: 'ඔබේ ගිණුම තහවුරු කර අනුමත කිරීමේ කේතය:',
-    ta: 'உங்கள் கணக்கை உறுதிப்படுத்தி அங்கீகரிக்கும் குறியீடு:',
     ignore: "If you didn't create an account, you can ignore this email.",
   },
   'email-change': {
@@ -143,7 +140,6 @@ const CODE_EMAILS = {
 
 async function sendLoginCode({ to, businessName, code, minutes, purpose = 'login' }) {
   const wording = CODE_EMAILS[purpose];
-  const name = escapeHtml(businessName || 'Valued User');
   const message = {
     from: process.env.MAIL_FROM || process.env.SMTP_USER,
     to,

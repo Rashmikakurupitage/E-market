@@ -29,6 +29,14 @@ const ITEMS = { items: { orderBy: { title: 'asc' } } };
 
 const findCustomer = (userId) => prisma.customerProfile.findUnique({ where: { userId } });
 const findSeller = (userId) => prisma.sellerProfile.findUnique({ where: { userId } });
+const checkoutConflict = (code, fields = {}) => Object.assign(new Error(code), { checkoutResponse: { code, ...fields } });
+
+async function restoreOrderStock(tx, orderId) {
+  const lines = await tx.orderItem.findMany({ where: { orderId, productId: { not: null } }, select: { productId: true, quantity: true } });
+  for (const line of lines) {
+    await tx.product.updateMany({ where: { id: line.productId, stock: { not: null } }, data: { stock: { increment: line.quantity } } });
+  }
+}
 
 // 1. Customer places an order from the cart (one order per seller, all with the same reference)
 exports.placeOrder = async (req, res) => {
@@ -45,6 +53,7 @@ exports.placeOrder = async (req, res) => {
 
     // Same product twice in the request counts as one line
     const quantities = new Map();
+    const expectedPrices = new Map();
     for (const item of items) {
       const productId = String(item?.productId || '');
       const quantity = Number(item?.quantity);
@@ -52,6 +61,13 @@ exports.placeOrder = async (req, res) => {
         return res.status(400).json({ code: 'BAD_QUANTITY', message: `Quantities must be whole numbers from 1 to ${MAX_QUANTITY}.` });
       }
       quantities.set(productId, Math.min(MAX_QUANTITY, (quantities.get(productId) || 0) + quantity));
+      if (item?.expectedPrice !== undefined && item?.expectedPrice !== null) {
+        const expectedPrice = Number(item.expectedPrice);
+        if (!Number.isFinite(expectedPrice) || expectedPrice < 0) {
+          return res.status(400).json({ code: 'BAD_CART_ITEM', message: 'Cart prices are invalid.' });
+        }
+        if (!expectedPrices.has(productId)) expectedPrices.set(productId, expectedPrice);
+      }
     }
 
     const name = String(delivery.name || '').trim();
@@ -66,42 +82,60 @@ exports.placeOrder = async (req, res) => {
     if (!district || district.length > 60) return res.status(400).json({ code: 'DISTRICT', message: 'Choose the district.' });
     if (cleanNote.length > 500) return res.status(400).json({ code: 'NOTE', message: 'The note is too long.' });
 
-    // Only products that are on the website now, with a price, can be ordered
-    const products = await prisma.product.findMany({
-      where: { id: { in: [...quantities.keys()] }, isPublished: true, seller: { status: 'APPROVED' } },
-      select: { id: true, title: true, images: true, price: true, discountPercent: true, discountEndsAt: true, sellerId: true }
-    });
-
-    const available = new Set(products.filter((p) => p.price !== null).map((p) => p.id));
-    const unavailable = [...quantities.keys()].filter((id) => !available.has(id));
-    if (unavailable.length > 0) {
-      return res.status(409).json({
-        code: 'UNAVAILABLE',
-        productIds: unavailable,
-        message: 'Some products in the cart are no longer available.'
-      });
-    }
-
-    const bySeller = new Map();
-    for (const product of products) {
-      if (!bySeller.has(product.sellerId)) bySeller.set(product.sellerId, []);
-      bySeller.get(product.sellerId).push(product);
-    }
-
     const reference = makeReference();
-    const orders = await prisma.$transaction(
-      [...bySeller.entries()].map(([sellerId, list]) => {
+    const orders = await prisma.$transaction(async (tx) => {
+      const ids = [...quantities.keys()];
+      // Lock all requested rows while checking current price/stock and creating the order.
+      await tx.$queryRaw`SELECT "id" FROM "Product" WHERE "id" IN (${Prisma.join(ids)}) FOR UPDATE`;
+      const products = await tx.product.findMany({
+        where: { id: { in: ids }, isPublished: true, seller: { status: 'APPROVED', removedAt: null } },
+        select: { id: true, title: true, images: true, price: true, stock: true, discountPercent: true, discountEndsAt: true, sellerId: true }
+      });
+
+      const available = new Set(products.filter((product) => product.price !== null).map((product) => product.id));
+      const unavailable = ids.filter((id) => !available.has(id));
+      if (unavailable.length) throw checkoutConflict('UNAVAILABLE', { productIds: unavailable });
+
+      const priceUpdates = products.flatMap((product) => {
+        if (!expectedPrices.has(product.id)) return [];
+        const currentPrice = discountOf(product)?.salePrice ?? Number(product.price);
+        if (Math.abs(currentPrice - expectedPrices.get(product.id)) < 0.005) return [];
+        return [{ productId: product.id, price: currentPrice, stock: product.stock }];
+      });
+      if (priceUpdates.length) throw checkoutConflict('PRICE_CHANGED', { productUpdates: priceUpdates });
+
+      const stockUpdates = products.flatMap((product) => {
+        const requested = quantities.get(product.id);
+        if (product.stock === null || requested <= product.stock) return [];
+        return [{ productId: product.id, stock: product.stock }];
+      });
+      if (stockUpdates.length) throw checkoutConflict('OUT_OF_STOCK', { productUpdates: stockUpdates });
+
+      const bySeller = new Map();
+      for (const product of products) {
+        if (!bySeller.has(product.sellerId)) bySeller.set(product.sellerId, []);
+        bySeller.get(product.sellerId).push(product);
+      }
+
+      for (const product of products) {
+        if (product.stock === null) continue;
+        const reservation = await tx.product.updateMany({
+          where: { id: product.id, stock: { gte: quantities.get(product.id) } },
+          data: { stock: { decrement: quantities.get(product.id) } }
+        });
+        if (reservation.count !== 1) throw checkoutConflict('OUT_OF_STOCK', { productUpdates: [{ productId: product.id, stock: 0 }] });
+      }
+
+      return Promise.all([...bySeller.entries()].map(([sellerId, list]) => {
         const lines = list.map((product) => ({
           productId: product.id,
           title: product.title,
           image: product.images[0] || null,
-          // The customer pays the discounted price while the seller's discount is running
           price: discountOf(product) ? new Prisma.Decimal(discountOf(product).salePrice) : product.price,
           quantity: quantities.get(product.id)
         }));
         const total = lines.reduce((sum, line) => sum.add(line.price.mul(line.quantity)), new Prisma.Decimal(0));
-
-        return prisma.order.create({
+        return tx.order.create({
           data: {
             reference,
             customerId: customer.id,
@@ -116,11 +150,12 @@ exports.placeOrder = async (req, res) => {
           },
           include: { ...ITEMS, seller: { select: { id: true, businessName: true, district: true, whatsappNo: true } } }
         });
-      })
-    );
+      }));
+    });
 
     res.status(201).json({ reference, orders });
   } catch (error) {
+    if (error.checkoutResponse) return res.status(409).json(error.checkoutResponse);
     console.error('PLACE_ORDER_ERROR:', error);
     res.status(500).json({ message: 'Server error.' });
   }
@@ -156,11 +191,16 @@ exports.cancelMyOrder = async (req, res) => {
       return res.status(409).json({ code: 'TOO_LATE', message: 'This order can no longer be cancelled.' });
     }
 
-    const updated = await prisma.order.update({
-      where: { id: order.id },
-      data: { status: 'CANCELLED' },
-      include: { ...ITEMS, seller: { select: { businessName: true, district: true, whatsappNo: true } } }
+    const updated = await prisma.$transaction(async (tx) => {
+      const changed = await tx.order.updateMany({ where: { id: order.id, status: 'PENDING' }, data: { status: 'CANCELLED' } });
+      if (changed.count !== 1) return null;
+      await restoreOrderStock(tx, order.id);
+      return tx.order.findUnique({
+        where: { id: order.id },
+        include: { ...ITEMS, seller: { select: { businessName: true, district: true, whatsappNo: true } } }
+      });
     });
+    if (!updated) return res.status(409).json({ code: 'TOO_LATE', message: 'This order can no longer be cancelled.' });
     res.json(updated);
   } catch (error) {
     console.error('CANCEL_ORDER_ERROR:', error);
@@ -200,11 +240,13 @@ exports.updateOrderStatus = async (req, res) => {
       return res.status(409).json({ code: 'BAD_STATUS', message: `A ${order.status} order cannot be changed to ${status || 'that'}.` });
     }
 
-    const updated = await prisma.order.update({
-      where: { id: order.id },
-      data: { status },
-      include: { ...ITEMS, customer: { select: { fullName: true } } }
+    const updated = await prisma.$transaction(async (tx) => {
+      const changed = await tx.order.updateMany({ where: { id: order.id, sellerId: seller.id, status: order.status }, data: { status } });
+      if (changed.count !== 1) return null;
+      if (status === 'CANCELLED') await restoreOrderStock(tx, order.id);
+      return tx.order.findUnique({ where: { id: order.id }, include: { ...ITEMS, customer: { select: { fullName: true } } } });
     });
+    if (!updated) return res.status(409).json({ code: 'BAD_STATUS', message: 'This order has already changed. Refresh and try again.' });
     res.json(updated);
   } catch (error) {
     console.error('UPDATE_ORDER_ERROR:', error);

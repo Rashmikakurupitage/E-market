@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Image from 'next/image';
-import { BookOpen, Video, FileText, Award, Megaphone, Calculator, Camera, ArrowRight, ArrowLeft, GraduationCap, Lightbulb, Search, X, Check, CircleCheck, LoaderCircle, ShieldCheck } from 'lucide-react';
+import { BookOpen, Video, FileText, Award, Megaphone, Calculator, Camera, ArrowRight, ArrowLeft, GraduationCap, Lightbulb, Search, X, Check, CircleCheck, LoaderCircle, ShieldCheck, Languages } from 'lucide-react';
 import Link from 'next/link';
 import Reveal from '../../src/components/Reveal';
 import { Lotus, PageArt } from '../../src/components/Art';
 import Portal from '../../src/components/Portal';
-import { useLanguage } from '../../src/lib/i18n';
+import { LANGUAGES, useLanguage } from '../../src/lib/i18n';
 import API from '../../src/lib/api';
 import { useSession } from '../../src/lib/auth';
 
@@ -207,6 +207,8 @@ export default function ELearning() {
   ];
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
+  const [activeLevel, setActiveLevel] = useState('all');
+  const [sortOrder, setSortOrder] = useState('featured');
   const progressSnapshot = useSyncExternalStore(subscribeToProgress, readProgressSnapshot, () => '{}');
   const progress = (() => {
     try {
@@ -218,6 +220,10 @@ export default function ELearning() {
   const [selectedCourse, setSelectedCourse] = useState(null);
   const [currentModule, setCurrentModule] = useState(0);
   const [showQuiz, setShowQuiz] = useState(false);
+  const readerDialogRef = useRef(null);
+  const readerMainRef = useRef(null);
+  const readerHeadingRef = useRef(null);
+  const courseOpenerRef = useRef(null);
   const [quizAnswers, setQuizAnswers] = useState({});
   const [quizSubmitted, setQuizSubmitted] = useState(false);
   const [certificateCode, setCertificateCode] = useState('');
@@ -227,11 +233,28 @@ export default function ELearning() {
   const [syncAttempt, setSyncAttempt] = useState(0);
   const syncQueue = useRef(Promise.resolve());
   const categories = [...new Set(courses.map((course) => course.categoryKey))];
-  const visibleCourses = courses.filter((course) => {
+  const courseLevels = [...new Set(courses.map((course) => course.levelKey))];
+  const filteredCourses = courses.filter((course) => {
     const matchesCategory = activeCategory === 'all' || course.categoryKey === activeCategory;
+    const matchesLevel = activeLevel === 'all' || course.levelKey === activeLevel;
     const searchText = `${course.title} ${course.description} ${hub.categories[course.categoryKey]}`.toLocaleLowerCase();
-    return matchesCategory && searchText.includes(search.trim().toLocaleLowerCase());
+    return matchesCategory && matchesLevel && searchText.includes(search.trim().toLocaleLowerCase());
   });
+  const visibleCourses = [...filteredCourses].sort((first, second) => {
+    if (sortOrder === 'title') return first.title.localeCompare(second.title, lang);
+    if (sortOrder === 'shortest') {
+      return first.lessons.length - second.lessons.length || first.title.localeCompare(second.title, lang);
+    }
+    return 0;
+  });
+  const courseLanguage = LANGUAGES.find(({ code }) => code === lang)?.label || lang;
+  const hasActiveFilters = Boolean(search.trim()) || activeCategory !== 'all' || activeLevel !== 'all' || sortOrder !== 'featured';
+  const resetCatalogFilters = () => {
+    setSearch('');
+    setActiveCategory('all');
+    setActiveLevel('all');
+    setSortOrder('featured');
+  };
   const startedCourses = courses.filter((course) => {
     const saved = progress[course.id];
     return saved?.started || saved?.completed?.length || saved?.done;
@@ -309,9 +332,7 @@ export default function ELearning() {
         if (cancelled) return;
         writeProgressSnapshot(mergeProgress(accountProgress, guestProgress), accountKey);
         setSyncStatus('error');
-        if (error?.response?.status !== 401 && error?.response?.status !== 403) {
-          console.error('LEARNING_PROGRESS_SYNC_ERROR:', error?.response?.status || error?.message || 'Unknown error');
-        }
+        if (error?.response?.status !== 401 && error?.response?.status !== 403) { console.error('LEARNING_PROGRESS_SYNC_ERROR:', error?.response?.status || error?.message || 'Unknown error'); }
       }
     };
 
@@ -327,12 +348,46 @@ export default function ELearning() {
 
   useEffect(() => {
     if (!selectedCourse) return undefined;
-    const closeOnEscape = (event) => event.key === 'Escape' && setSelectedCourse(null);
-    window.addEventListener('keydown', closeOnEscape);
-    return () => window.removeEventListener('keydown', closeOnEscape);
+    const dialog = readerDialogRef.current;
+    dialog?.focus();
+
+    const handleDialogKeys = (event) => {
+      if (event.key === 'Escape') {
+        setSelectedCourse(null);
+        return;
+      }
+      if (event.key !== 'Tab' || !dialog) return;
+
+      const focusable = [...dialog.querySelectorAll(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), video[controls], audio[controls], [tabindex]:not([tabindex="-1"])'
+      )].filter((element) => element.getAttribute('aria-hidden') !== 'true');
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === dialog)) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    window.addEventListener('keydown', handleDialogKeys);
+    return () => {
+      window.removeEventListener('keydown', handleDialogKeys);
+      courseOpenerRef.current?.focus();
+      courseOpenerRef.current = null;
+    };
   }, [selectedCourse]);
 
   const openCourse = (course) => {
+    courseOpenerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const saved = progress[course.id];
     saveProgress({
       ...progress,
@@ -351,6 +406,22 @@ export default function ELearning() {
     setCertificateCode('');
     setCertificateError('');
     setSelectedCourse(course);
+  };
+
+  useEffect(() => {
+    if (!selectedCourse) return;
+    readerMainRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+    readerHeadingRef.current?.focus({ preventScroll: true });
+  }, [selectedCourse, currentModule, showQuiz]);
+
+  const navigateToModule = (index) => {
+    if (!selectedCourse || !selectedProgress || index < 0 || index >= selectedCourse.lessons.length) return;
+    setCurrentModule(index);
+    setShowQuiz(false);
+    saveProgress({
+      ...progress,
+      [selectedCourse.id]: { ...selectedProgress, current: index },
+    });
   };
 
   const requestCertificate = async () => {
@@ -390,7 +461,7 @@ export default function ELearning() {
       },
       (error) => {
         if (activeProgressKey === `${GUEST_PROGRESS_KEY}:${userId}`) setSyncStatus('error');
-        console.error('LEARNING_PROGRESS_SYNC_ERROR:', error?.response?.status || error?.message || 'Unknown error');
+        if (error?.response?.status !== 401 && error?.response?.status !== 403) { console.error('LEARNING_PROGRESS_SYNC_ERROR:', error?.response?.status || error?.message || 'Unknown error'); }
       }
     );
   };
@@ -398,13 +469,15 @@ export default function ELearning() {
   const completeCurrentModule = () => {
     const previousProgress = selectedProgress;
     const completed = [...new Set([...previousProgress.completed, currentModule])];
-    const isLastModule = currentModule === selectedCourse.lessons.length - 1;
     const allModulesComplete = completed.length === selectedCourse.lessons.length;
+    const nextUncompletedModule = selectedCourse.lessons.findIndex(
+      (_, index) => index > currentModule && !completed.includes(index)
+    );
     const nextModule = allModulesComplete
       ? currentModule
-      : isLastModule
-        ? selectedCourse.lessons.findIndex((_, index) => !completed.includes(index))
-        : currentModule + 1;
+      : nextUncompletedModule >= 0
+        ? nextUncompletedModule
+        : selectedCourse.lessons.findIndex((_, index) => !completed.includes(index));
     const nextProgress = {
       ...progress,
       [selectedCourse.id]: {
@@ -438,7 +511,7 @@ export default function ELearning() {
       <div className="mx-auto max-w-6xl space-y-10">
 
         {/* Banner */}
-        <Reveal as="section" animation="fade-down" className="relative isolate overflow-hidden rounded-[24px] sm:rounded-[32px] bg-ink p-4 sm:p-10 lg:p-12 text-white shadow-2xl">
+        <Reveal as="section" animation="fade-down" className="relative isolate overflow-hidden rounded-[32px] bg-ink p-6 text-white shadow-2xl sm:p-10 lg:p-12">
           <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />
           <div aria-hidden="true" className="pointer-events-none absolute -left-16 -top-20 -z-10 h-64 w-64 animate-float rounded-full bg-magenta/50 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 right-10 -z-10 h-56 w-56 animate-float rounded-full bg-saffron/35 blur-3xl [animation-delay:-4s]" />
@@ -522,7 +595,7 @@ export default function ELearning() {
             {visibleSyncStatus === 'local' && (
               <>
                 <span className="text-slate-500">{hub.progressLocal}</span>
-                {!sessionUserId && <Link href="/login?as=customer&next=%2Fe-learning" className="font-semibold text-brand-700 underline underline-offset-2">{hub.progressSignIn}</Link>}
+                {!sessionUserId && <Link href="/login" className="font-semibold text-brand-700 underline underline-offset-2">{hub.progressSignIn}</Link>}
               </>
             )}
             {visibleSyncStatus === 'loading' && <span className="text-slate-500">{hub.progressSyncing}</span>}
@@ -648,6 +721,45 @@ export default function ELearning() {
             ))}
           </div>
 
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                <span>{hub.filterLevel}</span>
+                <select
+                  value={activeLevel}
+                  onChange={(event) => setActiveLevel(event.target.value)}
+                  className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-ink shadow-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100"
+                >
+                  <option value="all">{hub.allLevels}</option>
+                  {courseLevels.map((level) => (
+                    <option key={level} value={level}>{hub.levels[level] || level}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="flex items-center gap-2 text-xs font-semibold text-slate-600">
+                <span>{hub.sortCourses}</span>
+                <select
+                  value={sortOrder}
+                  onChange={(event) => setSortOrder(event.target.value)}
+                  className="min-h-10 rounded-xl border border-slate-200 bg-white px-3 text-sm text-ink shadow-sm outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100"
+                >
+                  <option value="featured">{hub.sortFeatured}</option>
+                  <option value="title">{hub.sortTitle}</option>
+                  <option value="shortest">{hub.sortShortest}</option>
+                </select>
+              </label>
+            </div>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={resetCatalogFilters}
+                className="min-h-10 self-start rounded-xl px-3 text-xs font-bold text-brand-700 underline underline-offset-2 transition hover:text-brand-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 sm:self-auto"
+              >
+                {hub.resetFilters}
+              </button>
+            )}
+          </div>
+
           {visibleCourses.length > 0 ? (
             <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               {visibleCourses.map((course, index) => {
@@ -715,9 +827,10 @@ export default function ELearning() {
                             </div>
                           </div>
                         )}
-                        <div className="flex items-center justify-between text-[11px] font-medium text-slate-500">
-                          <span className="flex items-center gap-1.5"><Video className="h-4 w-4 text-slate-400" /> {course.duration}</span>
-                          <span className="flex items-center gap-1.5"><FileText className="h-4 w-4 text-slate-400" /> {hub.modules.replace('{count}', String(course.modules))}</span>
+                        <div className="grid grid-cols-3 gap-2 text-[11px] font-medium text-slate-500">
+                          <span className="flex min-w-0 items-center justify-center gap-1"><Video aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400" /><span className="truncate">{course.duration}</span></span>
+                          <span className="flex min-w-0 items-center justify-center gap-1"><FileText aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400" /><span className="truncate">{hub.modules.replace('{count}', String(course.modules))}</span></span>
+                          <span className="flex min-w-0 items-center justify-center gap-1"><Languages aria-hidden="true" className="h-4 w-4 shrink-0 text-slate-400" /><span className="truncate">{courseLanguage}</span></span>
                         </div>
 
                         <button
@@ -737,8 +850,17 @@ export default function ELearning() {
               })}
             </div>
           ) : (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-14 text-center text-sm font-semibold text-slate-500">
-              {hub.noCourses}
+            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/70 px-6 py-14 text-center">
+              <p className="text-sm font-semibold text-slate-500">{hub.noCourses}</p>
+              {hasActiveFilters && (
+                <button
+                  type="button"
+                  onClick={resetCatalogFilters}
+                  className="mt-3 min-h-10 rounded-xl px-3 text-sm font-bold text-brand-700 underline underline-offset-2 transition hover:text-brand-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100"
+                >
+                  {hub.resetFilters}
+                </button>
+              )}
             </div>
           )}
         </section>
@@ -752,9 +874,11 @@ export default function ELearning() {
             onClick={() => setSelectedCourse(null)}
           >
             <section
+              ref={readerDialogRef}
               role="dialog"
               aria-modal="true"
               aria-labelledby="course-reader-title"
+              tabIndex={-1}
               onClick={(event) => event.stopPropagation()}
               className="flex h-full max-h-[94dvh] w-full max-w-6xl flex-col overflow-hidden bg-white shadow-2xl ring-1 ring-white/20 sm:rounded-3xl"
             >
@@ -822,12 +946,7 @@ export default function ELearning() {
                         <li key={module.title} className="shrink-0 md:shrink">
                           <button
                             type="button"
-                            onClick={() => {
-                              setCurrentModule(index);
-                              setShowQuiz(false);
-                              const nextProgress = { ...progress, [selectedCourse.id]: { ...selectedProgress, current: index } };
-                              saveProgress(nextProgress);
-                            }}
+                            onClick={() => navigateToModule(index)}
                             aria-current={isCurrent ? 'step' : undefined}
                             className={`flex min-h-11 max-w-[240px] items-center gap-2 rounded-xl px-3 py-2 text-left text-xs font-semibold transition md:max-w-none md:w-full ${isCurrent ? 'bg-brand-700 text-white shadow-md shadow-brand-700/15' : 'bg-white text-slate-600 ring-1 ring-slate-200/80 hover:bg-brand-50 hover:text-brand-800 md:bg-transparent md:ring-0 md:hover:bg-white'}`}
                           >
@@ -860,7 +979,7 @@ export default function ELearning() {
                 </aside>
 
                 <div className="flex min-h-0 flex-1 flex-col">
-                  <main className="flex-1 overflow-y-auto bg-linear-to-br from-white via-white to-cream/45 p-5 sm:p-8 lg:p-10">
+                  <main ref={readerMainRef} className="flex-1 overflow-y-auto bg-linear-to-br from-white via-white to-cream/45 p-5 sm:p-8 lg:p-10">
                     {showCompletion ? (
                       <div className="mx-auto flex min-h-full max-w-xl flex-col items-center justify-center text-center">
                         <span className="flex h-20 w-20 items-center justify-center rounded-full bg-brand-50 text-brand-700 ring-8 ring-brand-50/60">
@@ -914,7 +1033,7 @@ export default function ELearning() {
                     ) : showQuiz ? (
                       <div className="mx-auto max-w-2xl">
                         <p className="text-xs font-bold uppercase tracking-wide text-brand-700">{hub.assessment}</p>
-                        <h3 className="mt-3 text-2xl font-extrabold leading-tight text-ink sm:text-3xl">{hub.assessmentTitle}</h3>
+                        <h3 ref={readerHeadingRef} tabIndex={-1} className="mt-3 text-2xl font-extrabold leading-tight text-ink outline-none focus-visible:ring-2 focus-visible:ring-brand-300 sm:text-3xl">{hub.assessmentTitle}</h3>
                         <p className="mt-3 text-sm leading-relaxed text-slate-600">{hub.assessmentInstructions}</p>
                         <div className="mt-8 space-y-6">
                           {quiz.map((question, questionIndex) => (
@@ -952,7 +1071,7 @@ export default function ELearning() {
                               {Math.round((selectedProgress.completed.length / selectedCourse.lessons.length) * 100)}%
                             </span>
                           </div>
-                          <h3 className="mt-4 max-w-2xl text-2xl font-extrabold leading-tight text-ink sm:text-3xl">{lesson.title}</h3>
+                          <h3 ref={readerHeadingRef} tabIndex={-1} className="mt-4 max-w-2xl text-2xl font-extrabold leading-tight text-ink outline-none focus-visible:ring-2 focus-visible:ring-brand-300 sm:text-3xl">{lesson.title}</h3>
                         {lessonImage && (
                           <figure className="group relative mt-6 aspect-[16/7] overflow-hidden rounded-3xl bg-cream shadow-lg ring-1 ring-ink/10">
                             <Image
@@ -1013,10 +1132,7 @@ export default function ELearning() {
                           <div className="flex flex-wrap justify-end gap-2">
                             <button
                               type="button"
-                              onClick={() => {
-                                setCurrentModule(0);
-                                setShowQuiz(false);
-                              }}
+                              onClick={() => navigateToModule(0)}
                               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100"
                             >
                               {hub.reviewLessons}
@@ -1062,21 +1178,31 @@ export default function ELearning() {
                       )
                     ) : (
                       <>
-                        <button
-                          type="button"
-                          onClick={() => setCurrentModule((index) => Math.max(0, index - 1))}
-                          disabled={currentModule === 0}
-                          className="inline-flex min-h-11 items-center gap-2 rounded-lg px-3 text-sm font-bold text-slate-600 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
-                        >
-                          <ArrowLeft className="h-4 w-4" /> {hub.previousModule}
-                        </button>
+                        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+                          <button
+                            type="button"
+                            onClick={() => navigateToModule(currentModule - 1)}
+                            disabled={currentModule === 0}
+                            className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-lg px-2 text-xs font-bold text-slate-600 transition hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-200 disabled:cursor-not-allowed disabled:opacity-40 sm:px-3 sm:text-sm"
+                          >
+                            <ArrowLeft className="h-4 w-4" /> {hub.previousModule}
+                          </button>
+                          <p className="hidden min-w-0 truncate text-xs text-slate-500 sm:block" aria-live="polite">
+                            {hub.nextUp.replace(
+                              '{title}',
+                              currentModule === selectedCourse.lessons.length - 1
+                                ? hub.assessment
+                                : selectedCourse.lessons[currentModule + 1].title
+                            )}
+                          </p>
+                        </div>
                         <button
                           type="button"
                           onClick={completeCurrentModule}
-                          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-brand-700 px-5 py-2 text-sm font-bold text-white transition hover:bg-brand-800 disabled:cursor-default disabled:bg-leaf"
+                          className="inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-xl bg-brand-700 px-4 py-2 text-xs font-bold text-white shadow-md shadow-brand-700/15 transition hover:bg-brand-800 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-200 sm:px-5 sm:text-sm"
                         >
                           {selectedProgress.completed.includes(currentModule)
-                            ? <><CircleCheck className="h-4 w-4" /> {hub.moduleCompleted}</>
+                            ? <><CircleCheck className="h-4 w-4" /> {currentModule === selectedCourse.lessons.length - 1 ? hub.finishCourse : hub.nextModule}</>
                             : <>{currentModule === selectedCourse.lessons.length - 1 ? hub.finishCourse : hub.completeModule}<ArrowRight className="h-4 w-4" /></>}
                         </button>
                       </>

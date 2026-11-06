@@ -20,7 +20,6 @@ export const SAMPLE_PRODUCTS = [
     title: 'Handwoven Wicker Basket',
     description: '100% eco-friendly traditional Sri Lankan cane basket, woven by hand.',
     price: 3500,
-    discountPercent: 20,
     discount: { percent: 20, endsAt: null, salePrice: 2800 },
     category: 'Handicrafts',
     averageRating: 4.9,
@@ -50,7 +49,6 @@ export const SAMPLE_PRODUCTS = [
     averageRating: 5.0,
     reviewCount: 32,
     images: [unsplash('1610030469983-98e550d6193c')],
-    seller: { businessName: "Menaka's Crafts", district: 'Kurunegala', whatsappNo: '94771234567', averageRating: 5.0, reviewCount: 41, status: 'APPROVED' },
   },
 ];
 

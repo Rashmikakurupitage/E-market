@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
   CalendarDays, CircleAlert, CircleCheck, Clock, Flag, LoaderCircle, MapPin, MessageSquareText, Package, PackageCheck, Phone,
-  RotateCw, ShoppingBag, Star, Store, Truck, UserRound, XCircle,
+  RotateCw, ShoppingBag, ShoppingCart, Star, Store, Truck, UserRound, XCircle,
 } from 'lucide-react';
 import API from '../lib/api';
 import { useLanguage, fill } from '../lib/i18n';
@@ -14,6 +14,7 @@ import { ComplaintDialog, ComplaintStatusBadge, useMyComplaints } from './Compla
 import ReviewModal from './ReviewModal';
 import Reveal from './Reveal';
 import WhatsAppIcon from './WhatsAppIcon';
+import { addToCart, openCart } from '../lib/cart';
 
 const STATUS_LOOK = {
   PENDING: { icon: Clock, className: 'bg-turmeric/25 text-ink ring-turmeric/50' },
@@ -179,6 +180,8 @@ export function CustomerOrders({ onAuthError }) {
   const [toCancel, setToCancel] = useState(null);
   const [toReport, setToReport] = useState(null);
   const [reviewTarget, setReviewTarget] = useState(null);
+  const [reorderingId, setReorderingId] = useState(null);
+  const [reorderMessage, setReorderMessage] = useState('');
   // The newest complaint about each order, so an order with an open complaint shows its status instead of the button
   const { complaints } = useMyComplaints();
   const complaintFor = (orderId) => complaints.find((complaint) => complaint.orderId === orderId);
@@ -187,6 +190,38 @@ export function CustomerOrders({ onAuthError }) {
     const res = await API.patch(`/orders/${toCancel.id}/cancel`);
     replace(res.data);
     setToCancel(null);
+  };
+
+  const reorder = async (order) => {
+    setReorderingId(order.id);
+    setReorderMessage(null);
+    try {
+      const { data } = await API.get('/products');
+      const products = data?.products || data;
+      if (!Array.isArray(products)) throw new Error('Invalid product response');
+      const available = new Map(products.map((product) => [product.id, product]));
+      let added = 0;
+      for (const item of order.items) {
+        const product = item.productId ? available.get(item.productId) : null;
+        if (!product || product.price == null) continue;
+        addToCart(product, item.quantity);
+        added += 1;
+      }
+      if (!added) {
+        setReorderMessage({ orderId: order.id, text: t.customerFeatures.reorderUnavailable });
+        return;
+      }
+      openCart();
+      setReorderMessage({
+        orderId: order.id,
+        text: added === order.items.length ? t.customerFeatures.reorderDone : t.customerFeatures.reorderSomeUnavailable,
+      });
+    } catch (error) {
+      if (isAuthError(error)) onAuthError?.();
+      setReorderMessage({ orderId: order.id, text: t.customerFeatures.reorderError });
+    } finally {
+      setReorderingId(null);
+    }
   };
 
   return (
@@ -272,6 +307,15 @@ export function CustomerOrders({ onAuthError }) {
                         {t.orders?.reviewSeller || 'Review Seller'}
                       </button>
                     )}
+                    <button
+                      type="button"
+                      onClick={() => reorder(order)}
+                      disabled={reorderingId !== null}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-magenta px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-ink disabled:opacity-60"
+                    >
+                      {reorderingId === order.id ? <LoaderCircle className="h-3.5 w-3.5 animate-spin" /> : <ShoppingCart className="h-3.5 w-3.5" />}
+                      {t.customerFeatures.reorder}
+                    </button>
                     {complaintFor(order.id) && ['OPEN', 'IN_REVIEW'].includes(complaintFor(order.id).status) ? (
                       <span className="inline-flex items-center gap-2 text-xs font-semibold text-ink/60">
                         <Flag className="h-3.5 w-3.5 text-magenta" />
@@ -290,6 +334,9 @@ export function CustomerOrders({ onAuthError }) {
                       </button>
                     )}
                   </div>
+                  {reorderMessage?.orderId === order.id && reorderingId === null && (
+                    <p role="status" className="mt-3 text-xs font-medium text-ink/65">{reorderMessage.text}</p>
+                  )}
                 </div>
               </Reveal>
             );
