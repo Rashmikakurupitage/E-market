@@ -22,14 +22,28 @@ const valid = (kind, value) => (kind === 'accent' ? ACCENTS.some((a) => a.value 
 
 export function getAppearance(kind) {
   if (typeof document === 'undefined') return DEFAULTS[kind];
-  const value = document.documentElement.dataset[kind];
-  return valid(kind, value) ? value : DEFAULTS[kind];
+  const value = document.documentElement.getAttribute(`data-${kind}`);
+  if (valid(kind, value)) return value;
+  try {
+    const saved = localStorage.getItem(KEYS[kind]);
+    if (valid(kind, saved)) return saved;
+  } catch {}
+  return DEFAULTS[kind];
 }
 
 export function setAppearance(kind, value) {
   if (!valid(kind, value)) return;
-  if (value === DEFAULTS[kind]) delete document.documentElement.dataset[kind];
-  else document.documentElement.dataset[kind] = value;
+  if (typeof document !== 'undefined') {
+    const doc = document.documentElement;
+    const body = document.body;
+    if (value === DEFAULTS[kind]) {
+      doc.removeAttribute(`data-${kind}`);
+      if (body) body.removeAttribute(`data-${kind}`);
+    } else {
+      doc.setAttribute(`data-${kind}`, value);
+      if (body) body.setAttribute(`data-${kind}`, value);
+    }
+  }
   try {
     localStorage.setItem(KEYS[kind], value);
   } catch {

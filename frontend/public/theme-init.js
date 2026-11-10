@@ -17,6 +17,8 @@ try {
   var pattern = themeStorage.getItem("lw-pattern");
   if (/^(ocean|forest|royal|slate)$/.test(accent)) {
     themeDocument.setAttribute("data-accent", accent);
+  } else {
+    themeDocument.removeAttribute("data-accent");
   }
   if (/^(dots|lattice|waves)$/.test(pattern)) {
     themeDocument.setAttribute("data-pattern", pattern);

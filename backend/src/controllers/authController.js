@@ -380,19 +380,19 @@ const findByEmailAndNic = (role, profile) => (email, nicNumber) => {
 const LOGIN_TYPES = {
   seller: {
     find: findByEmailAndNic('SELLER', 'sellerProfile'),
-    displayName: (user) => user.sellerProfile.businessName,
+    displayName: (user) => user.sellerProfile?.businessName || user.email || 'Seller',
     notFound: { code: 'SELLER_NOT_FOUND', message: 'මෙම Email සහ NIC අංකයට ගැළපෙන ව්‍යවසායිකා ගිණුමක් නොමැත.' },
     sessionLength: '7d'
   },
   customer: {
     find: findByEmailAndNic('CUSTOMER', 'customerProfile'),
-    displayName: (user) => user.customerProfile.fullName,
+    displayName: (user) => user.customerProfile?.fullName || user.email || 'Customer',
     notFound: { code: 'CUSTOMER_NOT_FOUND', message: 'මෙම Email සහ NIC අංකයට ගැළපෙන පාරිභෝගික ගිණුමක් නොමැත.' },
     sessionLength: '7d'
   },
   admin: {
     find: findByEmailAndNic('SUPER_ADMIN', 'adminProfile'),
-    displayName: (user) => user.adminProfile.fullName,
+    displayName: (user) => user.adminProfile?.fullName || user.email || 'Admin',
     notFound: { code: 'ADMIN_NOT_FOUND', message: 'මෙම Email සහ NIC අංකයට ගැළපෙන පරිපාලක ගිණුමක් නොමැත.' },
     sessionLength: '8h' // admin sessions last one working day
   }

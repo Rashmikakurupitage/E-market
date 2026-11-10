@@ -15,13 +15,32 @@
   --color-ink: #1e2029;
   --color-cream: #fdf7ee;
   --color-sand: #f6ead6;
-  --color-magenta: #c8336f;
-  --color-magenta-dark: #a3245a;
-  --color-saffron: #ee7d2b;
+  --color-magenta: var(--color-magenta);
+  --color-magenta-dark: var(--color-magenta-dark);
+  --color-magenta-light: var(--color-magenta-light);
+  --color-saffron: var(--color-saffron);
   --color-turmeric: #f4b93e;
   --color-leaf: #4f9a52;
 
-  /* Brand scale (magenta), used for buttons, badges, links and banners on every page */
+  /* Brand scale, dynamically updated by active accent theme (Lotus, Ocean, Forest, Royal, Slate) */
+  --color-brand-50: var(--color-brand-50);
+  --color-brand-100: var(--color-brand-100);
+  --color-brand-200: var(--color-brand-200);
+  --color-brand-300: var(--color-brand-300);
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-600: var(--color-brand-600);
+  --color-brand-700: var(--color-brand-700);
+  --color-brand-800: var(--color-brand-800);
+  --color-brand-900: var(--color-brand-900);
+}
+
+/* Accent colour themes. "lotus" (the logo colours) is the default; the others re-colour the same tokens.
+   --accent-rgb / --accent2-rgb feed the background glows and dark-mode tints. */
+:root {
+  --color-magenta: #c8336f;
+  --color-magenta-dark: #a3245a;
+  --color-magenta-light: #f3b8d0;
+  --color-saffron: #ee7d2b;
   --color-brand-50: #fdf1f6;
   --color-brand-100: #fadce8;
   --color-brand-200: #f3b8d0;
@@ -31,19 +50,19 @@
   --color-brand-700: #a3245a;
   --color-brand-800: #4a1d3a;
   --color-brand-900: #1e2029;
-}
-
-/* Accent colour themes. "lotus" (the logo colours) is the default above; the others re-colour the same tokens.
-   --accent-rgb / --accent2-rgb feed the background glows. */
-:root {
   --accent-rgb: 200 51 111;
   --accent2-rgb: 238 125 43;
+  --theme-bg: #fdf7ee;
+  --theme-bg-glow1: rgb(244 185 62 / 0.32);
+  --theme-bg-glow2: rgb(79 154 82 / 0.18);
 }
-:root[data-accent='ocean'] {
+:root[data-accent='ocean'],
+[data-accent='ocean'] {
   --accent-rgb: 31 111 178;
   --accent2-rgb: 20 163 184;
   --color-magenta: #1f6fb2;
   --color-magenta-dark: #174f80;
+  --color-magenta-light: #b0d0ec;
   --color-saffron: #14a3b8;
   --color-brand-50: #eff6fc;
   --color-brand-100: #d8e8f6;
@@ -53,12 +72,18 @@
   --color-brand-600: #1f6fb2;
   --color-brand-700: #174f80;
   --color-brand-800: #12324f;
+  --color-brand-900: #0a1b2d;
+  --theme-bg: #f2f7fc;
+  --theme-bg-glow1: rgb(20 163 184 / 0.28);
+  --theme-bg-glow2: rgb(31 111 178 / 0.22);
 }
-:root[data-accent='forest'] {
+:root[data-accent='forest'],
+[data-accent='forest'] {
   --accent-rgb: 47 133 90;
   --accent2-rgb: 214 158 46;
   --color-magenta: #2f855a;
   --color-magenta-dark: #22633f;
+  --color-magenta-light: #a9d9bf;
   --color-saffron: #d69e2e;
   --color-brand-50: #eff8f3;
   --color-brand-100: #d5eddf;
@@ -68,12 +93,18 @@
   --color-brand-600: #2f855a;
   --color-brand-700: #22633f;
   --color-brand-800: #17402a;
+  --color-brand-900: #0c2317;
+  --theme-bg: #f3f8f4;
+  --theme-bg-glow1: rgb(214 158 46 / 0.26);
+  --theme-bg-glow2: rgb(47 133 90 / 0.22);
 }
-:root[data-accent='slate'] {
+:root[data-accent='slate'],
+[data-accent='slate'] {
   --accent-rgb: 51 65 85;
   --accent2-rgb: 100 116 139;
   --color-magenta: #334155;
   --color-magenta-dark: #1e293b;
+  --color-magenta-light: #cbd5e1;
   --color-saffron: #64748b;
   --color-brand-50: #f1f5f9;
   --color-brand-100: #e2e8f0;
@@ -83,12 +114,18 @@
   --color-brand-600: #334155;
   --color-brand-700: #1e293b;
   --color-brand-800: #0f172a;
+  --color-brand-900: #020617;
+  --theme-bg: #f3f5f7;
+  --theme-bg-glow1: rgb(100 116 139 / 0.26);
+  --theme-bg-glow2: rgb(51 65 85 / 0.22);
 }
-:root[data-accent='royal'] {
+:root[data-accent='royal'],
+[data-accent='royal'] {
   --accent-rgb: 107 70 193;
   --accent2-rgb: 217 70 127;
   --color-magenta: #6b46c1;
   --color-magenta-dark: #4f3399;
+  --color-magenta-light: #cbb9ea;
   --color-saffron: #d9467f;
   --color-brand-50: #f4f0fb;
   --color-brand-100: #e5dcf5;
@@ -98,25 +135,32 @@
   --color-brand-600: #6b46c1;
   --color-brand-700: #4f3399;
   --color-brand-800: #2e1f5c;
+  --color-brand-900: #170d32;
+  --theme-bg: #f7f3fb;
+  --theme-bg-glow1: rgb(217 70 127 / 0.26);
+  --theme-bg-glow2: rgb(107 70 193 / 0.22);
 }
 
-/* Background patterns: a faint texture over the whole page, behind the content */
+/* Background patterns: crisp texture over the whole page, behind the content */
 :root {
   --pattern-ink: 30 32 41;
   --pattern-image: none;
   --pattern-size: auto;
 }
-:root[data-pattern='dots'] {
-  --pattern-image: radial-gradient(rgb(var(--pattern-ink) / 0.16) 1.5px, transparent 1.8px);
-  --pattern-size: 24px 24px;
+:root[data-pattern='dots'],
+[data-pattern='dots'] {
+  --pattern-image: radial-gradient(rgb(var(--pattern-ink) / 0.35) 1.5px, transparent 1.8px);
+  --pattern-size: 18px 18px;
 }
-:root[data-pattern='lattice'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='none' stroke='%231e2029' stroke-opacity='0.16' stroke-width='1.5'%3E%3Cpath d='M24 0 48 24 24 48 0 24Z'/%3E%3Cpath d='M24 12 36 24 24 36 12 24Z'/%3E%3C/g%3E%3C/svg%3E");
-  --pattern-size: 48px 48px;
+:root[data-pattern='lattice'],
+[data-pattern='lattice'] {
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M16 0 32 16 16 32 0 16Z' fill='none' stroke='%231e2029' stroke-opacity='0.36' stroke-width='1.4'/%3E%3C/svg%3E");
+  --pattern-size: 32px 32px;
 }
-:root[data-pattern='waves'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='20' viewBox='0 0 60 20'%3E%3Cpath d='M0 10 Q15 0 30 10 T60 10' fill='none' stroke='%231e2029' stroke-opacity='0.16' stroke-width='1.5'/%3E%3C/svg%3E");
-  --pattern-size: 60px 20px;
+:root[data-pattern='waves'],
+[data-pattern='waves'] {
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16' viewBox='0 0 40 16'%3E%3Cpath d='M0 8 Q10 0 20 8 T40 8' fill='none' stroke='%231e2029' stroke-opacity='0.36' stroke-width='1.4'/%3E%3C/svg%3E");
+  --pattern-size: 40px 16px;
 }
 
 /* Dark mode variations for patterns */
@@ -127,26 +171,36 @@
 }
 :root[data-theme='dark'][data-pattern='dots'],
 :root.dark[data-pattern='dots'],
-.dark:root[data-pattern='dots'] {
-  --pattern-image: radial-gradient(rgb(255 255 255 / 0.16) 1.5px, transparent 1.8px);
+.dark:root[data-pattern='dots'],
+[data-theme='dark'] [data-pattern='dots'],
+.dark [data-pattern='dots'] {
+  --pattern-image: radial-gradient(rgb(255 255 255 / 0.32) 1.5px, transparent 1.8px);
+  --pattern-size: 18px 18px;
 }
 :root[data-theme='dark'][data-pattern='lattice'],
 :root.dark[data-pattern='lattice'],
-.dark:root[data-pattern='lattice'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cg fill='none' stroke='white' stroke-opacity='0.14' stroke-width='1.5'%3E%3Cpath d='M24 0 48 24 24 48 0 24Z'/%3E%3Cpath d='M24 12 36 24 24 36 12 24Z'/%3E%3C/g%3E%3C/svg%3E");
+.dark:root[data-pattern='lattice'],
+[data-theme='dark'] [data-pattern='lattice'],
+.dark [data-pattern='lattice'] {
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M16 0 32 16 16 32 0 16Z' fill='none' stroke='white' stroke-opacity='0.32' stroke-width='1.4'/%3E%3C/svg%3E");
+  --pattern-size: 32px 32px;
 }
 :root[data-theme='dark'][data-pattern='waves'],
 :root.dark[data-pattern='waves'],
-.dark:root[data-pattern='waves'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='20' viewBox='0 0 60 20'%3E%3Cpath d='M0 10 Q15 0 30 10 T60 10' fill='none' stroke='white' stroke-opacity='0.14' stroke-width='1.5'/%3E%3C/svg%3E");
+.dark:root[data-pattern='waves'],
+[data-theme='dark'] [data-pattern='waves'],
+.dark [data-pattern='waves'] {
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16' viewBox='0 0 40 16'%3E%3Cpath d='M0 8 Q10 0 20 8 T40 8' fill='none' stroke='white' stroke-opacity='0.32' stroke-width='1.4'/%3E%3C/svg%3E");
+  --pattern-size: 40px 16px;
 }
 
-/* Whole page background pattern overlay (behind content) */
-[data-pattern]:not([data-pattern='none']) body::before {
+/* Whole page background pattern overlay */
+html[data-pattern]:not([data-pattern='none']) body::before,
+body[data-pattern]:not([data-pattern='none'])::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: 1;
   pointer-events: none;
   background-image: var(--pattern-image);
   background-size: var(--pattern-size);
@@ -155,9 +209,9 @@
 }
 
 /* Small swatches shown in the colours and patterns menu */
-.pattern-preview[data-pattern-preview='dots'] { background-image: radial-gradient(rgb(30 32 41 / 0.4) 1.2px, transparent 1.6px); background-size: 8px 8px; }
-.pattern-preview[data-pattern-preview='lattice'] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 0 16 8 8 16 0 8Z' fill='none' stroke='%231e2029' stroke-opacity='0.45' stroke-width='1.2'/%3E%3C/svg%3E"); background-size: 16px 16px; }
-.pattern-preview[data-pattern-preview='waves'] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0 4 Q5 0 10 4 T20 4' fill='none' stroke='%231e2029' stroke-opacity='0.45' stroke-width='1.2'/%3E%3C/svg%3E"); background-size: 20px 8px; }
+.pattern-preview[data-pattern-preview='dots'] { background-image: radial-gradient(rgb(30 32 41 / 0.5) 1.2px, transparent 1.6px); background-size: 8px 8px; }
+.pattern-preview[data-pattern-preview='lattice'] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='M8 0 16 8 8 16 0 8Z' fill='none' stroke='%231e2029' stroke-opacity='0.55' stroke-width='1.2'/%3E%3C/svg%3E"); background-size: 16px 16px; }
+.pattern-preview[data-pattern-preview='waves'] { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='8' viewBox='0 0 20 8'%3E%3Cpath d='M0 4 Q5 0 10 4 T20 4' fill='none' stroke='%231e2029' stroke-opacity='0.55' stroke-width='1.2'/%3E%3C/svg%3E"); background-size: 20px 8px; }
 
 :root[data-theme='dark'] .pattern-preview[data-pattern-preview='dots'],
 :root.dark .pattern-preview[data-pattern-preview='dots'],
@@ -213,14 +267,14 @@ body {
   }
 }
 
-/* Cream background with soft saffron, magenta, turmeric and leaf glows */
+/* Adaptive mesh background with dynamic theme background and accent glows */
 .bg-mesh {
-  background-color: #fdf7ee;
+  background-color: var(--theme-bg, #fdf7ee);
   background-image:
-    radial-gradient(at 8% 12%, rgb(var(--accent2-rgb) / 0.26) 0, transparent 42%),
-    radial-gradient(at 92% 6%, rgb(var(--accent-rgb) / 0.24) 0, transparent 44%),
-    radial-gradient(at 62% 92%, rgb(244 185 62 / 0.32) 0, transparent 48%),
-    radial-gradient(at 4% 88%, rgb(79 154 82 / 0.18) 0, transparent 42%),
+    radial-gradient(at 8% 12%, rgb(var(--accent2-rgb) / 0.28) 0, transparent 42%),
+    radial-gradient(at 92% 6%, rgb(var(--accent-rgb) / 0.26) 0, transparent 44%),
+    radial-gradient(at 62% 92%, var(--theme-bg-glow1, rgb(244 185 62 / 0.32)) 0, transparent 48%),
+    radial-gradient(at 4% 88%, var(--theme-bg-glow2, rgb(79 154 82 / 0.18)) 0, transparent 42%),
     radial-gradient(at 48% 40%, rgb(255 255 255 / 0.7) 0, transparent 55%);
   /* Painted once for the whole window and held still while the page scrolls, so tall pages never show tile seams */
   background-attachment: fixed;

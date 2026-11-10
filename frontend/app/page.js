@@ -932,7 +932,7 @@ export default function Home() {
         <section className="mx-auto w-full max-w-7xl px-4 pb-8 sm:px-6">
           <Reveal
             animation="zoom-in"
-            className="relative isolate overflow-hidden rounded-3xl bg-linear-to-r from-magenta-dark via-magenta to-[#751642] px-6 py-10 text-white shadow-xl sm:px-12 sm:py-14"
+            className="relative isolate overflow-hidden rounded-3xl bg-linear-to-r from-magenta-dark via-magenta to-brand-800 px-6 py-10 text-white shadow-xl sm:px-12 sm:py-14"
           >
             <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10 opacity-15" />
             <Lotus color="white" className="pointer-events-none absolute -bottom-3 left-[48%] -z-10 hidden w-44 opacity-20 lg:block" />
