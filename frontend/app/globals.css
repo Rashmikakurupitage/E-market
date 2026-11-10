@@ -15,23 +15,23 @@
   --color-ink: #1e2029;
   --color-cream: #fdf7ee;
   --color-sand: #f6ead6;
-  --color-magenta: var(--color-magenta);
-  --color-magenta-dark: var(--color-magenta-dark);
-  --color-magenta-light: var(--color-magenta-light);
-  --color-saffron: var(--color-saffron);
+  --color-magenta: #c8336f;
+  --color-magenta-dark: #a3245a;
+  --color-magenta-light: #f3b8d0;
+  --color-saffron: #ee7d2b;
   --color-turmeric: #f4b93e;
   --color-leaf: #4f9a52;
 
-  /* Brand scale, dynamically updated by active accent theme (Lotus, Ocean, Forest, Royal, Slate) */
-  --color-brand-50: var(--color-brand-50);
-  --color-brand-100: var(--color-brand-100);
-  --color-brand-200: var(--color-brand-200);
-  --color-brand-300: var(--color-brand-300);
-  --color-brand-500: var(--color-brand-500);
-  --color-brand-600: var(--color-brand-600);
-  --color-brand-700: var(--color-brand-700);
-  --color-brand-800: var(--color-brand-800);
-  --color-brand-900: var(--color-brand-900);
+  /* Brand scale (magenta), used for buttons, badges, links and banners on every page */
+  --color-brand-50: #fdf1f6;
+  --color-brand-100: #fadce8;
+  --color-brand-200: #f3b8d0;
+  --color-brand-300: #e98bb1;
+  --color-brand-500: #d6487f;
+  --color-brand-600: #c8336f;
+  --color-brand-700: #a3245a;
+  --color-brand-800: #4a1d3a;
+  --color-brand-900: #1e2029;
 }
 
 /* Accent colour themes. "lotus" (the logo colours) is the default; the others re-colour the same tokens.
@@ -58,149 +58,160 @@
 }
 :root[data-accent='ocean'],
 [data-accent='ocean'] {
-  --accent-rgb: 31 111 178;
-  --accent2-rgb: 20 163 184;
-  --color-magenta: #1f6fb2;
-  --color-magenta-dark: #174f80;
-  --color-magenta-light: #b0d0ec;
-  --color-saffron: #14a3b8;
-  --color-brand-50: #eff6fc;
-  --color-brand-100: #d8e8f6;
-  --color-brand-200: #b0d0ec;
-  --color-brand-300: #78afdd;
-  --color-brand-500: #2b84cc;
-  --color-brand-600: #1f6fb2;
-  --color-brand-700: #174f80;
-  --color-brand-800: #12324f;
-  --color-brand-900: #0a1b2d;
-  --theme-bg: #f2f7fc;
-  --theme-bg-glow1: rgb(20 163 184 / 0.28);
-  --theme-bg-glow2: rgb(31 111 178 / 0.22);
+  --accent-rgb: 31 111 178 !important;
+  --accent2-rgb: 20 163 184 !important;
+  --color-magenta: #1f6fb2 !important;
+  --color-magenta-dark: #174f80 !important;
+  --color-magenta-light: #b0d0ec !important;
+  --color-saffron: #14a3b8 !important;
+  --color-brand-50: #eff6fc !important;
+  --color-brand-100: #d8e8f6 !important;
+  --color-brand-200: #b0d0ec !important;
+  --color-brand-300: #78afdd !important;
+  --color-brand-500: #2b84cc !important;
+  --color-brand-600: #1f6fb2 !important;
+  --color-brand-700: #174f80 !important;
+  --color-brand-800: #12324f !important;
+  --color-brand-900: #0a1b2d !important;
+  --theme-bg: #f2f7fc !important;
+  --theme-bg-glow1: rgb(20 163 184 / 0.28) !important;
+  --theme-bg-glow2: rgb(31 111 178 / 0.22) !important;
 }
 :root[data-accent='forest'],
 [data-accent='forest'] {
-  --accent-rgb: 47 133 90;
-  --accent2-rgb: 214 158 46;
-  --color-magenta: #2f855a;
-  --color-magenta-dark: #22633f;
-  --color-magenta-light: #a9d9bf;
-  --color-saffron: #d69e2e;
-  --color-brand-50: #eff8f3;
-  --color-brand-100: #d5eddf;
-  --color-brand-200: #a9d9bf;
-  --color-brand-300: #72bd96;
-  --color-brand-500: #3a9a6a;
-  --color-brand-600: #2f855a;
-  --color-brand-700: #22633f;
-  --color-brand-800: #17402a;
-  --color-brand-900: #0c2317;
-  --theme-bg: #f3f8f4;
-  --theme-bg-glow1: rgb(214 158 46 / 0.26);
-  --theme-bg-glow2: rgb(47 133 90 / 0.22);
+  --accent-rgb: 47 133 90 !important;
+  --accent2-rgb: 214 158 46 !important;
+  --color-magenta: #2f855a !important;
+  --color-magenta-dark: #22633f !important;
+  --color-magenta-light: #a9d9bf !important;
+  --color-saffron: #d69e2e !important;
+  --color-brand-50: #eff8f3 !important;
+  --color-brand-100: #d5eddf !important;
+  --color-brand-200: #a9d9bf !important;
+  --color-brand-300: #72bd96 !important;
+  --color-brand-500: #3a9a6a !important;
+  --color-brand-600: #2f855a !important;
+  --color-brand-700: #22633f !important;
+  --color-brand-800: #17402a !important;
+  --color-brand-900: #0c2317 !important;
+  --theme-bg: #f3f8f4 !important;
+  --theme-bg-glow1: rgb(214 158 46 / 0.26) !important;
+  --theme-bg-glow2: rgb(47 133 90 / 0.22) !important;
 }
 :root[data-accent='slate'],
 [data-accent='slate'] {
-  --accent-rgb: 51 65 85;
-  --accent2-rgb: 100 116 139;
-  --color-magenta: #334155;
-  --color-magenta-dark: #1e293b;
-  --color-magenta-light: #cbd5e1;
-  --color-saffron: #64748b;
-  --color-brand-50: #f1f5f9;
-  --color-brand-100: #e2e8f0;
-  --color-brand-200: #cbd5e1;
-  --color-brand-300: #94a3b8;
-  --color-brand-500: #475569;
-  --color-brand-600: #334155;
-  --color-brand-700: #1e293b;
-  --color-brand-800: #0f172a;
-  --color-brand-900: #020617;
-  --theme-bg: #f3f5f7;
-  --theme-bg-glow1: rgb(100 116 139 / 0.26);
-  --theme-bg-glow2: rgb(51 65 85 / 0.22);
+  --accent-rgb: 51 65 85 !important;
+  --accent2-rgb: 100 116 139 !important;
+  --color-magenta: #334155 !important;
+  --color-magenta-dark: #1e293b !important;
+  --color-magenta-light: #cbd5e1 !important;
+  --color-saffron: #64748b !important;
+  --color-brand-50: #f1f5f9 !important;
+  --color-brand-100: #e2e8f0 !important;
+  --color-brand-200: #cbd5e1 !important;
+  --color-brand-300: #94a3b8 !important;
+  --color-brand-500: #475569 !important;
+  --color-brand-600: #334155 !important;
+  --color-brand-700: #1e293b !important;
+  --color-brand-800: #0f172a !important;
+  --color-brand-900: #020617 !important;
+  --theme-bg: #f3f5f7 !important;
+  --theme-bg-glow1: rgb(100 116 139 / 0.26) !important;
+  --theme-bg-glow2: rgb(51 65 85 / 0.22) !important;
 }
 :root[data-accent='royal'],
 [data-accent='royal'] {
-  --accent-rgb: 107 70 193;
-  --accent2-rgb: 217 70 127;
-  --color-magenta: #6b46c1;
-  --color-magenta-dark: #4f3399;
-  --color-magenta-light: #cbb9ea;
-  --color-saffron: #d9467f;
-  --color-brand-50: #f4f0fb;
-  --color-brand-100: #e5dcf5;
-  --color-brand-200: #cbb9ea;
-  --color-brand-300: #a88ad8;
-  --color-brand-500: #7c58cf;
-  --color-brand-600: #6b46c1;
-  --color-brand-700: #4f3399;
-  --color-brand-800: #2e1f5c;
-  --color-brand-900: #170d32;
-  --theme-bg: #f7f3fb;
-  --theme-bg-glow1: rgb(217 70 127 / 0.26);
-  --theme-bg-glow2: rgb(107 70 193 / 0.22);
+  --accent-rgb: 107 70 193 !important;
+  --accent2-rgb: 217 70 127 !important;
+  --color-magenta: #6b46c1 !important;
+  --color-magenta-dark: #4f3399 !important;
+  --color-magenta-light: #cbb9ea !important;
+  --color-saffron: #d9467f !important;
+  --color-brand-50: #f4f0fb !important;
+  --color-brand-100: #e5dcf5 !important;
+  --color-brand-200: #cbb9ea !important;
+  --color-brand-300: #a88ad8 !important;
+  --color-brand-500: #7c58cf !important;
+  --color-brand-600: #6b46c1 !important;
+  --color-brand-700: #4f3399 !important;
+  --color-brand-800: #2e1f5c !important;
+  --color-brand-900: #170d32 !important;
+  --theme-bg: #f7f3fb !important;
+  --theme-bg-glow1: rgb(217 70 127 / 0.26) !important;
+  --theme-bg-glow2: rgb(107 70 193 / 0.22) !important;
 }
 
-/* Background patterns: crisp texture over the whole page, behind the content */
+/* Background patterns: crisp texture over the whole page, behind content */
 :root {
-  --pattern-ink: 30 32 41;
   --pattern-image: none;
   --pattern-size: auto;
 }
 :root[data-pattern='dots'],
 [data-pattern='dots'] {
-  --pattern-image: radial-gradient(rgb(var(--pattern-ink) / 0.35) 1.5px, transparent 1.8px);
-  --pattern-size: 18px 18px;
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='2' fill='%231e2029' fill-opacity='0.35'/%3E%3C/svg%3E");
+  --pattern-size: 24px 24px;
 }
 :root[data-pattern='lattice'],
 [data-pattern='lattice'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M16 0 32 16 16 32 0 16Z' fill='none' stroke='%231e2029' stroke-opacity='0.36' stroke-width='1.4'/%3E%3C/svg%3E");
-  --pattern-size: 32px 32px;
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M18 0 36 18 18 36 0 18Z' fill='none' stroke='%231e2029' stroke-opacity='0.35' stroke-width='1.5'/%3E%3C/svg%3E");
+  --pattern-size: 36px 36px;
 }
 :root[data-pattern='waves'],
 [data-pattern='waves'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16' viewBox='0 0 40 16'%3E%3Cpath d='M0 8 Q10 0 20 8 T40 8' fill='none' stroke='%231e2029' stroke-opacity='0.36' stroke-width='1.4'/%3E%3C/svg%3E");
-  --pattern-size: 40px 16px;
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='18' viewBox='0 0 48 18'%3E%3Cpath d='M0 9 Q12 0 24 9 T48 9' fill='none' stroke='%231e2029' stroke-opacity='0.35' stroke-width='1.5'/%3E%3C/svg%3E");
+  --pattern-size: 48px 18px;
 }
 
 /* Dark mode variations for patterns */
-:root[data-theme='dark'],
-:root.dark,
-.dark {
-  --pattern-ink: 255 255 255;
-}
 :root[data-theme='dark'][data-pattern='dots'],
 :root.dark[data-pattern='dots'],
 .dark:root[data-pattern='dots'],
 [data-theme='dark'] [data-pattern='dots'],
 .dark [data-pattern='dots'] {
-  --pattern-image: radial-gradient(rgb(255 255 255 / 0.32) 1.5px, transparent 1.8px);
-  --pattern-size: 18px 18px;
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='2' fill='white' fill-opacity='0.35'/%3E%3C/svg%3E");
+  --pattern-size: 24px 24px;
 }
 :root[data-theme='dark'][data-pattern='lattice'],
 :root.dark[data-pattern='lattice'],
 .dark:root[data-pattern='lattice'],
 [data-theme='dark'] [data-pattern='lattice'],
 .dark [data-pattern='lattice'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath d='M16 0 32 16 16 32 0 16Z' fill='none' stroke='white' stroke-opacity='0.32' stroke-width='1.4'/%3E%3C/svg%3E");
-  --pattern-size: 32px 32px;
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M18 0 36 18 18 36 0 18Z' fill='none' stroke='white' stroke-opacity='0.35' stroke-width='1.5'/%3E%3C/svg%3E");
+  --pattern-size: 36px 36px;
 }
 :root[data-theme='dark'][data-pattern='waves'],
 :root.dark[data-pattern='waves'],
 .dark:root[data-pattern='waves'],
 [data-theme='dark'] [data-pattern='waves'],
 .dark [data-pattern='waves'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16' viewBox='0 0 40 16'%3E%3Cpath d='M0 8 Q10 0 20 8 T40 8' fill='none' stroke='white' stroke-opacity='0.32' stroke-width='1.4'/%3E%3C/svg%3E");
-  --pattern-size: 40px 16px;
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='18' viewBox='0 0 48 18'%3E%3Cpath d='M0 9 Q12 0 24 9 T48 9' fill='none' stroke='white' stroke-opacity='0.35' stroke-width='1.5'/%3E%3C/svg%3E");
+  --pattern-size: 48px 18px;
 }
 
-/* Whole page background pattern overlay */
+/* Dedicated full-page pattern layer */
+#page-pattern-layer {
+  display: none;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image: var(--pattern-image);
+  background-size: var(--pattern-size);
+  background-repeat: repeat;
+  background-attachment: fixed;
+}
+html[data-pattern]:not([data-pattern='none']) #page-pattern-layer,
+body[data-pattern]:not([data-pattern='none']) #page-pattern-layer {
+  display: block;
+}
+
+/* Fallback whole page background pattern overlay */
 html[data-pattern]:not([data-pattern='none']) body::before,
 body[data-pattern]:not([data-pattern='none'])::before {
   content: '';
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
   background-image: var(--pattern-image);
   background-size: var(--pattern-size);

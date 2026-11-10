@@ -68,6 +68,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       {/* Browser extensions (e.g. converters, translators) add attributes to <body>; don't treat that as a hydration error */}
       <body className="bg-mesh relative isolate flex min-h-full flex-col text-ink w-full max-w-full overflow-x-clip" suppressHydrationWarning>
+        <div id="page-pattern-layer" aria-hidden="true" />
         <LanguageProvider>
           <SiteFrame>{children}</SiteFrame>
           <AppShell />
