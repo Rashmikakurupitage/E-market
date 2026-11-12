@@ -351,6 +351,8 @@ export const translations = {
       loginInfo: 'ඊළඟ වතාවේ ඔබේ email සහ මුරපදය සමඟ log වන්න. ඔබගේ ගිණුම සෑදීමෙන් පසුව ඕනෑම වේලාවක පිවිසිය හැක.',
       showPassword: 'මුරපදය පෙන්වන්න',
       verifyNow: 'දැන් තහවුරු කරන්න',
+      emailOptionalNote: 'විද්‍යුත් තැපෑල තහවුරු කිරීම විකල්ප වේ (අත්‍යවශ්‍ය නොවේ). ඔබට දැන්ම ගිණුම භාවිත කළ හැක.',
+      verifyEmailOptional: 'Email එක තහවුරු කරන්න (විකල්ප)',
       passwordRule: 'අවම වශයෙන් අක්ෂර 8ක්, ඉංග්‍රීසි කැපිටල් අකුරක් සහ ඉලක්කමක් හෝ සංකේතයක් අවශ්‍යයි.',
       hidePassword: 'මුරපදය සඟවන්න',
       haveAccount: 'දැනටමත් ලියාපදිංචි වී සිටිනවාද?',
@@ -494,6 +496,8 @@ export const translations = {
       email: 'විද්‍යුත් තැපෑල',
       showPassword: 'මුරපදය පෙන්වන්න',
       verifyNow: 'දැන් තහවුරු කරන්න',
+      emailOptionalNote: 'විද්‍යුත් තැපෑල තහවුරු කිරීම විකල්ප වේ (අත්‍යවශ්‍ය නොවේ). ඔබට දැන්ම ගිණුම භාවිත කළ හැක.',
+      verifyEmailOptional: 'Email එක තහවුරු කරන්න (විකල්ප)',
       passwordRule: 'අවම වශයෙන් අක්ෂර 8ක්, ඉංග්‍රීසි කැපිටල් අකුරක් සහ ඉලක්කමක් හෝ සංකේතයක් අවශ්‍යයි.',
       hidePassword: 'මුරපදය සඟවන්න',
       nic: 'ජාතික හැඳුනුම්පත් අංකය (NIC)',
@@ -1289,6 +1293,8 @@ export const translations = {
 
     verify: {
       title: 'ඔබේ email එක තහවුරු කරන්න',
+      optionalBadge: 'විකල්ප (අත්‍යවශ්‍ය නොවේ)',
+      skipButton: 'දැනට මඟහැර ඉදිරියට යන්න',
       subtitle: 'ඔබේ ගිණුම ආරම්භ කිරීමට email එකට යවන කේතය ඇතුළත් කරන්න.',
       stepsTitle: 'පියවර',
       steps: ['ලියාපදිංචි වීමේ තොරතුරු පුරවන්න', 'ඔබේ email එකට ලැබෙන ඉලක්කම් 6ක කේතය ඇතුළත් කරන්න', 'ඔබේ ගිණුම සෘජුවම අනුමත වී ක්‍රියාත්මක වේ'],
@@ -2280,6 +2286,8 @@ export const translations = {
       lastName: 'Last name',
       email: 'Email',
       loginInfo: 'Next time, log in with your email and password. You can sign in anytime after creating your account.',
+      emailOptionalNote: 'Email verification is optional — your account works immediately without verifying.',
+      verifyEmailOptional: 'Verify email now (Optional)',
       showPassword: 'Show password',
       verifyNow: 'Verify now',
       passwordRule: 'At least 8 characters, one capital letter, and one number or symbol.',
@@ -3220,6 +3228,8 @@ export const translations = {
 
     verify: {
       title: 'Verify your email',
+      optionalBadge: 'Optional',
+      skipButton: 'Skip for now & continue',
       subtitle: 'Enter the code we emailed you to activate your account.',
       stepsTitle: 'Steps',
       steps: ['Fill in the registration form', 'Type the 6-digit code sent to your email', 'Your account is approved and ready to use'],
@@ -4211,6 +4221,8 @@ export const translations = {
       lastName: 'கடைசிப் பெயர்',
       email: 'மின்னஞ்சல்',
       loginInfo: 'அடுத்த முறை உங்கள் மின்னஞ்சல் மற்றும் கடவுச்சொல்லுடன் உள்நுழையுங்கள். கணக்கை உருவாக்கிய பின் எந்த நேரமும் உள்நுழையலாம்.',
+      emailOptionalNote: 'மின்னஞ்சல் உறுதிப்படுத்தல் விருப்பத்தேர்வானது (கட்டாயமில்லை). உங்கள் கணக்கு உடனே செயல்படும்.',
+      verifyEmailOptional: 'மின்னஞ்சலை உறுதிப்படுத்துங்கள் (விருப்பம்)',
       showPassword: 'கடவுச்சொல்லைக் காட்டு',
       verifyNow: 'இப்போது உறுதிப்படுத்துங்கள்',
       passwordRule: 'குறைந்தது 8 எழுத்துகள், ஒரு பெரிய எழுத்து, மற்றும் ஒரு எண் அல்லது குறியீடு தேவை.',
@@ -5151,6 +5163,8 @@ export const translations = {
 
     verify: {
       title: 'உங்கள் மின்னஞ்சலை உறுதிப்படுத்துங்கள்',
+      optionalBadge: 'விருப்பத்தேர்வு (கட்டாயமில்லை)',
+      skipButton: 'இப்போது தவிர்த்துத் தொடரவும்',
       subtitle: 'உங்கள் கணக்கைச் செயல்படுத்த மின்னஞ்சலுக்கு அனுப்பிய குறியீட்டை உள்ளிடவும்.',
       stepsTitle: 'படிகள்',
       steps: ['பதிவுப் படிவத்தை நிரப்புங்கள்', 'மின்னஞ்சலுக்கு வரும் 6 இலக்கக் குறியீட்டை உள்ளிடுங்கள்', 'உங்கள் கணக்கு உடனடியாக அங்கீகரிக்கப்பட்டுப் பயன்பாட்டுக்குத் தயாராகும்'],

@@ -291,8 +291,8 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         onVerify(res.data.email);
         return;
       }
-      saveSession(res.data.token, res.data.user);
-      onRegistered();
+      saveSession(res.data.user);
+      onRegistered({ email: res.data.email, emailSent: Boolean(res.data.emailSent) });
     } catch (err) {
       if (!err.response) {
         setError(r.networkError);
@@ -371,7 +371,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
               className={inputClass(false)}
             />
           </Field>
-          <Field id="email" label={r.email} required className="sm:col-span-2">
+          <Field id="email" label={r.email} required hint={r.emailOptionalNote || 'Email verification is optional — your account works immediately without verifying.'} className="sm:col-span-2">
             <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
           </Field>
 
@@ -594,8 +594,8 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
         onVerify(res.data.email);
         return;
       }
-      saveSession(res.data.token, res.data.user);
-      onRegistered();
+      saveSession(res.data.user);
+      onRegistered({ email: res.data.email, emailSent: Boolean(res.data.emailSent) });
     } catch (err) {
       if (!err.response) {
         setError(r.networkError);
@@ -653,7 +653,7 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
             />
           </Field>
           <div className="sm:col-span-2">
-            <Field id="email" label={r.email} required>
+            <Field id="email" label={r.email} required hint={r.emailOptionalNote || 'Email verification is optional — your account works immediately without verifying.'}>
               <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
             </Field>
           </div>
@@ -695,17 +695,17 @@ function Register() {
   const r = t.register;
   const c = t.customer;
   const type = useAccountType();
-  const [registered, setRegistered] = useState(null); // 'seller' | 'customer' once signed up
+  const [registered, setRegistered] = useState(null); // { role: 'seller' | 'customer', email, emailSent } once signed up
 
   // Customers sent here from the Store's checkout go back there after signing up
   const next = safeNextPath(useSearchParams().get('next'));
-  const nextPage = registered === 'customer' ? next || '/account' : '/dashboard';
+  const nextPage = registered?.role === 'customer' ? next || '/account' : '/dashboard';
 
-  // After sign-up, a code is emailed and the person enters it on the verification page
+  // Optional verification page if user chooses to verify
   const goVerify = (email) =>
     router.push(`/verify-email?email=${encodeURIComponent(email)}&as=${type}${next ? `&next=${encodeURIComponent(next)}` : ''}`);
 
-  // After a successful sign-up, move on to the dashboard (sellers) or account page (customers)
+  // After a successful sign-up, move straight on to the dashboard (sellers) or account page (customers)
   useEffect(() => {
     if (!registered) return;
     const timer = setTimeout(() => router.push(nextPage), 2500);
@@ -730,15 +730,26 @@ function Register() {
                 <CircleCheck className="h-9 w-9 text-brand-600" />
               </span>
               <h2 className="mt-6 text-2xl font-extrabold text-slate-900">{r.successTitle}</h2>
-              <p className="mt-2 max-w-sm text-sm text-slate-500">{registered === 'customer' ? c.successSub : r.successSub}</p>
-              <button
-                type="button"
-                onClick={() => router.push(nextPage)}
-                className="mt-6 inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-700"
-              >
-                {registered === 'customer' ? c.goToAccount : r.goToDashboard}
-                <ArrowRight className="h-4 w-4" />
-              </button>
+              <p className="mt-2 max-w-sm text-sm text-slate-500">{registered.role === 'customer' ? c.successSub : r.successSub}</p>
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => router.push(nextPage)}
+                  className="inline-flex items-center gap-2 rounded-full bg-brand-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-brand-700"
+                >
+                  {registered.role === 'customer' ? c.goToAccount : r.goToDashboard}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+                {registered.email && registered.emailSent && (
+                  <button
+                    type="button"
+                    onClick={() => goVerify(registered.email)}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 bg-white px-4 py-2.5 text-xs font-semibold text-ink/75 hover:border-brand-300 hover:text-brand-700"
+                  >
+                    {r.verifyEmailOptional || 'Verify email now (Optional)'}
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <>
@@ -746,9 +757,9 @@ function Register() {
                 <AccountTypeTabs basePath="/register" current={type} />
               </div>
               {type === 'customer' ? (
-                <CustomerRegisterForm onRegistered={() => setRegistered('customer')} onVerify={goVerify} />
+                <CustomerRegisterForm onRegistered={(info) => setRegistered({ role: 'customer', ...info })} onVerify={goVerify} />
               ) : (
-                <SellerRegisterForm onRegistered={() => setRegistered('seller')} onVerify={goVerify} />
+                <SellerRegisterForm onRegistered={(info) => setRegistered({ role: 'seller', ...info })} onVerify={goVerify} />
               )}
             </>
           )}
