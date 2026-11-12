@@ -134,25 +134,6 @@ export const ACCENTS = [
 
 export const PATTERNS = ['none', 'dots', 'lattice', 'waves'];
 
-export const PATTERN_CONFIG = {
-  none: { image: 'none', size: 'auto' },
-  dots: {
-    image: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='2' fill='%231e2029' fill-opacity='0.35'/%3E%3C/svg%3E")`,
-    darkImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='2' fill='white' fill-opacity='0.35'/%3E%3C/svg%3E")`,
-    size: '24px 24px',
-  },
-  lattice: {
-    image: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M18 0 36 18 18 36 0 18Z' fill='none' stroke='%231e2029' stroke-opacity='0.35' stroke-width='1.5'/%3E%3C/svg%3E")`,
-    darkImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M18 0 36 18 18 36 0 18Z' fill='none' stroke='white' stroke-opacity='0.35' stroke-width='1.5'/%3E%3C/svg%3E")`,
-    size: '36px 36px',
-  },
-  waves: {
-    image: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='18' viewBox='0 0 48 18'%3E%3Cpath d='M0 9 Q12 0 24 9 T48 9' fill='none' stroke='%231e2029' stroke-opacity='0.35' stroke-width='1.5'/%3E%3C/svg%3E")`,
-    darkImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='18' viewBox='0 0 48 18'%3E%3Cpath d='M0 9 Q12 0 24 9 T48 9' fill='none' stroke='white' stroke-opacity='0.35' stroke-width='1.5'/%3E%3C/svg%3E")`,
-    size: '48px 18px',
-  },
-};
-
 const KEYS = { accent: 'lw-accent', pattern: 'lw-pattern' };
 const DEFAULTS = { accent: 'lotus', pattern: 'none' };
 const listeners = new Set();
@@ -163,7 +144,6 @@ export function applyAppearanceToDOM(accent, pattern) {
   if (typeof document === 'undefined') return;
   const doc = document.documentElement;
   const body = document.body;
-  const isDark = doc.classList.contains('dark') || doc.getAttribute('data-theme') === 'dark';
 
   // 1. Accent data attributes & style properties
   if (accent === 'lotus' || !accent) {
@@ -183,21 +163,15 @@ export function applyAppearanceToDOM(accent, pattern) {
     }
   }
 
-  // 2. Pattern data attributes & style properties
+  // 2. Pattern data attributes (CSS rules in globals.css handle light & dark pattern ink dynamically)
+  doc.style.removeProperty('--pattern-image');
+  doc.style.removeProperty('--pattern-size');
   if (pattern === 'none' || !pattern) {
     doc.removeAttribute('data-pattern');
     if (body) body.removeAttribute('data-pattern');
-    doc.style.removeProperty('--pattern-image');
-    doc.style.removeProperty('--pattern-size');
   } else {
     doc.setAttribute('data-pattern', pattern);
     if (body) body.setAttribute('data-pattern', pattern);
-    const cfg = PATTERN_CONFIG[pattern];
-    if (cfg) {
-      const img = isDark ? cfg.darkImage || cfg.image : cfg.image;
-      doc.style.setProperty('--pattern-image', img);
-      doc.style.setProperty('--pattern-size', cfg.size);
-    }
   }
 }
 

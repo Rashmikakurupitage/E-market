@@ -184,7 +184,7 @@ export default function SiteHeader() {
           transform: hidden && !menuOpen ? 'translateY(-100%)' : 'translateY(0)',
           transition: 'transform 300ms cubic-bezier(0.16, 1, 0.3, 1)',
         }}
-        className={`sticky z-50 w-full max-w-full overflow-x-clip border-b border-ink/10 bg-white/95 backdrop-blur-md will-change-transform dark:border-white/10 dark:bg-slate-900/95 ${
+        className={`sticky z-50 w-full max-w-full border-b border-ink/10 bg-white/95 backdrop-blur-md will-change-transform dark:border-white/10 dark:bg-slate-900/95 ${
           scrolled ? 'shadow-md shadow-ink/5 dark:shadow-black/20' : ''
         } ${hidden && !menuOpen ? 'pointer-events-none' : ''}`}
       >
