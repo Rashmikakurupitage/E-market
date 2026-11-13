@@ -149,9 +149,12 @@ export function applyAppearanceToDOM(accent, pattern) {
   if (accent === 'lotus' || !accent) {
     doc.removeAttribute('data-accent');
     if (body) body.removeAttribute('data-accent');
-    // Clear custom accent style properties from documentElement
+    // Clear custom accent style properties from documentElement and body
     const lotusVars = ACCENTS[0].vars;
-    Object.keys(lotusVars).forEach((prop) => doc.style.removeProperty(prop));
+    Object.keys(lotusVars).forEach((prop) => {
+      doc.style.removeProperty(prop);
+      if (body) body.style.removeProperty(prop);
+    });
   } else {
     doc.setAttribute('data-accent', accent);
     if (body) body.setAttribute('data-accent', accent);
@@ -159,6 +162,7 @@ export function applyAppearanceToDOM(accent, pattern) {
     if (accentObj?.vars) {
       Object.entries(accentObj.vars).forEach(([prop, val]) => {
         doc.style.setProperty(prop, val);
+        if (body) body.style.setProperty(prop, val);
       });
     }
   }

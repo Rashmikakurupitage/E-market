@@ -148,17 +148,17 @@
 }
 :root[data-pattern='dots'],
 [data-pattern='dots'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='1.75' fill='%231e2029' fill-opacity='0.26'/%3E%3C/svg%3E");
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='2' fill='%231e2029' fill-opacity='0.4'/%3E%3C/svg%3E");
   --pattern-size: 24px 24px;
 }
 :root[data-pattern='lattice'],
 [data-pattern='lattice'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M18 0 36 18 18 36 0 18Z' fill='none' stroke='%231e2029' stroke-opacity='0.24' stroke-width='1.35'/%3E%3C/svg%3E");
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M18 0 36 18 18 36 0 18Z' fill='none' stroke='%231e2029' stroke-opacity='0.36' stroke-width='1.5'/%3E%3C/svg%3E");
   --pattern-size: 36px 36px;
 }
 :root[data-pattern='waves'],
 [data-pattern='waves'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='18' viewBox='0 0 48 18'%3E%3Cpath d='M0 9 Q12 0 24 9 T48 9' fill='none' stroke='%231e2029' stroke-opacity='0.24' stroke-width='1.35'/%3E%3C/svg%3E");
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='18' viewBox='0 0 48 18'%3E%3Cpath d='M0 9 Q12 0 24 9 T48 9' fill='none' stroke='%231e2029' stroke-opacity='0.36' stroke-width='1.5'/%3E%3C/svg%3E");
   --pattern-size: 48px 18px;
 }
 
@@ -168,7 +168,7 @@
 .dark:root[data-pattern='dots'],
 [data-theme='dark'] [data-pattern='dots'],
 .dark [data-pattern='dots'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='1.75' fill='white' fill-opacity='0.24'/%3E%3C/svg%3E");
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='2' fill='white' fill-opacity='0.35'/%3E%3C/svg%3E");
   --pattern-size: 24px 24px;
 }
 :root[data-theme='dark'][data-pattern='lattice'],
@@ -176,7 +176,7 @@
 .dark:root[data-pattern='lattice'],
 [data-theme='dark'] [data-pattern='lattice'],
 .dark [data-pattern='lattice'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M18 0 36 18 18 36 0 18Z' fill='none' stroke='white' stroke-opacity='0.22' stroke-width='1.35'/%3E%3C/svg%3E");
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='36' height='36' viewBox='0 0 36 36'%3E%3Cpath d='M18 0 36 18 18 36 0 18Z' fill='none' stroke='white' stroke-opacity='0.32' stroke-width='1.5'/%3E%3C/svg%3E");
   --pattern-size: 36px 36px;
 }
 :root[data-theme='dark'][data-pattern='waves'],
@@ -184,21 +184,29 @@
 .dark:root[data-pattern='waves'],
 [data-theme='dark'] [data-pattern='waves'],
 .dark [data-pattern='waves'] {
-  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='18' viewBox='0 0 48 18'%3E%3Cpath d='M0 9 Q12 0 24 9 T48 9' fill='none' stroke='white' stroke-opacity='0.22' stroke-width='1.35'/%3E%3C/svg%3E");
+  --pattern-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='18' viewBox='0 0 48 18'%3E%3Cpath d='M0 9 Q12 0 24 9 T48 9' fill='none' stroke='white' stroke-opacity='0.32' stroke-width='1.5'/%3E%3C/svg%3E");
   --pattern-size: 48px 18px;
 }
 
-/* Dedicated full-page pattern layer */
+/* Dedicated full-page pattern layer - sits above content backgrounds to give visible texture while clicks pass through */
 #page-pattern-layer {
   display: none;
   position: fixed;
   inset: 0;
   pointer-events: none;
-  z-index: 0;
+  z-index: 35;
   background-image: var(--pattern-image);
   background-size: var(--pattern-size);
   background-repeat: repeat;
   background-attachment: fixed;
+  opacity: 0.55;
+  mix-blend-mode: multiply;
+}
+:root[data-theme='dark'] #page-pattern-layer,
+:root.dark #page-pattern-layer,
+.dark #page-pattern-layer {
+  opacity: 0.4;
+  mix-blend-mode: screen;
 }
 html[data-pattern]:not([data-pattern='none']) #page-pattern-layer,
 body[data-pattern]:not([data-pattern='none']) #page-pattern-layer {
