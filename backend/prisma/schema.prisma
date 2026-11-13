@@ -115,7 +115,6 @@ model AdminProfile {
 }
 
 model SellerProfile {
-<<<<<<< Updated upstream
   id           String            @id @default(uuid())
   userId       String            @unique
   user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -126,17 +125,6 @@ model SellerProfile {
   firstName    String?
   dateOfBirth  DateTime?         @db.Date // worked out from the NIC number at sign-up
   lastName     String?
-=======
-  id                   String                   @id @default(uuid())
-  userId               String                   @unique
-  user                 User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  businessName         String
-  description          String?
-  district             String
-  firstName            String?
-  dateOfBirth          DateTime?                @db.Date // worked out from the NIC number at sign-up
-  lastName             String?
->>>>>>> Stashed changes
   // Old plain-text column: now only holds a placeholder. The real NIC is kept encrypted (see utils/nicVault.js).
   nicNumber            String                   @unique
   nicHash              String?                  @unique // lets the site spot a NIC that is already registered without storing it
@@ -282,42 +270,24 @@ model SellerReview {
 }
 
 model ClickAnalytics {
-  id        String         @id @default(uuid())
-  productId String?
-  product   Product?       @relation(fields: [productId], references: [id], onDelete: Cascade)
-  sellerId  String?
-  seller    SellerProfile? @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  channel   String
-  createdAt DateTime       @default(now())
+  id            String        @id @default(uuid())
+  productId     String?
+  product       Product?      @relation(fields: [productId], references: [id], onDelete: SetNull)
+  sellerId      String
+  seller        SellerProfile @relation(fields: [sellerId], references: [id], onDelete: Restrict)
+  type          String        @map("targetPlatform")
+  timestamp     DateTime      @default(now())
 }
 
 enum OrderStatus {
   PENDING
-  ACCEPTED
+  CONFIRMED
+  SHIPPED
   CANCELLED
   DELIVERED
 }
 
 model Order {
-<<<<<<< Updated upstream
-  id              String          @id @default(uuid())
-  orderNumber     String          @unique
-  customerId      String
-  customer        CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  sellerId        String
-  seller          SellerProfile   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  customerName    String
-  customerPhone   String
-  customerAddress String
-  district        String
-  totalAmount     Decimal
-  status          OrderStatus     @default(PENDING)
-  notes           String?
-  items           OrderItem[]
-  complaints      Complaint[]
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-=======
   id                  String          @id @default(uuid())
   reference           String
   customerId          String
@@ -339,53 +309,31 @@ model Order {
   complaints          Complaint[]
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
->>>>>>> Stashed changes
 
   @@index([sellerId])
   @@index([customerId])
+  @@index([reference])
 }
 
 model OrderItem {
-  id          String   @id @default(uuid())
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  productId   String
-  product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  quantity    Int
-  price       Decimal
-  productName String
-  createdAt   DateTime @default(now())
+  id        String   @id @default(uuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  title     String
+  image     String?
+  price     Decimal
+  quantity  Int
 
   @@index([orderId])
 }
 
 enum ComplaintStatus {
   OPEN
-  UNDER_REVIEW
+  IN_REVIEW
   RESOLVED
   DISMISSED
-}
-
-model Complaint {
-  id          String          @id @default(uuid())
-  orderId     String
-  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  customerId  String
-  customer    CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  sellerId    String
-  seller      SellerProfile   @relation(fields: [sellerId], references: [id], onDelete: Cascade)
-  category    String
-  description String
-  status      ComplaintStatus @default(OPEN)
-  adminNotes  String?
-  resolution  String?
-  resolvedAt  DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-
-  @@index([sellerId])
-  @@index([customerId])
-  @@index([orderId])
 }
 
 model SiteSetting {
@@ -393,8 +341,6 @@ model SiteSetting {
   value     String   @db.Text
   updatedAt DateTime @updatedAt
 }
-<<<<<<< Updated upstream
-=======
 
 model Complaint {
   id            String                   @id @default(uuid())
@@ -430,4 +376,3 @@ model ComplaintStatusHistory {
 
   @@index([complaintId, createdAt])
 }
->>>>>>> Stashed changes

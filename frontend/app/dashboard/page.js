@@ -8,7 +8,6 @@ import {
   Package,
   MessageCircle,
   TrendingUp,
-  MapPin,
   LoaderCircle,
   CircleAlert,
   X,
@@ -26,14 +25,13 @@ import {
   ExternalLink,
   ShieldCheck,
   Sparkles,
-  ArrowRight,
-  Filter
+  ArrowRight
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
 import { useSession, useHydrated, clearSession, updateSessionUser, homePathFor } from '../../src/lib/auth';
-import { CATEGORIES, formatPrice, initials, cleanMessengerUrl } from '../../src/lib/catalog';
-import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
+import { CATEGORIES, cleanMessengerUrl } from '../../src/lib/catalog';
+import { Field, inputClass } from '../../src/components/form';
 import ProductThumb from '../../src/components/ProductThumb';
 import PriceTag from '../../src/components/DiscountBadge';
 import SellerDiscountDialog from '../../src/components/SellerDiscountDialog';
@@ -617,32 +615,9 @@ export default function DashboardPage() {
             role="status"
             className="mb-6 flex items-center gap-2.5 rounded-2xl bg-emerald-50 px-4 py-3 text-xs font-bold text-emerald-800 ring-1 ring-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-800"
           >
-<<<<<<< Updated upstream
             <CircleCheck className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
             <span>{notice}</span>
           </div>
-=======
-            <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" />
-            {d.addProduct}
-          </button>
-        </Reveal>
-
-        {/* Until approved, products don't appear on the website */}
-        {sellerStatus === 'PENDING' && (
-          <p className="flex items-start gap-3 rounded-xl bg-amber-50 p-4 text-sm text-amber-900 ring-1 ring-amber-200">
-            <Hourglass className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-            <span>
-              {d.pendingNote}
-              {profile?.identityReviewStatus === 'PENDING' && <span className="mt-1 block">{d.identityPendingNote}</span>}
-            </span>
-          </p>
-        )}
-        {sellerStatus === 'REJECTED' && (
-          <p className="flex items-start gap-3 rounded-xl bg-red-50 p-4 text-sm text-red-800 ring-1 ring-red-200">
-            <CircleX className="mt-0.5 h-5 w-5 shrink-0 text-red-600" />
-            {d.rejectedNote}
-          </p>
->>>>>>> Stashed changes
         )}
 
         {/* ============================================================ */}

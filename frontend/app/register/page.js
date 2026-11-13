@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -47,7 +47,7 @@ const canvasToDataUrl = (canvas) => {
 };
 
 const compressImageFile = (file) => new Promise((resolve, reject) => {
-  const image = new Image();
+  const image = new window.Image();
   const objectUrl = URL.createObjectURL(file);
   image.onload = () => {
     URL.revokeObjectURL(objectUrl);
@@ -122,7 +122,6 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-<<<<<<< Updated upstream
 
   const handleResetPhotos = () => {
     setNicFront('');
@@ -224,7 +223,7 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
       console.error('Back photo error:', err);
     }
   };
-=======
+
   const [currentStep, setCurrentStep] = useState(0);
   const [identityImages, setIdentityImages] = useState({ front: '', back: '', selfie: '' });
   const [identityConsent, setIdentityConsent] = useState(false);
@@ -255,7 +254,6 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
       block: 'start',
     });
   }, [currentStep]);
->>>>>>> Stashed changes
 
   const handleChange = (e) => {
     let { name, value } = e.target;
@@ -312,8 +310,6 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
     return errors;
   };
 
-<<<<<<< Updated upstream
-=======
   const validateCurrentStep = () => {
     const fieldset = stepFieldsetRef.current;
     if (fieldset && !fieldset.reportValidity()) return false;
@@ -322,6 +318,9 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
     if (currentStep === 0) {
       if (!nicInfo.valid) errors.nic = r.nicIncorrect;
       else if (nicInfo.gender === 'male') errors.nic = r.nicWomenOnly;
+      if (!nicFront) errors.nicFront = r.nicFrontRequired || 'Front side photo of your NIC is essential.';
+      if (!nicBack) errors.nicBack = r.nicBackRequired || 'Back side photo of your NIC is essential.';
+      if (!facePhoto) errors.facePhoto = r.faceVerificationRequired || 'A live face check is required for seller registration.';
       if (!isStrongPassword(formData.password)) errors.password = r.passwordRule;
       if (formData.password !== formData.confirmPassword) errors.confirmPassword = r.passwordMismatch;
     }
@@ -339,6 +338,10 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
     setFieldErrors((previous) => ({ ...previous, ...errors }));
     const firstError = Object.keys(errors)[0];
     if (firstError) {
+      if (currentStep === 0 && (errors.nicFront || errors.nicBack || errors.facePhoto)) {
+        document.getElementById(errors.facePhoto ? 'faceVerificationSection' : 'nicPhotosSection')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       document.getElementById(firstError)?.focus();
       return false;
     }
@@ -354,8 +357,6 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
       setCurrentStep(step);
     }
   };
-
->>>>>>> Stashed changes
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -396,15 +397,12 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
         whatsappNo: whatsappSameAsPhone ? phone : cleanPhone(formData.whatsappNo),
         messengerUrl: formData.messengerUrl.trim(),
         facebookUrl: formData.facebookUrl.trim(),
-<<<<<<< Updated upstream
         nicFront: nicFront || null,
         nicBack: nicBack || null,
         facePhoto: facePhoto || null,
         faceVerification: faceVerification || null,
-=======
         identityConsent,
         identityDocuments: identityImages,
->>>>>>> Stashed changes
       });
 
       // Log the new seller straight in
@@ -431,7 +429,6 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
       } else if (!err.response) {
         setError(r.networkError);
       } else {
-<<<<<<< Updated upstream
         const respData = err.response.data;
         if (respData?.code === 'FACE_VERIFICATION_REQUIRED') {
           setFieldErrors((prev) => ({ ...prev, facePhoto: r.faceVerificationRequired || 'A live face check is required.' }));
@@ -454,9 +451,6 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
           document.getElementById('nicPhotosSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         setError(emailErrorText(respData, r) || respData?.message || r.genericError);
-=======
-        setError(emailErrorText(data, r) || data?.message || r.genericError);
->>>>>>> Stashed changes
       }
     } finally {
       setLoading(false);
@@ -533,8 +527,6 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
         </div>
       )}
 
-<<<<<<< Updated upstream
-=======
       <div ref={stepperRef} className="scroll-mt-40 space-y-3">
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm font-bold text-slate-800">
@@ -566,10 +558,8 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
           ))}
         </ol>
       </div>
-
->>>>>>> Stashed changes
       {/* 1. Personal details */}
-      <fieldset className="space-y-4">
+      {currentStep === 0 && <fieldset ref={stepFieldsetRef} className="space-y-4">
         <SectionTitle number={1}>
           <span>{r.sectionPersonal}</span>
           <span className="ml-2 inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-extrabold tracking-wider text-red-700 dark:bg-red-950/80 dark:text-red-300 ring-1 ring-red-400/40">
@@ -676,10 +666,10 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
           <KeyRound className="mt-0.5 h-4 w-4 shrink-0 text-brand-700" />
           {r.loginInfo}
         </p>
-      </fieldset>
+      </fieldset>}
 
       {/* 2. Business details */}
-      <fieldset className="space-y-4">
+      {currentStep === 1 && <fieldset ref={stepFieldsetRef} className="space-y-4">
         <SectionTitle number={2}>{r.sectionBusiness}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="businessName" label={r.businessName} required>
@@ -706,10 +696,10 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
             <textarea id="description" name="description" rows={3} value={formData.description} onChange={handleChange} className={inputClass(false)} placeholder={r.descriptionPlaceholder} />
           </Field>
         </div>
-      </fieldset>
+      </fieldset>}
 
       {/* 3. Contact details */}
-      <fieldset className="space-y-4">
+      {currentStep === 2 && <fieldset ref={stepFieldsetRef} className="space-y-4">
         <SectionTitle number={3}>{r.sectionContact}</SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="phone" label={r.phone} required error={fieldErrors.phone}>
@@ -748,16 +738,9 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
             <input id="facebookUrl" name="facebookUrl" type="url" value={formData.facebookUrl} onChange={handleChange} className={inputClass(false)} placeholder="https://facebook.com/your-page" />
           </Field>
         </div>
-      </fieldset>
+      </fieldset>}
 
-<<<<<<< Updated upstream
-      <div className="space-y-4">
-        <button type="submit" disabled={loading} className={primaryButtonClass}>
-          {loading && <LoaderCircle className="h-4 w-4 animate-spin" />}
-          {loading ? r.submitting : r.submit}
-        </button>
-=======
-      {currentStep === 3 && <fieldset className="space-y-4">
+      {currentStep === 3 && <fieldset ref={stepFieldsetRef} className="space-y-4">
         <SectionTitle number={4}>{r.identitySection}</SectionTitle>
         <p className="rounded-xl bg-amber-50 p-3.5 text-sm text-amber-900 ring-1 ring-amber-200">{r.identityReviewInfo}</p>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -797,9 +780,9 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
             {identityImages.selfie && !cameraOpen && <Image src={identityImages.selfie} alt={r.liveSelfie} width={640} height={640} unoptimized className="max-h-56 w-full rounded-lg border border-slate-200 bg-white object-contain" />}
           </div>
         </div>
-        {fieldErrors.identityDocuments && <p role="alert" className="text-sm text-red-700">{fieldErrors.identityDocuments}</p>}
+        {fieldErrors.identityDocuments && <p id="identityDocuments" role="alert" className="text-sm text-red-700">{fieldErrors.identityDocuments}</p>}
         <label className="flex items-start gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
-          <input type="checkbox" checked={identityConsent} onChange={(event) => { setIdentityConsent(event.target.checked); setFieldErrors((previous) => ({ ...previous, identityConsent: undefined })); }} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+          <input id="identityConsent" type="checkbox" checked={identityConsent} onChange={(event) => { setIdentityConsent(event.target.checked); setFieldErrors((previous) => ({ ...previous, identityConsent: undefined })); }} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
           <span>{r.identityConsent}</span>
         </label>
         {fieldErrors.identityConsent && <p role="alert" className="text-sm text-red-700">{fieldErrors.identityConsent}</p>}
@@ -823,7 +806,6 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
             </button>
           )}
         </div>
->>>>>>> Stashed changes
         <p className="text-center text-sm text-slate-500">
           {r.haveAccount}{' '}
           <Link href="/login" className="font-semibold text-brand-700 hover:underline">

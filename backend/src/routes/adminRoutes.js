@@ -48,13 +48,10 @@ router.get('/customers', listCustomers);
 router.delete('/customers/:id', removeCustomer);
 
 router.get('/sellers', listSellers);
-<<<<<<< Updated upstream
 router.get('/sellers/:id/verification', getSellerVerification);
 router.patch('/sellers/:id/photos', updateSellerPhotos);
-=======
 router.get('/sellers/:id/identity-documents', getSellerIdentityDocuments);
 router.patch('/sellers/:id/identity-review', reviewSellerIdentity);
->>>>>>> Stashed changes
 router.get('/sellers/:id/products', getSellerProducts);
 router.patch('/sellers/:id/status', setSellerStatus);
 router.delete('/sellers/:id', removeSeller);

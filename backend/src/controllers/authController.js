@@ -63,7 +63,6 @@ const normalizeOptionalUrl = (value) => {
   const trimmed = String(value).trim();
   return trimmed || null;
 };
-<<<<<<< Updated upstream
 const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 const normalizeSriLankanPhone = (value) => {
   const phone = String(value || '').replace(/[\s-]/g, '');
@@ -82,7 +81,6 @@ const signToken = (user, expiresIn = '7d') =>
     process.env.JWT_SECRET || 'fallback_secret',
     { expiresIn }
   );
-=======
 const MAX_IDENTITY_IMAGE_BYTES = 1024 * 1024;
 const parseIdentityImage = (value) => {
   if (typeof value !== 'string' || value.length > 1_400_000) return null;
@@ -98,7 +96,6 @@ const parseIdentityImage = (value) => {
     (contentType === 'image/webp' && data.toString('ascii', 0, 4) === 'RIFF' && data.toString('ascii', 8, 12) === 'WEBP');
   return validSignature ? { data: nicVault.encryptBytes(data), contentType } : null;
 };
->>>>>>> Stashed changes
 
 // Never send passwordHash back to the browser
 // NIC data (even encrypted) never leaves the server in a login or profile response
@@ -314,12 +311,9 @@ exports.register = async (req, res) => {
                 messengerUrl: sellerMessengerUrl,
                 facebookUrl: sellerFacebookUrl,
                 description: description || null,
-<<<<<<< Updated upstream
                 nicFront: nicFront || null,
-                nicBack: nicBack || null
-=======
+                nicBack: nicBack || null,
                 ...identityDocuments
->>>>>>> Stashed changes
               }
             }
           }

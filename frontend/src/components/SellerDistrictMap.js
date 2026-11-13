@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { ArrowUpRight, MapPin, RefreshCw, Sparkles, Users, X } from 'lucide-react';
 import API from '../lib/api';
@@ -22,7 +22,6 @@ const normalizeDistrict = (name = '') => name.replace(/\s+District$/i, '').trim(
 export default function SellerDistrictMap() {
   const { t, lang } = useLanguage();
   const h = t;
-  const districtDialog = useRef(null);
   const [mapData, setMapData] = useState(null);
   const [stats, setStats] = useState(null);
   const [selectedDistrict, setSelectedDistrict] = useState('');
@@ -77,15 +76,6 @@ export default function SellerDistrictMap() {
     };
   }, [retry]);
 
-  useEffect(() => {
-    if (!selectedDistrict) return undefined;
-    const dialog = districtDialog.current;
-    if (dialog && !dialog.open) dialog.showModal();
-    return () => {
-      if (dialog?.open) dialog.close();
-    };
-  }, [selectedDistrict]);
-
   const districtStats = useMemo(() => {
     const districts = new Map();
     for (const district of stats?.districts || []) {
@@ -107,6 +97,14 @@ export default function SellerDistrictMap() {
     });
     return Math.max(1, ...counts);
   }, [stats, selectedType]);
+  const districtShapes = useMemo(
+    () => [...(mapData?.districts || [])].sort((a, b) => {
+      const aSelected = normalizeDistrict(a.name) === normalizeDistrict(selectedDistrict);
+      const bSelected = normalizeDistrict(b.name) === normalizeDistrict(selectedDistrict);
+      return Number(aSelected) - Number(bSelected);
+    }),
+    [mapData, selectedDistrict]
+  );
 
   const formatNumber = (value) => new Intl.NumberFormat(lang === 'si' ? 'si-LK' : lang === 'ta' ? 'ta-LK' : 'en-LK').format(value || 0);
   const displayedCount = (district) => {
@@ -238,28 +236,58 @@ export default function SellerDistrictMap() {
                   role="img"
                   aria-label={h.sellerMapTitle}
                 >
-                  {mapData.districts.map((shape) => {
+                  {mapData.districts.map((shape) => (
+                    <path
+                      key={`shadow-${shape.name}`}
+                      d={shape.path}
+                      transform="translate(0 11)"
+                      fill="#031e20"
+                      stroke="#031e20"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                    />
+                  ))}
+                  {districtShapes.map((shape) => {
                     const district = districtStats.get(normalizeDistrict(shape.name));
                     const count = displayedCount(district);
+                    const isSelected = normalizeDistrict(shape.name) === normalizeDistrict(selectedDistrict);
                     const intensity = count ? 0.3 + (count / maxCount) * 0.68 : 0.08;
-                      const districtColor = !stats
-                        ? 'rgba(148,163,184,0.12)'
-                        : selectedType === 'all'
-                          ? `rgba(94,234,212,${intensity})`
-                          : `color-mix(in srgb, ${selectedColor} ${Math.round(intensity * 100)}%, #123d3c)`;
-                      const isSelected = normalizeDistrict(shape.name) === normalizeDistrict(selectedDistrict);
+                    const districtColor = !stats
+                      ? isSelected ? 'rgba(94,234,212,0.78)' : 'rgba(94,234,212,0.14)'
+                      : selectedType === 'all'
+                        ? `rgba(94,234,212,${intensity})`
+                        : `color-mix(in srgb, ${selectedColor} ${Math.round(intensity * 100)}%, #123d3c)`;
                     return (
-                      <g key={shape.name} className="cursor-pointer outline-none">
-                        <path d={shape.path} transform="translate(0 11)" fill="#031e20" stroke="#031e20" strokeLinejoin="round" strokeWidth="2" />
+                      <g
+                        key={shape.name}
+                        className="cursor-pointer outline-none transition-transform duration-300 ease-out motion-reduce:transition-none"
+                        style={{
+                          transform: isSelected ? 'translateY(-13px)' : 'translateY(0)',
+                          transformBox: 'fill-box',
+                          transformOrigin: 'center',
+                          filter: isSelected ? 'drop-shadow(0 9px 6px rgba(0,0,0,0.38))' : undefined,
+                        }}
+                      >
+                        {isSelected && (
+                          <path
+                            d={shape.path}
+                            transform="translate(0 7)"
+                            fill="#07564c"
+                            stroke="#052d2c"
+                            strokeLinejoin="round"
+                            strokeWidth="1.2"
+                          />
+                        )}
                         <path
                           d={shape.path}
                           fill={districtColor}
                           fillRule="evenodd"
                           stroke={isSelected ? '#fff7ed' : '#9bf3df'}
                           strokeLinejoin="round"
-                          strokeWidth={isSelected ? '2.1' : '0.8'}
+                          strokeWidth={isSelected ? '2.5' : '0.8'}
                           vectorEffect="non-scaling-stroke"
-                          className="transition-[fill,stroke,opacity] duration-200 hover:brightness-125 focus-visible:stroke-white"
+                          className="outline-none transition-[fill,stroke,opacity] duration-200 hover:brightness-125 focus:outline-none focus-visible:stroke-white"
+                          style={{ outline: 'none' }}
                           role="button"
                           tabIndex={0}
                           aria-pressed={isSelected}
@@ -287,29 +315,51 @@ export default function SellerDistrictMap() {
               </div>
             </div>
 
-            <aside className="flex flex-col justify-between p-5 sm:p-7 lg:p-8">
-              <div>
+            <aside aria-live="polite" className="flex flex-col justify-between p-5 sm:p-7 lg:p-8">
+              <div key={selectedDistrict || 'all'} className="animate-fade-up">
                 <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-magenta">{h.sellerMapBusinessTypes}</p>
-                    <h3 className="mt-2 text-3xl font-black tracking-tight text-slate-950">
-                      {stats ? formatNumber(stats.totalSellers) : '—'}
+                  <div className="min-w-0">
+                    <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-magenta">
+                      {selected ? h.sellerMapDistrictSelected : h.sellerMapBusinessTypes}
+                    </p>
+                    <h3 className="mt-2 truncate text-3xl font-black tracking-tight text-slate-950">
+                      {selected ? selected.name : stats ? formatNumber(stats.totalSellers) : '—'}
                     </h3>
-                    <p className="mt-1 text-sm font-medium text-slate-500">{h.sellerMapSellers}</p>
+                    <p className="mt-1 text-sm font-medium text-slate-500">
+                      {selected ? `${formatNumber(displayedCount(selected))} ${h.sellerMapSellers}` : h.sellerMapSellers}
+                    </p>
                   </div>
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
-                    <Users className="h-5 w-5" />
-                  </span>
+                  <div className="flex shrink-0 items-center gap-2">
+                    {selected && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedDistrict('')}
+                        aria-label={h.sellerMapClose}
+                        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-slate-200 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    )}
+                    <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-700 ring-1 ring-emerald-100">
+                      {selected ? <MapPin className="h-5 w-5" /> : <Users className="h-5 w-5" />}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="mt-6 grid grid-cols-2 gap-3">
                   <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
-                    <p className="text-xl font-extrabold text-slate-900">{stats ? formatNumber(stats.totalSellers) : '—'}</p>
+                    <p className="text-xl font-extrabold text-slate-900">
+                      {selected ? formatNumber(selected.total) : stats ? formatNumber(stats.totalSellers) : '—'}
+                    </p>
                     <p className="mt-0.5 text-[11px] font-semibold text-slate-500">{h.sellerMapSellers}</p>
                   </div>
                   <div className="rounded-2xl bg-slate-50 p-3.5 ring-1 ring-slate-100">
-                    <p className="text-xl font-extrabold text-slate-900">{stats ? <>{formatNumber(stats.activeDistricts)}<span className="text-slate-400">/25</span></> : '—'}</p>
-                    <p className="mt-0.5 text-[11px] font-semibold text-slate-500">{h.sellerMapDistricts}</p>
+                    <p className="text-xl font-extrabold text-slate-900">
+                      {selected ? formatNumber(selected.businessTypes.length) : stats ? <>{formatNumber(stats.activeDistricts)}<span className="text-slate-400">/25</span></> : '—'}
+                    </p>
+                    <p className="mt-0.5 text-[11px] font-semibold text-slate-500">
+                      {selected ? h.sellerMapBusinessTypes : h.sellerMapDistricts}
+                    </p>
                   </div>
                 </div>
 
@@ -364,93 +414,6 @@ export default function SellerDistrictMap() {
           </>
         )}
       </div>
-      <dialog
-        ref={districtDialog}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') {
-            event.preventDefault();
-            districtDialog.current?.close();
-          }
-        }}
-        onCancel={(event) => {
-          event.preventDefault();
-          event.currentTarget.close();
-        }}
-        onClose={() => setSelectedDistrict('')}
-        onClick={(event) => {
-          if (event.target === event.currentTarget) event.currentTarget.close();
-        }}
-        aria-labelledby="seller-district-dialog-title"
-        className="m-auto max-h-[min(90vh,760px)] w-[calc(100%-2rem)] max-w-xl overflow-y-auto rounded-[28px] border border-white/70 bg-transparent p-0 text-slate-900 shadow-2xl backdrop:bg-slate-950/65 backdrop:backdrop-blur-sm"
-      >
-        {selected && (
-          <div className="overflow-hidden rounded-[28px] bg-white">
-            <div className="relative overflow-hidden bg-gradient-to-br from-[#062d2c] via-[#0b4a45] to-emerald-800 px-6 pb-7 pt-6 text-white sm:px-8 sm:pt-8">
-              <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-20 h-56 w-56 rounded-full border-[32px] border-white/5" />
-              <button
-                type="button"
-                onClick={() => districtDialog.current?.close()}
-                aria-label={h.sellerMapClose}
-                className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-              >
-                <X className="h-5 w-5" />
-              </button>
-              <span className="relative inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.16em] text-teal-100">
-                <MapPin className="h-3.5 w-3.5" />
-                {h.sellerMapDistrictSelected}
-              </span>
-              <h3 id="seller-district-dialog-title" className="relative mt-4 pr-10 text-3xl font-black tracking-tight sm:text-4xl">
-                {selected.name}
-              </h3>
-              <div className="relative mt-5 flex items-end gap-3">
-                <span className="text-5xl font-black tabular-nums">{formatNumber(displayedCount(selected))}</span>
-                <span className="pb-1.5 text-sm font-semibold text-teal-100">{h.sellerMapSellers}</span>
-              </div>
-              <div className="relative mt-5 flex flex-wrap gap-2 text-[11px] font-semibold text-teal-50/90">
-                <span className="rounded-full bg-white/10 px-3 py-1.5">{formatNumber(selected.total)} {h.sellerMapSellers}</span>
-                <span className="rounded-full bg-white/10 px-3 py-1.5">{selected.businessTypes.length} {h.sellerMapBusinessTypes}</span>
-              </div>
-            </div>
-            <div className="p-6 sm:p-8">
-              {statsError ? (
-                <p className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-900">
-                  {h.sellerMapStatsError}
-                </p>
-              ) : visibleTypes.length ? (
-                <div>
-                  <h4 className="mb-4 text-sm font-extrabold text-slate-900">{h.sellerMapBusinessTypes}</h4>
-                  <ul className="space-y-4">
-                    {visibleTypes.map(({ type, count }) => {
-                      const percent = Math.max(4, Math.round((count / Math.max(1, ...visibleTypes.map((item) => item.count))) * 100));
-                      return (
-                        <li key={type}>
-                          <div className="mb-2 flex items-center justify-between gap-3 text-sm">
-                            <span className="font-semibold text-slate-600">{t.categories[type] || type}</span>
-                            <span className="font-extrabold tabular-nums text-slate-900">{formatNumber(count)}</span>
-                          </div>
-                          <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                            <span className="block h-full rounded-full transition-all duration-500" style={{ width: `${percent}%`, backgroundColor: TYPE_COLORS[type] || ALL_COLOR }} />
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              ) : (
-                <p className="rounded-2xl bg-slate-50 px-4 py-4 text-sm text-slate-600">{h.sellerMapNoSellers}</p>
-              )}
-              <Link
-                href={districtLink}
-                onClick={() => districtDialog.current?.close()}
-                className="group mt-7 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-slate-950 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-900/10 transition hover:bg-emerald-800"
-              >
-                {h.sellerMapBrowse}
-                <ArrowUpRight className="h-4 w-4 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
-              </Link>
-            </div>
-          </div>
-        )}
-      </dialog>
     </section>
   );
 }

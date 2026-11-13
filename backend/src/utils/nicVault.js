@@ -55,10 +55,6 @@ const protect = (nic) => ({ nicHash: hash(nic), nicEncrypted: encrypt(nic), nicL
 // What an admin sees: *****4255V
 const mask = (last5) => (last5 ? `*****${last5}` : null);
 
-<<<<<<< Updated upstream
 const validateKey = () => getKey();
 
-module.exports = { NIC_PATTERN, isValidNic, normalize, hash, encrypt, decrypt, protect, mask, validateKey };
-=======
 module.exports = { NIC_PATTERN, isValidNic, normalize, hash, encrypt, decrypt, encryptBytes, decryptBytes, protect, mask, validateKey };
->>>>>>> Stashed changes

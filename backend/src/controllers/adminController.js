@@ -742,46 +742,26 @@ exports.setSellerStatus = async (req, res) => {
     }
 
     const sellerId = String(req.params.id);
-<<<<<<< Updated upstream
     const existingSeller = await prisma.sellerProfile.findUnique({
       where: { id: sellerId },
       include: {
         user: { select: { email: true, phone: true } },
         _count: { select: { products: true, analytics: true, reviews: true } }
       }
-=======
-    const existing = await prisma.sellerProfile.findUnique({
-      where: { id: sellerId },
-      select: { identityReviewStatus: true }
->>>>>>> Stashed changes
     });
-    if (!existing) return res.status(404).json({ message: 'අලෙවිකරු සොයාගත නොහැක.' });
-    if (status === 'APPROVED' && !['APPROVED', 'NOT_REQUIRED'].includes(existing.identityReviewStatus)) {
+    if (!existingSeller) return res.status(404).json({ message: 'අලෙවිකරු සොයාගත නොහැක.' });
+    if (status === 'APPROVED' && !['APPROVED', 'NOT_REQUIRED'].includes(existingSeller.identityReviewStatus)) {
       return res.status(409).json({ code: 'IDENTITY_REVIEW_REQUIRED', message: 'Review the seller identity documents before approving this seller.' });
     }
 
-    const updated = await prisma.$transaction(async (transaction) => {
-      const data = { status };
-      if (status === 'REJECTED' && existing.identityReviewStatus === 'PENDING') {
-        data.identityReviewStatus = 'REJECTED';
-        data.identityReviewedAt = new Date();
-      }
-      const seller = await transaction.sellerProfile.update({ where: { id: sellerId }, data });
-      if (status === 'REJECTED') {
-        await transaction.sellerIdentityDocuments.updateMany({
-          where: { sellerId },
-          data: { frontImage: null, frontType: null, backImage: null, backType: null, selfie: null, selfieType: null }
-        });
-      }
-      return seller;
-    });
-    const { nicNumber, nicHash, nicEncrypted, nicLast5, ...seller } = updated;
-
-    if (!existingSeller) {
-      return res.status(404).json({ message: 'අලෙවිකරු සොයාගත නොහැක.' });
-    }
-
     let updateData = { status };
+    if (status === 'REJECTED' && existingSeller.identityReviewStatus === 'PENDING') {
+      updateData = {
+        ...updateData,
+        identityReviewStatus: 'REJECTED',
+        identityReviewedAt: new Date()
+      };
+    }
 
     // When approving, ensure the NIC is encrypted and never plain
     if (status === 'APPROVED') {
@@ -808,26 +788,28 @@ exports.setSellerStatus = async (req, res) => {
       }
     }
 
-    const updatedSeller = await prisma.sellerProfile.update({
-      where: { id: sellerId },
-      data: updateData,
-      include: {
-        user: { select: { email: true, phone: true } },
-        _count: { select: { products: true, analytics: true, reviews: true } }
-      }
-    });
+    const updatedSeller = await prisma.$transaction(async (transaction) => {
+      const seller = await transaction.sellerProfile.update({
+        where: { id: sellerId },
+        data: updateData,
+        include: {
+          user: { select: { email: true, phone: true } },
+          _count: { select: { products: true, analytics: true, reviews: true } }
+        }
+      });
 
-    if (status === 'REJECTED') {
-      await prisma.product.updateMany({
-        where: { sellerId },
-        data: { isPublished: false }
-      });
-    } else if (status === 'APPROVED') {
-      await prisma.product.updateMany({
-        where: { sellerId },
-        data: { isPublished: true }
-      });
-    }
+      if (status === 'REJECTED') {
+        await transaction.sellerIdentityDocuments.updateMany({
+          where: { sellerId },
+          data: { frontImage: null, frontType: null, backImage: null, backType: null, selfie: null, selfieType: null }
+        });
+        await transaction.product.updateMany({ where: { sellerId }, data: { isPublished: false } });
+      } else if (status === 'APPROVED') {
+        await transaction.product.updateMany({ where: { sellerId }, data: { isPublished: true } });
+      }
+
+      return seller;
+    });
 
     const isApproved = updatedSeller.status === 'APPROVED';
     const resolvedLast5 = updatedSeller.nicLast5;

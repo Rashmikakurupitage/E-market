@@ -1017,10 +1017,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                           </div>
                         )}
                       </dl>
-<<<<<<< Updated upstream
                       {seller.description && <p className="mt-2 text-sm italic text-slate-500 dark:text-slate-400">“{seller.description}”</p>}
-=======
-                      {seller.description && <p className="mt-2 text-sm italic text-slate-500">“{seller.description}”</p>}
                       <p className="mt-2 text-xs font-semibold text-slate-600">
                         {seller.identityReviewStatus === 'APPROVED'
                           ? a.identityReviewApproved
@@ -1030,7 +1027,6 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                               ? a.identityReviewNotRequired
                               : a.identityReviewPending}
                       </p>
->>>>>>> Stashed changes
                       <button
                         type="button"
                         onClick={() => setOpenId(open ? null : seller.id)}
@@ -1103,10 +1099,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                 </div>
 
                 {open && (
-<<<<<<< Updated upstream
                   <div className="mt-4 rounded-xl bg-cream p-4 dark:bg-slate-800/60">
-=======
-                  <div className="mt-4 rounded-xl bg-cream p-4">
                     {seller.identityReviewStatus === 'PENDING' && (
                       <p className="mb-3 text-sm font-semibold text-amber-900">{a.identityMustBeReviewed}</p>
                     )}
@@ -1120,7 +1113,6 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                         }}
                       />
                     )}
->>>>>>> Stashed changes
                     <SellerProducts sellerId={seller.id} onAuthError={onAuthError} />
                   </div>
                 )}

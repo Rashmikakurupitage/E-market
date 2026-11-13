@@ -13,6 +13,7 @@ import { HERO_IMAGE } from '../../src/lib/catalog';
 import Reveal from '../../src/components/Reveal';
 import { PageArt, DotGrid, Squiggle, Sparkle as ArtSparkle } from '../../src/components/Art';
 import CountUp from '../../src/components/CountUp';
+import SellerDistrictMap from '../../src/components/SellerDistrictMap';
 
 const EMBLEM_URL = 'https://upload.wikimedia.org/wikipedia/commons/5/5f/Emblem_of_Sri_Lanka.svg';
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
@@ -461,6 +462,8 @@ export default function AboutPage() {
           </div>
         </Reveal>
       </section>
+
+      <SellerDistrictMap />
 
       {/* 10. Section: Initiative FAQs (Interactive Accordion) */}
       <section className="mx-auto max-w-5xl px-4 pt-16 sm:px-6 sm:pt-24">

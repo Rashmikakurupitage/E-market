@@ -3,13 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-<<<<<<< Updated upstream
-  CalendarDays, CircleAlert, CircleCheck, Clock, Flag, LoaderCircle, MapPin, MessageSquareText, Package, PackageCheck, Phone,
-  RotateCw, ShoppingBag, ShoppingCart, Star, Store, Truck, UserRound, XCircle,
-=======
   CalendarDays, CircleAlert, CircleCheck, Clock, ExternalLink, Flag, LoaderCircle, MapPin, MessageSquareText, Package, PackageCheck, Phone,
-  RotateCw, ShoppingBag, ShoppingCart, Store, Truck, UserRound, XCircle,
->>>>>>> Stashed changes
+  RotateCw, ShoppingBag, ShoppingCart, Star, Store, Truck, UserRound, XCircle,
 } from 'lucide-react';
 import API from '../lib/api';
 import { useLanguage, fill } from '../lib/i18n';
@@ -103,7 +98,7 @@ function ItemList({ items, isDelivered, onReviewProduct }) {
             </span>
           </div>
           <div className="flex items-center gap-3">
-            {item.productId && onReviewProduct && (
+            {isDelivered && item.productId && onReviewProduct && (
               <button
                 type="button"
                 onClick={() => onReviewProduct(item)}
@@ -365,7 +360,7 @@ export function CustomerOrders({ onAuthError }) {
                 </p>
 
                 <Progress status={order.status} />
-<<<<<<< Updated upstream
+                <ShipmentDetails order={order} labels={o} lang={lang} />
                 <ItemList
                   items={order.items}
                   isDelivered={order.status === 'DELIVERED'}
@@ -378,10 +373,6 @@ export function CustomerOrders({ onAuthError }) {
                     })
                   }
                 />
-=======
-                <ShipmentDetails order={order} labels={o} lang={lang} />
-                <ItemList items={order.items} />
->>>>>>> Stashed changes
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-4">
                   <p className="text-sm text-ink/60">
