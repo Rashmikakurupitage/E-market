@@ -53,7 +53,7 @@ exports.createAdmin = async (req, res) => {
       prisma.adminProfile.findUnique({ where: { nicNumber }, select: { id: true } })
     ]);
 
-    if (existingUser?.email.toLowerCase() === email) {
+    if (existingUser?.email?.toLowerCase() === email) {
       return res.status(409).json({ code: 'EMAIL_TAKEN', message: 'This email is already registered.' });
     }
     if (existingUser?.phone === phone) {

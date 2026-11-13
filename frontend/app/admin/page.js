@@ -273,7 +273,7 @@ function ComplaintDetails({ complaint, onSaved, onChanged, onAuthError }) {
           <dt className="text-xs font-semibold text-slate-500">{ca.customer}</dt>
           <dd className="mt-1 font-semibold text-slate-900">{customer?.fullName}</dd>
           <dd className="mt-1 flex flex-col gap-0.5 text-slate-600">
-            <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-400" />{customer?.user?.email}</span>
+            <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-400" />{customer?.user?.email || '—'}</span>
             <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-400" />{customer?.user?.phone}</span>
             {customer?.user?.createdAt && <span className="flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5 text-slate-400" />{fill(ca.memberSince, { date: formatDate(customer.user.createdAt) })}</span>}
           </dd>
@@ -293,7 +293,7 @@ function ComplaintDetails({ complaint, onSaved, onChanged, onAuthError }) {
           {(seller?.firstName || seller?.lastName) && <dd className="text-slate-600">{[seller.firstName, seller.lastName].filter(Boolean).join(' ')}</dd>}
           {seller?.district && <dd className="flex items-center gap-1.5 text-slate-600"><MapPin className="h-3.5 w-3.5 text-red-500" />{seller.district}</dd>}
           <dd className="mt-1 flex flex-col gap-0.5 text-slate-600">
-            <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-400" />{seller?.user?.email}</span>
+            <span className="flex items-center gap-1.5"><Mail className="h-3.5 w-3.5 text-slate-400" />{seller?.user?.email || '—'}</span>
             <span className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 text-slate-400" />{seller?.user?.phone}</span>
             {sellerWhatsapp && <span className="flex items-center gap-1.5"><WhatsAppIcon className="h-3.5 w-3.5 text-slate-400" />{formatPhone(sellerWhatsapp)}</span>}
           </dd>
@@ -876,7 +876,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                         <div className="flex min-w-0 items-center gap-2">
                           <Mail className="h-4 w-4 shrink-0 text-slate-400" />
                           <dt className="sr-only">{a.email}</dt>
-                          <dd className="truncate">{seller.email}</dd>
+                          <dd className="truncate">{seller.email || '—'}</dd>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <IdCard className="h-4 w-4 shrink-0 text-slate-400" />
@@ -1132,7 +1132,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                 <div className="rounded-xl bg-white p-3 dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 sm:col-span-2 lg:col-span-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
                   <div>
                     <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">Email Address</span>
-                    <span className="font-medium text-slate-800 dark:text-slate-200 truncate block text-xs">{viewingNicSeller.email}</span>
+                    <span className="font-medium text-slate-800 dark:text-slate-200 truncate block text-xs">{viewingNicSeller.email || '—'}</span>
                   </div>
                   <div>
                     <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block">Phone Number</span>
@@ -1681,7 +1681,7 @@ function CustomersPanel({ onChanged, onAuthError, onBack }) {
                 <div className="min-w-0">
                   <p className="font-bold text-slate-900">{customer.fullName}</p>
                   <p className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-sm text-slate-500">
-                    <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" />{customer.email}</span>
+                    <span className="inline-flex items-center gap-1.5"><Mail className="h-3.5 w-3.5" />{customer.email || '—'}</span>
                     <span className="inline-flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" />{customer.phone}</span>
                     <span className="inline-flex items-center gap-1.5"><CalendarDays className="h-3.5 w-3.5" />{fill(a.registered, { date: formatDate(customer.createdAt) })}</span>
                   </p>

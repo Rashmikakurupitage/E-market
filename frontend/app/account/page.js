@@ -152,7 +152,7 @@ export default function Account() {
         onSelect={setSection}
         name={name}
         photoUrl={profilePhotoUrl(user)}
-        subtitle={user?.email}
+        subtitle={user?.email || user?.phone}
         roleLabel={c.accountTitle || 'Customer'}
         onLogout={loggedOut}
         menuLabel={c.accountTitle}

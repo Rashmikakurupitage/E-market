@@ -129,17 +129,21 @@ exports.register = async (req, res) => {
     const profileLastName = capitalizeName(rawLastName);
     const customerFullName = [profileFirstName, profileLastName].filter(Boolean).join(' ') || (rawProvidedFullName ? capitalizeName(rawProvidedFullName) : 'Customer');
 
-    if (!email || !phone) {
-      return res.status(400).json({ message: 'Email සහ Phone අංකය අවශ්‍ය වේ.' });
+    const normalizedEmail = email ? String(email).trim() : null;
+
+    if (!phone) {
+      return res.status(400).json({ message: 'Phone අංකය අවශ්‍ය වේ.' });
     }
 
     if (!SELF_SERVICE_ROLES.includes(role)) {
       return res.status(400).json({ message: 'අවලංගු ගිණුම් වර්ගයකි.' });
     }
 
-    const emailProblem = await checkEmailAddress(email);
-    if (emailProblem) {
-      return res.status(400).json({ ...emailProblem, message: 'The email address looks incorrect.' });
+    if (normalizedEmail) {
+      const emailProblem = await checkEmailAddress(normalizedEmail);
+      if (emailProblem) {
+        return res.status(400).json({ ...emailProblem, message: 'The email address looks incorrect.' });
+      }
     }
 
     if (!isStrongPassword(password)) {
@@ -193,9 +197,13 @@ exports.register = async (req, res) => {
     const sellerMessengerUrl = normalizeOptionalUrl(messengerUrl);
     const sellerFacebookUrl = normalizeOptionalUrl(facebookUrl);
 
-    // Email verification is optional, so unverified accounts are still active accounts
+    // Email is optional; check duplicate phone (and email if provided)
+    const conflictConditions = [{ phone }];
+    if (normalizedEmail) {
+      conflictConditions.push({ email: { equals: normalizedEmail, mode: 'insensitive' } });
+    }
     const existingUsers = await prisma.user.findMany({
-      where: { OR: [{ email: { equals: email, mode: 'insensitive' } }, { phone }] },
+      where: { OR: conflictConditions },
       select: { id: true }
     });
     if (existingUsers.length > 0) {
@@ -244,7 +252,7 @@ exports.register = async (req, res) => {
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         phone,
         passwordHash,
         role,
@@ -256,10 +264,10 @@ exports.register = async (req, res) => {
       include: { sellerProfile: true, customerProfile: true, profilePhoto: true }
     });
 
-    // Email verification is optional: try sending a verification code best-effort without blocking sign-up
+    // Email verification is optional: if an email was provided and SMTP is configured, send code best-effort
     let emailSent = false;
     let issued = null;
-    if (isEmailConfigured()) {
+    if (normalizedEmail && isEmailConfigured()) {
       issued = otpStore.issue(verifyKey(user.id));
       if (!issued.error) {
         try {
@@ -285,8 +293,8 @@ exports.register = async (req, res) => {
       verificationRequired: false,
       emailVerificationOptional: true,
       emailSent,
-      email: user.email,
-      sentTo: emailSent ? maskEmail(user.email) : null,
+      email: user.email || null,
+      sentTo: emailSent && user.email ? maskEmail(user.email) : null,
       expiresInMinutes: issued?.expiresInMinutes || 10,
       resendAfterSeconds: issued?.resendAfterSeconds || 60,
       token: signToken(user),
@@ -302,17 +310,43 @@ exports.register = async (req, res) => {
   }
 };
 
-// 2. User Login
+const phoneCandidates = (value) => {
+  const cleaned = String(value || '').replace(/[\s-]/g, '');
+  if (!cleaned) return [];
+  const candidates = new Set([cleaned]);
+  if (/^0\d{9}$/.test(cleaned)) {
+    const tail = cleaned.slice(1);
+    candidates.add('+94' + tail);
+    candidates.add('94' + tail);
+  } else if (/^\+94\d{9}$/.test(cleaned)) {
+    const tail = cleaned.slice(3);
+    candidates.add('0' + tail);
+    candidates.add('94' + tail);
+  } else if (/^94\d{9}$/.test(cleaned)) {
+    const tail = cleaned.slice(2);
+    candidates.add('0' + tail);
+    candidates.add('+94' + tail);
+  }
+  return Array.from(candidates);
+};
+
+// 2. User Login (supports Email or Phone Number + Password)
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const identifier = String(req.body.email || req.body.identifier || req.body.phone || '').trim();
+    const { password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email සහ Password ඇතුළත් කරන්න.' });
+    if (!identifier || !password) {
+      return res.status(400).json({ message: 'Email හෝ දුරකථන අංකය සහ Password ඇතුළත් කරන්න.' });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const variants = phoneCandidates(identifier);
+    const where = identifier.includes('@')
+      ? { email: { equals: identifier, mode: 'insensitive' } }
+      : { OR: [{ phone: { in: variants.length ? variants : [identifier] } }, { email: { equals: identifier, mode: 'insensitive' } }] };
+
+    const user = await prisma.user.findFirst({
+      where,
       include: { sellerProfile: true, customerProfile: true, profilePhoto: { select: { updatedAt: true } } }
     });
 
@@ -353,6 +387,7 @@ const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 
 // Shows "su****@gmail.com" so the user knows where the code went
 const maskEmail = (email) => {
+  if (!email || !email.includes('@')) return null;
   const [name, domain] = email.split('@');
   return `${name.slice(0, 2)}${'*'.repeat(Math.max(name.length - 2, 2))}@${domain}`;
 };
@@ -905,7 +940,7 @@ exports.requestEmailChangeCode = async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: 'ගිණුම සොයාගත නොහැක. නැවත Log වන්න.' });
     }
-    if (newEmail.toLowerCase() === user.email.toLowerCase()) {
+    if (user.email && newEmail.toLowerCase() === user.email.toLowerCase()) {
       return res.status(400).json({ code: 'SAME_EMAIL', message: 'මෙය දැනටමත් ඔබේ email ලිපිනයයි.' });
     }
     const taken = await prisma.user.findFirst({

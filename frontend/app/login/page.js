@@ -68,16 +68,16 @@ function PasswordLogin({ redirectTo, footer }) {
         </div>
       )}
 
-      <Field id="email" label={l.email || 'Email'} required>
+      <Field id="email" label={l.emailOrPhone || l.email || 'Email or Phone number'} required>
         <input
           id="email"
-          type="email"
+          type="text"
           required
-          autoComplete="email"
+          autoComplete="username"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           className={inputClass(false)}
-          placeholder="name@example.com"
+          placeholder="name@example.com or 0771234567"
         />
       </Field>
 

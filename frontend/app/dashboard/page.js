@@ -541,7 +541,7 @@ export default function DashboardPage() {
         onSelect={setSection}
         name={ownerName}
         photoUrl={profilePhotoUrl(user)}
-        subtitle={user?.email}
+        subtitle={user?.email || user?.phone}
         roleLabel={d.seller || 'Seller'}
         status={sellerStatus}
         statusLabel={d.status?.[sellerStatus] || sellerStatus}
@@ -615,7 +615,7 @@ export default function DashboardPage() {
                     {fill(d.welcome, { name: ownerName })}
                   </h1>
                   <p className="mt-1 flex flex-wrap items-center gap-1.5 sm:gap-2 text-xs text-white/70">
-                    <span className="truncate max-w-[170px] sm:max-w-none">{user?.email}</span>
+                    <span className="truncate max-w-[170px] sm:max-w-none">{user?.email || user?.phone}</span>
                     <span>•</span>
                     <span className="inline-flex items-center gap-1 text-emerald-300">
                       <Sparkles className="h-3 w-3" />

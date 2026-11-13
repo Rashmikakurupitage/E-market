@@ -269,7 +269,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         role: 'SELLER',
         firstName: capitalizeName(formData.firstName.trim()),
         lastName: capitalizeName(formData.lastName.trim()),
-        email: formData.email.trim(),
+        email: formData.email.trim() || null,
         password: formData.password,
         nicNumber: formData.nicNumber.trim().toUpperCase(),
         businessName: formData.businessName.trim(),
@@ -371,8 +371,8 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
               className={inputClass(false)}
             />
           </Field>
-          <Field id="email" label={r.email} required hint={r.emailOptionalNote || 'Email verification is optional — your account works immediately without verifying.'} className="sm:col-span-2">
-            <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
+          <Field id="email" label={`${r.email} (${r.optional || 'Optional'})`} hint={r.emailOptionalHint || 'Optional — leave blank if you prefer to sign in with your phone number.'} className="sm:col-span-2">
+            <input id="email" name="email" type="email" autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
           </Field>
 
           {/* Front & Back NIC Photos with OCR Scanning & Autofill */}
@@ -582,7 +582,7 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
         role: 'CUSTOMER',
         firstName: capitalizeName(formData.firstName.trim()),
         lastName: capitalizeName(formData.lastName.trim()),
-        email: formData.email.trim(),
+        email: formData.email.trim() || null,
         password: formData.password,
         nicNumber: '',
         phone,
@@ -653,8 +653,8 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
             />
           </Field>
           <div className="sm:col-span-2">
-            <Field id="email" label={r.email} required hint={r.emailOptionalNote || 'Email verification is optional — your account works immediately without verifying.'}>
-              <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
+            <Field id="email" label={`${r.email} (${r.optional || 'Optional'})`} hint={r.emailOptionalHint || 'Optional — leave blank if you prefer to sign in with your phone number.'}>
+              <input id="email" name="email" type="email" autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
             </Field>
           </div>
           <Field id="password" label={r.password || 'Password'} required hint={r.passwordRule} error={fieldErrors.password}>
