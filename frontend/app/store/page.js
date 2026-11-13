@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import {
   BadgeCheck, BookOpen, Info, LayoutDashboard, MapPin, Package, PackageSearch, PackagePlus,
-  Palette, Search, Layers, SlidersHorizontal, CookingPot, Flower2, Sparkles, Wheat, Star, Store, Tag, X, ArrowRight,
+  Palette, Search, Layers, SlidersHorizontal, CookingPot, Flower2, Sparkles, Wheat, Star, Store, Tag, X, ArrowRight, Share2,
 } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
@@ -59,7 +59,7 @@ function SellerLine({ product }) {
   return (
     <div className="flex items-center gap-3">
       {sellerPhoto ? (
-        <img src={sellerPhoto} alt="" className="h-10 w-10 shrink-0 rounded-full object-cover shadow-sm ring-2 ring-white" />
+        <img src={sellerPhoto} alt="" loading="lazy" decoding="async" className="h-10 w-10 shrink-0 rounded-full object-cover shadow-sm ring-2 ring-white" />
       ) : (
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-magenta to-saffron text-xs font-bold text-white shadow-sm ring-2 ring-white">
           {initials(seller.businessName) || '?'}
@@ -82,7 +82,7 @@ function SellerLine({ product }) {
           </p>
         )}
       </div>
-      <img src={FLAG_URL} alt="Sri Lanka" className="h-4 w-auto shrink-0 rounded-[3px] shadow-sm ring-1 ring-ink/5" />
+      <img src={FLAG_URL} alt="Sri Lanka" loading="lazy" decoding="async" className="h-4 w-auto shrink-0 rounded-[3px] shadow-sm ring-1 ring-ink/5" />
     </div>
   );
 }
@@ -98,26 +98,93 @@ function QuickView({ product, onClose }) {
   const example = isExample(product);
   const seller = getSeller(product);
   const [showSellerReviews, setShowSellerReviews] = useState(false);
+  const [shareStatus, setShareStatus] = useState('');
   const photos = (product.images || []).filter(Boolean);
   const [photoIndex, setPhotoIndex] = useState(0);
   const image = photos[photoIndex] || photos[0];
   const { canContact } = useCanContact();
   const whatsapp = canContact && !example ? whatsappOrderLink(product) : null;
   const messenger = canContact && !example ? messengerLink(product) : null;
+  const dialogRef = useRef(null);
+  const shareProduct = async () => {
+    const url = new URL(`/store?product=${encodeURIComponent(product.id)}`, window.location.origin).toString();
+    const shareData = { title: product.title, text: product.description, url };
+    setShareStatus('');
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+        setShareStatus(s.shareSuccess);
+      } catch (error) {
+        if (error.name !== 'AbortError') setShareStatus(s.shareError);
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      setShareStatus(s.shareCopied);
+    } catch {
+      setShareStatus(s.shareError);
+    }
+  };
 
   useEffect(() => {
-    const onKey = (event) => event.key === 'Escape' && onClose();
+    const previousFocus = document.activeElement;
+    const dialog = dialogRef.current;
+    const getFocusable = () => [...(dialog?.querySelectorAll(
+      'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    ) || [])].filter((element) => element.getClientRects().length > 0);
+    const focusable = getFocusable();
+    (focusable[0] || dialog)?.focus();
+
+    const onKey = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const currentFocusable = getFocusable();
+      if (currentFocusable.length === 0) {
+        event.preventDefault();
+        dialog?.focus();
+        return;
+      }
+
+      const first = currentFocusable[0];
+      const last = currentFocusable[currentFocusable.length - 1];
+      if (!dialog?.contains(document.activeElement)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener('keydown', onKey);
     return () => {
       window.removeEventListener('keydown', onKey);
+      if (previousFocus instanceof HTMLElement && previousFocus !== document.body && previousFocus.isConnected) {
+        previousFocus.focus();
+      }
     };
   }, [onClose]);
 
   return (
     <Portal>
-<div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-labelledby="quick-view-title">
-      <div className="absolute inset-0 animate-page-in bg-ink/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative grid max-h-[92vh] w-full max-w-4xl animate-zoom-in overflow-y-auto rounded-t-[32px] bg-white shadow-2xl sm:rounded-[32px] md:grid-cols-2">
+      <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-6">
+      <div aria-hidden="true" className="absolute inset-0 animate-page-in bg-ink/50 backdrop-blur-sm" onClick={onClose} />
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="quick-view-title"
+        tabIndex={-1}
+        className="relative grid max-h-[92vh] w-full max-w-4xl animate-zoom-in overflow-y-auto rounded-t-[32px] bg-white shadow-2xl focus:outline-none sm:rounded-[32px] md:grid-cols-2"
+      >
         <button
           type="button"
           onClick={onClose}
@@ -129,7 +196,7 @@ function QuickView({ product, onClose }) {
 
         <div className="relative aspect-square bg-sand md:aspect-auto md:min-h-[460px]">
           {image ? (
-            <img src={image} alt={product.title} className="absolute inset-0 h-full w-full object-cover" />
+            <img src={image} alt={product.title} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
           ) : (
             <span className="absolute inset-0 flex items-center justify-center text-ink/20">
               <Package className="h-16 w-16" />
@@ -147,7 +214,7 @@ function QuickView({ product, onClose }) {
                   className={`h-12 w-12 shrink-0 overflow-hidden rounded-lg ring-2 transition-all ${index === photoIndex ? 'ring-white' : 'opacity-70 ring-white/30 hover:opacity-100'}`}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt="" className="h-full w-full object-cover" />
+                  <img src={src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>
@@ -177,6 +244,11 @@ function QuickView({ product, onClose }) {
           <div className="mt-3">
             <PriceTag product={product} large />
           </div>
+          {product.stock != null && (
+            <p className={`mt-2 text-sm font-semibold ${product.stock === 0 ? 'text-red-600' : 'text-ink/60'}`}>
+              {product.stock === 0 ? t.cart.outOfStock : fill(t.cart.stockLeft, { count: product.stock })}
+            </p>
+          )}
           <p className="mt-4 text-sm leading-relaxed text-ink/70">{product.description}</p>
 
           <div className="mt-6 rounded-[22px] bg-cream p-4 ring-1 ring-ink/5">
@@ -216,6 +288,14 @@ function QuickView({ product, onClose }) {
 
           <div className="mt-auto pt-6">
             <div className="flex flex-col gap-2.5 sm:flex-row">
+              <button
+                type="button"
+                onClick={shareProduct}
+                className="flex items-center justify-center gap-2 rounded-full border border-ink/15 px-5 py-3.5 text-sm font-semibold text-ink transition-colors hover:border-magenta hover:bg-magenta/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-magenta"
+              >
+                <Share2 className="h-4 w-4" />
+                {s.shareProduct}
+              </button>
               {example ? (
                 <span className="flex flex-1 items-center justify-center rounded-full bg-sand/70 px-4 py-3 text-sm font-semibold text-ink/40">{s.exampleButton}</span>
               ) : null}
@@ -244,6 +324,7 @@ function QuickView({ product, onClose }) {
                 </a>
               )}
             </div>
+            {shareStatus && <p role="status" className="mt-2 text-center text-xs text-ink/65">{shareStatus}</p>}
             {!example && product.price !== null && product.price !== undefined && whatsapp && <p className="mt-3 text-center text-xs text-ink/50">{s.payNote}</p>}
           </div>
         </div>
@@ -295,10 +376,10 @@ export default function StorePage() {
     setSelected(product);
   };
 
-  const closeProduct = () => {
+  const closeProduct = useCallback(() => {
     setSelected(null);
     if (new URLSearchParams(window.location.search).has('product')) window.history.replaceState(null, '', window.location.pathname);
-  };
+  }, []);
 
   const closeGate = () => {
     setGateProduct(null);

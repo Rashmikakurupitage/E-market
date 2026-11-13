@@ -38,6 +38,7 @@ export default function SiteFooter() {
     { href: '/e-learning', label: t.navElearn },
     { href: '/faq', label: t.navFaq },
     { href: '/support', label: t.navSupport },
+    { href: '/public-services', label: t.navPublicServices },
   ];
 
   return (

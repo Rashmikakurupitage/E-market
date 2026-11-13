@@ -22,14 +22,14 @@ enum ApplicationStatus {
 
 model User {
   id              String    @id @default(uuid())
-  email           String    @unique
+  email           String?   @unique
   phone           String    @unique
   passwordHash    String
   role            Role      @default(CUSTOMER)
   sessionVersion  Int       @default(0)
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
-  // Set when the owner enters the code we email at sign-up. Accounts without it cannot log in.
+  // Set when the owner verifies their email. Accounts without email can sign in without this timestamp.
   emailVerifiedAt DateTime?
   // Set by an administrator to deactivate an account while retaining its history.
   removedAt       DateTime?
@@ -112,6 +112,7 @@ model SellerProfile {
   userId       String            @unique
   user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   businessName String
+  businessType String            @default("Other")
   description  String?
   district     String
   firstName    String?

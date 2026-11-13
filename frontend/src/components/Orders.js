@@ -85,7 +85,7 @@ function ItemList({ items, isDelivered, onReviewProduct }) {
           <div className="flex min-w-0 items-center gap-3">
             <span className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-sand">
               {item.image ? (
-                <img src={item.image} alt="" className="h-full w-full object-cover" />
+                <img src={item.image} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
               ) : (
                 <Package className="m-3 h-6 w-6 text-ink/25" />
               )}

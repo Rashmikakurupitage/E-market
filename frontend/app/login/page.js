@@ -18,26 +18,31 @@ function PasswordLogin({ redirectTo, footer }) {
   const { t } = useLanguage();
   const l = t.loginPage;
   const forgotHref = useSearchParams().get('as') === 'customer' ? '/forgot-password?as=customer' : '/forgot-password';
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [unverified, setUnverified] = useState(false); // the account exists but its email was never verified
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
   const asParam = useSearchParams().get('as') === 'customer' ? 'customer' : 'seller';
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError('');
     setUnverified(false);
+    setUnverifiedEmail('');
     setLoading(true);
 
     try {
-      const res = await API.post('/auth/login', { email: email.trim(), password });
+      const res = await API.post('/auth/login', { identifier: identifier.trim(), password });
       saveSession(res.data.token, res.data.user);
       router.push(redirectTo);
     } catch (err) {
       const responseError = err.response?.data;
-      if (responseError?.code === 'EMAIL_NOT_VERIFIED') setUnverified(true);
+      if (responseError?.code === 'EMAIL_NOT_VERIFIED') {
+        setUnverified(true);
+        setUnverifiedEmail(responseError.email || '');
+      }
       const message =
         l.errors?.[responseError?.code] ||
         responseError?.message ||
@@ -59,7 +64,7 @@ function PasswordLogin({ redirectTo, footer }) {
             {unverified && (
               <>
                 {' '}
-                <Link href={`/verify-email?email=${encodeURIComponent(email.trim())}&as=${asParam}&resend=1`} className="font-semibold underline">
+                <Link href={`/verify-email?email=${encodeURIComponent(unverifiedEmail)}&as=${asParam}&resend=1`} className="font-semibold underline">
                   {l.verifyNow}
                 </Link>
               </>
@@ -68,16 +73,16 @@ function PasswordLogin({ redirectTo, footer }) {
         </div>
       )}
 
-      <Field id="email" label={l.email || 'Email'} required>
+      <Field id="identifier" label={l.phoneOrEmail || 'Phone number or email'} required>
         <input
-          id="email"
-          type="email"
+          id="identifier"
+          type="text"
           required
-          autoComplete="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          autoComplete="username"
+          value={identifier}
+          onChange={(e) => setIdentifier(e.target.value)}
           className={inputClass(false)}
-          placeholder="name@example.com"
+          placeholder={l.phoneOrEmailPlaceholder || 'Phone number (or email for existing accounts)'}
         />
       </Field>
 
@@ -128,7 +133,7 @@ function Login() {
   // Don't flash the form while redirecting someone who is logged in
   if (hydrated && session) return <main className="flex-1" />;
 
-  // Sellers and customers log in the same way (email + NIC + emailed code), only the wording differs
+  // Sellers and customers use the same phone/email + password sign-in.
   const texts =
     type === 'customer'
       ? { ...l, title: c.loginTitle, steps: c.loginSteps, registerLink: c.registerLink, errors: { ...l.errors, ...c.loginErrors } }

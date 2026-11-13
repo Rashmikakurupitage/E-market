@@ -14,5 +14,5 @@ export default function ProductThumb({ src, alt = '', size = 'h-14 w-14' }) {
       </span>
     );
   }
-  return <img src={src} alt={alt} onError={() => setFailed(true)} className={`${size} shrink-0 rounded-xl object-cover ring-1 ring-ink/5`} />;
+  return <img src={src} alt={alt} loading="lazy" decoding="async" onError={() => setFailed(true)} className={`${size} shrink-0 rounded-xl object-cover ring-1 ring-ink/5`} />;
 }

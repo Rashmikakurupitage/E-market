@@ -296,7 +296,7 @@ export default function ELearning() {
       .catch((error) => {
         if (cancelled) return;
         setCatalogLoadFailed(true);
-        console.error('LEARNING_COURSES_LOAD_ERROR:', error?.response?.status || error?.message || 'Unknown error');
+        console.warn('LEARNING_COURSES_LOAD_ERROR:', error?.response?.status || error?.message || 'Unknown error');
       });
     return () => {
       cancelled = true;

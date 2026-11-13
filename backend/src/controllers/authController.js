@@ -39,6 +39,14 @@ const checkEmailAddress = async (email) => {
 
 // Admin accounts must never be created through public sign-up
 const SELF_SERVICE_ROLES = ['CUSTOMER', 'SELLER'];
+const SELLER_BUSINESS_TYPES = [
+  'Handicrafts',
+  'Textiles',
+  'Agri-Products',
+  'Food & Spices',
+  'Beauty & Personal Care',
+  'Other'
+];
 
 // Old NIC: 9 digits + V/X (e.g. 858470123V). New NIC: 12 digits (e.g. 198584700123)
 const NIC_PATTERN = /^(\d{9}[VX]|\d{12})$/;
@@ -54,6 +62,17 @@ const normalizeOptionalUrl = (value) => {
   if (!value) return null;
   const trimmed = String(value).trim();
   return trimmed || null;
+};
+const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
+const normalizeSriLankanPhone = (value) => {
+  const phone = String(value || '').replace(/[\s-]/g, '');
+  return PHONE_PATTERN.test(phone) ? `+94${phone.slice(-9)}` : '';
+};
+const phoneLookupValues = (value) => {
+  const phone = String(value || '').replace(/[\s-]/g, '');
+  if (!PHONE_PATTERN.test(phone)) return [];
+  const national = phone.slice(-9);
+  return [...new Set([phone, `+94${national}`, `94${national}`, `0${national}`])];
 };
 
 const signToken = (user, expiresIn = '7d') =>
@@ -98,13 +117,14 @@ const capitalizeName = (value) => {
 exports.register = async (req, res) => {
   try {
     const {
-      email,
-      phone,
+      email: emailInput,
+      phone: phoneInput,
       password,
       fullName,
       firstName,
       lastName,
       businessName,
+      businessType,
       district,
       whatsappNo,
       description,
@@ -114,6 +134,8 @@ exports.register = async (req, res) => {
       nicBack,
       facePhoto
     } = req.body;
+    const email = String(emailInput || '').trim().toLowerCase() || null;
+    const phone = normalizeSriLankanPhone(phoneInput);
     const role = req.body.role || 'CUSTOMER';
     const nicNumberInput = req.body.nicNumber?.trim().toUpperCase();
     const rawProvidedFullName = String(req.body.customerFullName || fullName || '').trim();
@@ -128,17 +150,19 @@ exports.register = async (req, res) => {
     const profileLastName = capitalizeName(rawLastName);
     const customerFullName = [profileFirstName, profileLastName].filter(Boolean).join(' ') || (rawProvidedFullName ? capitalizeName(rawProvidedFullName) : 'Customer');
 
-    if (!email || !phone) {
-      return res.status(400).json({ message: 'Email සහ Phone අංකය අවශ්‍ය වේ.' });
+    if (!phone) {
+      return res.status(400).json({ code: 'INVALID_PHONE', message: 'Enter a valid Sri Lankan phone number.' });
     }
 
     if (!SELF_SERVICE_ROLES.includes(role)) {
       return res.status(400).json({ message: 'අවලංගු ගිණුම් වර්ගයකි.' });
     }
 
-    const emailProblem = await checkEmailAddress(email);
-    if (emailProblem) {
-      return res.status(400).json({ ...emailProblem, message: 'The email address looks incorrect.' });
+    if (email) {
+      const emailProblem = await checkEmailAddress(email);
+      if (emailProblem) {
+        return res.status(400).json({ ...emailProblem, message: 'The email address looks incorrect.' });
+      }
     }
 
     if (!isStrongPassword(password)) {
@@ -150,6 +174,9 @@ exports.register = async (req, res) => {
 
     if ((firstName !== undefined || lastName !== undefined) && (!profileFirstName || !profileLastName)) {
       return res.status(400).json({ message: 'First name සහ Last name අවශ්‍ය වේ.' });
+    }
+    if (role === 'SELLER' && !SELLER_BUSINESS_TYPES.includes(businessType)) {
+      return res.status(400).json({ code: 'INVALID_BUSINESS_TYPE', message: 'Choose a valid business type.' });
     }
 
     // Sellers must upload both front & back NIC photos and provide a valid NIC (it is stored encrypted).
@@ -192,19 +219,24 @@ exports.register = async (req, res) => {
     const sellerMessengerUrl = normalizeOptionalUrl(messengerUrl);
     const sellerFacebookUrl = normalizeOptionalUrl(facebookUrl);
 
-    // The code has to be emailed, so sign-up needs working email
-    if (!isEmailConfigured()) {
+    // Email is optional; only require mail delivery when the registrant provides an address.
+    if (email && !isEmailConfigured()) {
       return res.status(503).json({ code: 'SMTP_NOT_CONFIGURED', message: 'Email delivery is not configured on the server.' });
     }
 
     // A sign-up that was never verified (abandoned, or a mistyped email) must not block the same email, phone or NIC.
     // Very old unverified accounts are cleared out as well.
-    await prisma.user.deleteMany({ where: { emailVerifiedAt: null, role: { in: SELF_SERVICE_ROLES }, createdAt: { lt: new Date(Date.now() - 48 * 60 * 60 * 1000) } } });
+    await prisma.user.deleteMany({ where: { email: { not: null }, emailVerifiedAt: null, role: { in: SELF_SERVICE_ROLES }, createdAt: { lt: new Date(Date.now() - 48 * 60 * 60 * 1000) } } });
     const existingUsers = await prisma.user.findMany({
-      where: { OR: [{ email: { equals: email, mode: 'insensitive' } }, { phone }] },
-      select: { id: true, emailVerifiedAt: true }
+      where: {
+        OR: [
+          ...phoneLookupValues(phone).map((value) => ({ phone: value })),
+          ...(email ? [{ email: { equals: email, mode: 'insensitive' } }] : [])
+        ]
+      },
+      select: { id: true, email: true, emailVerifiedAt: true }
     });
-    if (existingUsers.some((existing) => existing.emailVerifiedAt)) {
+    if (existingUsers.some((existing) => existing.emailVerifiedAt || !existing.email)) {
       return res.status(400).json({ message: 'Email හෝ Phone අංකය දැනටමත් ලියාපදිංචි වී ඇත.' });
     }
     if (existingUsers.length > 0) {
@@ -213,8 +245,8 @@ exports.register = async (req, res) => {
 
     const nicData = role === 'SELLER' ? nicVault.protect(nicNumberInput) : null;
     if (nicData) {
-      const holder = await prisma.sellerProfile.findFirst({ where: { OR: [{ nicHash: nicData.nicHash }, { nicNumber: nicNumberInput }] }, select: { user: { select: { id: true, emailVerifiedAt: true } } } });
-      if (holder?.user.emailVerifiedAt) {
+      const holder = await prisma.sellerProfile.findFirst({ where: { OR: [{ nicHash: nicData.nicHash }, { nicNumber: nicNumberInput }] }, select: { user: { select: { id: true, email: true, emailVerifiedAt: true } } } });
+      if (holder && (holder.user.emailVerifiedAt || !holder.user.email)) {
         return res.status(409).json({ code: 'NIC_TAKEN', message: 'This NIC number is already registered.' });
       }
       if (holder) await prisma.user.delete({ where: { id: holder.user.id } }); // an unverified sign-up that used this NIC
@@ -228,13 +260,15 @@ exports.register = async (req, res) => {
             sellerProfile: {
               create: {
                 businessName: businessName || 'My Business',
+                businessType,
                 district: district || 'Colombo',
+                status: email ? 'PENDING' : 'APPROVED',
                 nicNumber: nicNumberInput,
                 ...nicData,
                 dateOfBirth: nicInfo ? new Date(`${nicInfo.birthDate}T00:00:00.000Z`) : null,
                 firstName: profileFirstName || null,
                 lastName: profileLastName || null,
-                whatsappNo: whatsappNo || phone,
+                whatsappNo: whatsappNo || phoneInput,
                 messengerUrl: sellerMessengerUrl,
                 facebookUrl: sellerFacebookUrl,
                 description: description || null,
@@ -263,7 +297,16 @@ exports.register = async (req, res) => {
       include: { sellerProfile: true, customerProfile: true, profilePhoto: true }
     });
 
-    // Email the 6-digit code. If it cannot be sent, undo the sign-up so the person can simply try again.
+    if (!email) {
+      setSessionCookie(res, user);
+      return res.status(201).json({
+        verificationRequired: false,
+        token: signToken(user),
+        user: toPublicUser(user)
+      });
+    }
+
+    // Email the 6-digit code when an address was provided.
     const issued = otpStore.issue(verifyKey(user.id));
     try {
       await sendLoginCode({
@@ -305,28 +348,35 @@ exports.register = async (req, res) => {
 // 2. User Login
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const identifier = String(req.body.identifier || req.body.phone || req.body.email || '').trim();
+    const password = req.body.password;
 
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email සහ Password ඇතුළත් කරන්න.' });
+    if (!identifier || !password) {
+      return res.status(400).json({ message: 'Enter your phone number (or existing email) and password.' });
     }
 
-    const user = await prisma.user.findUnique({
-      where: { email },
+    const accountFilters = identifier.includes('@')
+      ? [{ email: { equals: identifier.toLowerCase(), mode: 'insensitive' } }]
+      : phoneLookupValues(identifier).map((value) => ({ phone: value }));
+    if (accountFilters.length === 0) {
+      return res.status(400).json({ code: 'INVALID_CREDENTIALS', message: 'Phone/email or password is incorrect.' });
+    }
+    const user = await prisma.user.findFirst({
+      where: { OR: accountFilters },
       include: { sellerProfile: true, customerProfile: true, profilePhoto: { select: { updatedAt: true } } }
     });
 
     // Admins must use the admin login (email + NIC + emailed code)
     if (!user || user.role === 'SUPER_ADMIN') {
-      return res.status(400).json({ code: 'INVALID_CREDENTIALS', message: 'Email හෝ Password වැරදියි.' });
+      return res.status(400).json({ code: 'INVALID_CREDENTIALS', message: 'Phone/email or password is incorrect.' });
     }
 
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) {
-      return res.status(400).json({ code: 'INVALID_CREDENTIALS', message: 'Email හෝ Password වැරදියි.' });
+      return res.status(400).json({ code: 'INVALID_CREDENTIALS', message: 'Phone/email or password is incorrect.' });
     }
 
-    if (!user.emailVerifiedAt) {
+    if (user.email && !user.emailVerifiedAt) {
       return res.status(403).json({ code: 'EMAIL_NOT_VERIFIED', email: user.email, message: 'Please verify your email first.' });
     }
 
@@ -349,9 +399,6 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Server එකේ දෝෂයක් සිදුවිය.' });
   }
 };
-
-// Sri Lankan phone number: 0771234567, 94771234567 or +94771234567
-const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 
 // --- Login with email + NIC, then a one-time code sent to that email (sellers, customers and admins) ---
 
@@ -870,8 +917,8 @@ const emailChangeKey = (userId) => `email-change:${userId}`;
 // No code is needed: the user is logged in, and nothing here is used to log in.
 exports.updatePhone = async (req, res) => {
   try {
-    const phone = cleanPhone(req.body.phone);
-    if (!PHONE_PATTERN.test(phone)) {
+    const phone = normalizeSriLankanPhone(req.body.phone);
+    if (!phone) {
       return res.status(400).json({ code: 'INVALID_PHONE', message: 'දුරකථන අංකය වලංගු නොවේ.' });
     }
 
@@ -898,7 +945,10 @@ exports.updatePhone = async (req, res) => {
       };
     }
 
-    if (phone !== user.phone && (await prisma.user.findFirst({ where: { phone, NOT: { id: user.id } } }))) {
+    if (
+      phone !== normalizeSriLankanPhone(user.phone) &&
+      (await prisma.user.findFirst({ where: { phone: { in: phoneLookupValues(phone) }, NOT: { id: user.id } } }))
+    ) {
       return res.status(400).json({ code: 'PHONE_TAKEN', message: 'මෙම දුරකථන අංකය වෙනත් ගිණුමක් භාවිත කරයි.' });
     }
 

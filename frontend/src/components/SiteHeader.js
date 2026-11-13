@@ -302,7 +302,7 @@ export default function SiteHeader() {
               {/* Vertical Divider */}
               <span aria-hidden="true" className="hidden h-3.5 w-px bg-ink/15 dark:bg-white/15 xl:block" />
 
-              {/* Pod 2: Preferences (Theme, Palette, Language) */}
+              {/* Pod 2: Preferences (Display mode and language) */}
               <div className="hidden items-center gap-1 xl:flex">
                 <ThemeToggle className="!h-7.5 !w-7.5 2xl:!h-8 2xl:!w-8" />
                 <LanguageSelect className="!h-7.5 2xl:!h-8" />

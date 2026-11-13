@@ -88,7 +88,7 @@ export default function CartDrawer() {
                       <li key={item.id} className="flex gap-3 py-3 first:pt-0 last:pb-0">
                         <span className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl bg-sand">
                           {item.image ? (
-                            <img src={item.image} alt="" className="h-full w-full object-cover" />
+                            <img src={item.image} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                           ) : (
                             <span className="flex h-full w-full items-center justify-center text-ink/25">
                               <Package className="h-6 w-6" />

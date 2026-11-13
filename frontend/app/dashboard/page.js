@@ -120,6 +120,7 @@ function AddProductModal({ onClose, onAdded, sellerStatus }) {
   const [form, setForm] = useState({
     title: '',
     price: '',
+    stock: '',
     category: CATEGORIES[0],
     discountPercent: '',
     discountEndsAt: '',
@@ -158,6 +159,10 @@ function AddProductModal({ onClose, onAdded, sellerStatus }) {
       document.getElementById('messengerUrl')?.focus();
       return;
     }
+    if (form.stock !== '' && (!Number.isInteger(Number(form.stock)) || Number(form.stock) < 0 || Number(form.stock) > 1000000)) {
+      setError(f.stockInvalid);
+      return;
+    }
     setMessengerError('');
     setSaving(true);
     try {
@@ -166,6 +171,7 @@ function AddProductModal({ onClose, onAdded, sellerStatus }) {
         description: form.description.trim(),
         category: form.category,
         price: form.price === '' ? null : Number(form.price),
+        stock: form.stock === '' ? null : Number(form.stock),
         discountPercent: form.discountPercent === '' ? null : Number(form.discountPercent),
         discountEndsAt: form.discountEndsAt || null,
         images: photos,
@@ -267,6 +273,21 @@ function AddProductModal({ onClose, onAdded, sellerStatus }) {
               </Field>
             </div>
 
+            <Field label={f.stock} hint={f.stockHint}>
+              <input
+                name="stock"
+                type="number"
+                min="0"
+                max="1000000"
+                step="1"
+                inputMode="numeric"
+                value={form.stock}
+                onChange={update}
+                placeholder={f.stockUntracked}
+                className={inputClass(false)}
+              />
+            </Field>
+
             <div className="grid gap-4 sm:grid-cols-2">
               <Field label={t.discount.percent}>
                 <input
@@ -366,6 +387,9 @@ export default function DashboardPage() {
   const [showAddProduct, setShowAddProduct] = useState(false);
   const [productToRemove, setProductToRemove] = useState(null);
   const [productToDiscount, setProductToDiscount] = useState(null);
+  const [stockDrafts, setStockDrafts] = useState({});
+  const [savingStockId, setSavingStockId] = useState(null);
+  const [stockError, setStockError] = useState(null);
   const [notice, setNotice] = useState('');
   const [section, setSection] = useState('overview'); // 'overview' | 'products' | 'orders' | 'settings'
 
@@ -427,6 +451,36 @@ export default function DashboardPage() {
   const retry = () => {
     setStatus('loading');
     setReloadKey((key) => key + 1);
+  };
+
+  const saveStock = async (product) => {
+    const value = stockDrafts[product.id] ?? '';
+    if (value !== '' && (!Number.isInteger(Number(value)) || Number(value) < 0 || Number(value) > 1000000)) {
+      setStockError({ productId: product.id, message: d.form.stockInvalid });
+      return;
+    }
+    setSavingStockId(product.id);
+    setStockError(null);
+    try {
+      const { data } = await API.patch(`/products/${encodeURIComponent(product.id)}/stock`, {
+        stock: value === '' ? null : Number(value),
+      });
+      setProducts((current) => current.map((item) => item.id === product.id ? { ...item, stock: data.product.stock } : item));
+      setStockDrafts((current) => {
+        const next = { ...current };
+        delete next[product.id];
+        return next;
+      });
+      setNotice(d.stockSaved);
+    } catch (error) {
+      if (isAuthError(error)) {
+        loggedOut();
+        return;
+      }
+      setStockError({ productId: product.id, message: d.stockError });
+    } finally {
+      setSavingStockId(null);
+    }
   };
 
   const productAdded = () => {
@@ -1039,6 +1093,35 @@ export default function DashboardPage() {
 
                       {/* Performance indicators and actions on mobile */}
                       <div className="flex items-center justify-between sm:justify-end gap-3 border-t border-ink/5 pt-2 sm:border-0 sm:pt-0">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <label htmlFor={`stock-${product.id}`} className="text-[10px] font-bold text-ink/60 dark:text-slate-400">
+                            {d.stock}
+                          </label>
+                          <input
+                            id={`stock-${product.id}`}
+                            type="number"
+                            min="0"
+                            max="1000000"
+                            step="1"
+                            inputMode="numeric"
+                            value={stockDrafts[product.id] ?? (product.stock == null ? '' : String(product.stock))}
+                            onChange={(event) => {
+                              setStockDrafts((current) => ({ ...current, [product.id]: event.target.value }));
+                              if (stockError?.productId === product.id) setStockError(null);
+                            }}
+                            aria-label={`${d.stock}: ${product.title}`}
+                            placeholder={d.stockUntracked}
+                            className={`${inputClass(false)} w-24 px-2 py-1.5 text-xs`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => saveStock(product)}
+                            disabled={savingStockId === product.id || (stockDrafts[product.id] ?? (product.stock == null ? '' : String(product.stock))) === (product.stock == null ? '' : String(product.stock))}
+                            className="rounded-lg bg-ink px-2.5 py-1.5 text-[10px] font-bold text-white transition-colors hover:bg-magenta disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            {savingStockId === product.id ? d.savingStock : d.saveStock}
+                          </button>
+                        </div>
                         {/* Performance indicators */}
                         <span className="hidden rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 md:inline">
                           +{product.clicksThisWeek || 0} {d.thisWeek}
@@ -1089,6 +1172,9 @@ export default function DashboardPage() {
                           </Link>
                         </div>
                       </div>
+                      {stockError?.productId === product.id && savingStockId === null && (
+                        <p role="alert" className="text-xs font-medium text-red-600 sm:ml-auto">{stockError.message}</p>
+                      )}
                     </Reveal>
                   ))}
                 </ul>

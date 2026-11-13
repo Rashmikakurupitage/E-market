@@ -12,10 +12,10 @@ import AccountTypeTabs, { useAccountType } from '../../src/components/AccountTyp
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
 import PasswordInput from '../../src/components/PasswordInput';
 import { PageArt } from '../../src/components/Art';
-import { DISTRICTS, isStrongPassword } from '../../src/lib/catalog';
+import { BUSINESS_TYPES, DISTRICTS, isStrongPassword } from '../../src/lib/catalog';
 import { parseNic } from '../../src/lib/nicInfo';
 import NicPhotoUpload, { shrinkImage } from '../../src/components/NicPhotoUpload';
-import Face3DVerificationModal, { Face3DVerificationCard } from '../../src/components/Face3DVerification';
+import FaceLivenessVerificationModal, { FaceLivenessVerificationCard } from '../../src/components/FaceLivenessVerification';
 
 // Same rules as the backend (authController.js)
 const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
@@ -24,11 +24,12 @@ const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 const emailErrorText = (data, r) => {
   if (data?.code === 'NIC_FRONT_REQUIRED') return r.nicFrontRequired || 'Front side photo of your NIC is essential.';
   if (data?.code === 'NIC_BACK_REQUIRED') return r.nicBackRequired || 'Back side photo of your NIC is essential.';
-  if (data?.code === 'FACE_VERIFICATION_REQUIRED') return r.faceVerificationRequired || '3D Face identification and liveness verification is required.';
+  if (data?.code === 'FACE_VERIFICATION_REQUIRED') return r.faceVerificationRequired || 'A live face check is required.';
   if (data?.code === 'WOMEN_ONLY') return r.nicWomenOnly;
   if (data?.code === 'INVALID_NIC') return r.nicIncorrect;
   if (data?.code === 'EMAIL_TYPO') return fill(r.emailTypo, { suggestion: data.suggestion });
   if (data?.code === 'EMAIL_INVALID') return r.emailInvalid;
+  if (data?.code === 'INVALID_BUSINESS_TYPE') return r.businessTypeInvalid;
   return '';
 };
 
@@ -67,6 +68,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
     password: '',
     confirmPassword: '',
     businessName: '',
+    businessType: '',
     district: 'Colombo',
     description: '',
     phone: '',
@@ -215,7 +217,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
     if (!nicFront) errors.nicFront = r.nicFrontRequired || 'Front side photo of your NIC is essential.';
     if (!nicBack) errors.nicBack = r.nicBackRequired || 'Back side photo of your NIC is essential.';
     if (!facePhoto) {
-      errors.facePhoto = r.faceVerificationRequired || '3D Face identification and liveness verification is required for seller registration.';
+      errors.facePhoto = r.faceVerificationRequired || 'A live face check is required for seller registration.';
     }
     if (!formData.nicNumber) {
       errors.nic = r.nicHint || 'NIC number is required (auto-filled from photos).';
@@ -233,6 +235,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
     }
     if (!isStrongPassword(formData.password)) errors.password = r.passwordRule;
     if (formData.password !== formData.confirmPassword) errors.confirmPassword = 'Passwords do not match.';
+    if (!formData.businessType) errors.businessType = r.businessTypeInvalid;
     if (!PHONE_PATTERN.test(cleanPhone(formData.phone))) errors.phone = r.phoneInvalid;
     if (!whatsappSameAsPhone && !PHONE_PATTERN.test(cleanPhone(formData.whatsappNo))) {
       errors.whatsappNo = r.phoneInvalid;
@@ -273,6 +276,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         password: formData.password,
         nicNumber: formData.nicNumber.trim().toUpperCase(),
         businessName: formData.businessName.trim(),
+        businessType: formData.businessType,
         district: formData.district,
         description: formData.description.trim(),
         phone,
@@ -299,7 +303,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
       } else {
         const respData = err.response.data;
         if (respData?.code === 'FACE_VERIFICATION_REQUIRED') {
-          setFieldErrors((prev) => ({ ...prev, facePhoto: r.faceVerificationRequired || '3D Face identification and liveness verification is required.' }));
+          setFieldErrors((prev) => ({ ...prev, facePhoto: r.faceVerificationRequired || 'A live face check is required.' }));
           document.getElementById('faceVerificationSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         } else if (respData?.code === 'NIC_FRONT_REQUIRED') {
           setFieldErrors((prev) => ({ ...prev, nicFront: r.nicFrontRequired || 'Front side photo of your NIC is essential.' }));
@@ -371,8 +375,8 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
               className={inputClass(false)}
             />
           </Field>
-          <Field id="email" label={r.email} required className="sm:col-span-2">
-            <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
+          <Field id="email" label={r.emailOptionalLabel || r.email} hint={r.emailOptionalHint} className="sm:col-span-2">
+            <input id="email" name="email" type="email" autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
           </Field>
 
           {/* Front & Back NIC Photos with OCR Scanning & Autofill */}
@@ -400,9 +404,9 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
             r={r}
           />
 
-          {/* 3D Face Biometric Identification & Verification (Essential KYC) */}
+          {/* On-device live face checks for seller registration */}
           <div className="sm:col-span-2">
-            <Face3DVerificationCard
+            <FaceLivenessVerificationCard
               facePhoto={facePhoto}
               faceVerification={faceVerification}
               onStartVerification={() => setIsFaceModalOpen(true)}
@@ -450,6 +454,14 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         <div className="grid gap-4 sm:grid-cols-2">
           <Field id="businessName" label={r.businessName} required>
             <input id="businessName" name="businessName" type="text" required autoComplete="organization" value={formData.businessName} onChange={handleChange} className={inputClass(false)} />
+          </Field>
+          <Field id="businessType" label={r.businessType} required error={fieldErrors.businessType}>
+            <select id="businessType" name="businessType" required value={formData.businessType} onChange={handleChange} aria-invalid={!!fieldErrors.businessType} className={inputClass(fieldErrors.businessType)}>
+              <option value="" disabled>{r.businessTypePlaceholder}</option>
+              {BUSINESS_TYPES.map((type) => (
+                <option key={type} value={type}>{t.categories[type] || type}</option>
+              ))}
+            </select>
           </Field>
           <Field id="district" label={r.district} required>
             <select id="district" name="district" value={formData.district} onChange={handleChange} className={inputClass(false)}>
@@ -521,7 +533,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         </p>
       </div>
 
-      <Face3DVerificationModal
+      <FaceLivenessVerificationModal
         isOpen={isFaceModalOpen}
         onComplete={(result) => {
           setFacePhoto(result.photo);
@@ -653,8 +665,8 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
             />
           </Field>
           <div className="sm:col-span-2">
-            <Field id="email" label={r.email} required>
-              <input id="email" name="email" type="email" required autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
+            <Field id="email" label={r.emailOptionalLabel || r.email} hint={r.emailOptionalHint}>
+              <input id="email" name="email" type="email" autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
             </Field>
           </div>
           <Field id="password" label={r.password || 'Password'} required hint={r.passwordRule} error={fieldErrors.password}>

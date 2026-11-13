@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { LifeBuoy, ShoppingBag, Store, MessageCircleQuestion, Phone, Printer, Lightbulb, BookOpen, Mail, ArrowRight } from 'lucide-react';
+import { LifeBuoy, ShoppingBag, Store, MessageCircleQuestion, Phone, Printer, Lightbulb, BookOpen, Mail, ArrowRight, Building2 } from 'lucide-react';
 import { useLanguage } from '../../src/lib/i18n';
 import { HERO_IMAGE } from '../../src/lib/catalog';
 import Reveal from '../../src/components/Reveal';
@@ -229,6 +229,7 @@ export default function Support() {
   const quickLinks = [
     { href: '#customer-guide', icon: ShoppingBag, title: s.customerGuide, text: s.customerText, tone: 'blue' },
     { href: '#seller-guide', icon: Store, title: s.sellerGuide, text: s.sellerText, tone: 'green' },
+    { href: '/public-services', icon: Building2, title: s.publicServicesLink, text: s.publicServicesText, tone: 'blue' },
     { href: '/faq', icon: MessageCircleQuestion, title: s.faqTitle, text: s.faqText, tone: 'amber' },
     { href: '#contact', icon: Phone, title: s.contactTitle, text: s.contactText, tone: 'pink' },
   ];
@@ -259,7 +260,7 @@ export default function Support() {
 
       <div className="mx-auto max-w-6xl px-4 pb-10 print:max-w-none print:p-0">
         {/* Quick links, rising over the edge of the banner */}
-        <div className="relative z-10 -mt-20 grid gap-4 sm:-mt-24 sm:grid-cols-2 lg:grid-cols-4 print:hidden">
+        <div className="relative z-10 -mt-20 grid gap-4 sm:-mt-24 sm:grid-cols-2 lg:grid-cols-5 print:hidden">
           {quickLinks.map((link, index) => (
             <Reveal key={link.href} animation="zoom-in" delay={300 + index * 100} className="grid">
               <QuickLink {...link} />

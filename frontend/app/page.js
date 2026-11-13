@@ -18,6 +18,7 @@ import HeroWallpapersGrid from '../src/components/HeroWallpapersGrid';
 import HomeImpact from '../src/components/HomeImpact';
 import WhatsAppIcon from '../src/components/WhatsAppIcon';
 import Reveal from '../src/components/Reveal';
+import SellerDistrictMap from '../src/components/SellerDistrictMap';
 import { Lotus, Sparkle, DotGrid, Squiggle } from '../src/components/Art';
 
 const SRI_LANKA_DISTRICTS = [
@@ -634,9 +635,7 @@ export default function Home() {
         </div>
       </section>
 
-
-
-
+      <SellerDistrictMap />
 
       {/* 9. Lower Half: Main Product Catalog */}
       <div className="rounded-t-[48px] bg-slate-50/70 border-t border-slate-200">

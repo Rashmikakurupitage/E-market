@@ -4,7 +4,7 @@ import { useSyncExternalStore } from 'react';
 
 // Light or dark for the whole website. The choice is kept in the browser (localStorage) and applied as
 // <html data-theme="dark" class="dark"> (the colours are in app/dark-theme.css and Tailwind dark: variants).
-// The script in public/theme-init.js sets it before the page paints, so there is no flash of wrong colours.
+// The inline script in app/layout.tsx sets it before the page paints, so there is no flash of wrong colours.
 const KEY = 'lw-theme';
 const listeners = new Set();
 

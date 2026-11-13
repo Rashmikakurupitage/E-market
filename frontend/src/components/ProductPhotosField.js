@@ -7,9 +7,9 @@ import { inputClass } from './form';
 import ImageCropDialog from './ImageCropDialog';
 
 export const MAX_PHOTOS = 5;
-const MAX_UPLOAD_BYTES = 550 * 1024;
+const MAX_UPLOAD_BYTES = 350 * 1024;
 
-// Keeps each JPEG below the backend's 600 KB per-photo limit.
+// Keeps new product photos lightweight while staying below the backend's 600 KB limit.
 function shrink(file, max = 1200) {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);

@@ -28,7 +28,7 @@ import HeroWallpapersGrid from '../../src/components/HeroWallpapersGrid';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
 import AdminLearningCourses from '../../src/components/AdminLearningCourses';
 import { CameraModal, shrinkImage } from '../../src/components/NicPhotoUpload';
-import Face3DVerificationModal from '../../src/components/Face3DVerification';
+import FaceLivenessVerificationModal from '../../src/components/FaceLivenessVerification';
 
 const isAuthError = (err) => [401, 403].includes(err.response?.status);
 
@@ -699,7 +699,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
           ? (base64Data ? 'Front ID photo updated successfully!' : 'Front ID photo removed.')
           : side === 'back'
           ? (base64Data ? 'Back ID photo updated successfully!' : 'Back ID photo removed.')
-          : (base64Data ? '3D Biometric Face photo updated successfully!' : '3D Face photo removed.'),
+          : (base64Data ? 'Face photo updated successfully!' : 'Face photo removed.'),
       });
       setTimeout(() => setPhotoFeedback(null), 3500);
     } catch (err) {
@@ -858,9 +858,9 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                           </span>
                         )}
                         {seller.facePhoto && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 ring-1 ring-emerald-500/20" title="3D Biometric Verified">
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 ring-1 ring-emerald-500/20" title="Face photo on file">
                             <ShieldCheck className="h-3 w-3" />
-                            3D Face
+                            Face photo
                           </span>
                         )}
                         <SellerStatusBadge status={seller.status} />
@@ -909,7 +909,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                               }
                             >
                               <Eye className="h-3.5 w-3.5" />
-                              {!isApproved ? 'Verify ID & 3D Face' : (seller.facePhoto || seller.nicFront || seller.nicBack ? 'View ID & 3D Face' : 'ID & Photos')}
+                              {!isApproved ? 'Verify ID & Face photo' : (seller.facePhoto || seller.nicFront || seller.nicBack ? 'View ID & Face photo' : 'ID & Photos')}
                             </button>
                           </dd>
                         </div>
@@ -1209,17 +1209,17 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
               />
 
               <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-                {/* 3D Biometric Face Verification Card */}
+                {/* Seller face photo */}
                 <div className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50/60 p-4 dark:border-slate-800 dark:bg-slate-900/40">
                   <div>
                     <div className="flex items-center justify-between mb-2">
                       <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                         <Scan className="h-3.5 w-3.5 text-brand-600" />
-                        3D Face Biometric
+                        Face photo
                       </span>
                       {viewingNicSeller.facePhoto ? (
                         <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300 flex items-center gap-1">
-                          <ShieldCheck className="h-3 w-3" /> 3D Verified
+                          <ShieldCheck className="h-3 w-3" /> On file
                         </span>
                       ) : (
                         <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 dark:bg-amber-950 dark:text-amber-300">
@@ -1230,20 +1230,20 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
 
                     {viewingNicSeller.facePhoto ? (
                       <div
-                        onClick={() => setZoomedPhoto({ src: viewingNicSeller.facePhoto, label: '3D Verified Biometric Face' })}
+                        onClick={() => setZoomedPhoto({ src: viewingNicSeller.facePhoto, label: 'Seller face photo' })}
                         className="group relative cursor-zoom-in overflow-hidden rounded-xl border border-slate-200 bg-slate-100 shadow-sm dark:border-slate-800 dark:bg-slate-800/50 aspect-[16/10] flex items-center justify-center transition-all hover:ring-2 hover:ring-brand-500"
                       >
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={viewingNicSeller.facePhoto}
-                          alt="3D Verified Face"
+                          alt="Seller face photo"
                           className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                         />
                         <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1">
                           <ZoomIn className="h-4 w-4" /> Click to enlarge
                         </div>
                         <div className="absolute bottom-1.5 right-1.5 rounded-md bg-black/60 px-1.5 py-0.5 text-[10px] font-bold text-emerald-400 backdrop-blur-xs flex items-center gap-1">
-                          <ShieldCheck className="h-3 w-3" /> KYC PASS
+                          <ShieldCheck className="h-3 w-3" /> PHOTO ON FILE
                         </div>
                       </div>
                     ) : (
@@ -1253,7 +1253,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                             <LoaderCircle className="h-4 w-4 animate-spin" /> Saving...
                           </span>
                         ) : (
-                          'No 3D face verified yet'
+                          'No face photo on file'
                         )}
                       </div>
                     )}
@@ -1266,10 +1266,10 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                       disabled={savingSide !== null}
                       onClick={() => setAdminFaceModalOpen(true)}
                       className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-2.5 py-1.5 text-xs font-bold text-white hover:bg-emerald-700 shadow-xs transition-colors disabled:opacity-50"
-                      title="Run 3D Face Biometric Scan"
+                      title="Run live face checks"
                     >
                       <Scan className="h-3.5 w-3.5" />
-                      <span>3D Scan</span>
+                      <span>Face check</span>
                     </button>
 
                     <button
@@ -1561,9 +1561,9 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
         />
       )}
 
-      {/* Admin 3D Face Biometric Scan Modal */}
+      {/* Admin live face check modal */}
       {adminFaceModalOpen && (
-        <Face3DVerificationModal
+        <FaceLivenessVerificationModal
           isOpen={adminFaceModalOpen}
           onComplete={async (result) => {
             setAdminFaceModalOpen(false);

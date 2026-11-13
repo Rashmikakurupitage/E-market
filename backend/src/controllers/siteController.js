@@ -122,6 +122,33 @@ exports.getStats = async (req, res) => {
   }
 };
 
+// Public: approved seller counts by district and declared business type.
+exports.getSellerMap = async (_req, res) => {
+  try {
+    const groups = await prisma.sellerProfile.groupBy({
+      by: ['district', 'businessType'],
+      where: { status: 'APPROVED', removedAt: null },
+      _count: { _all: true },
+      orderBy: [{ district: 'asc' }, { businessType: 'asc' }]
+    });
+    const districts = new Map();
+    for (const { district, businessType, _count } of groups) {
+      if (!districts.has(district)) districts.set(district, { name: district, total: 0, businessTypes: [] });
+      const item = districts.get(district);
+      item.total += _count._all;
+      item.businessTypes.push({ type: businessType, count: _count._all });
+    }
+    const districtData = [...districts.values()];
+    res.json({
+      totalSellers: districtData.reduce((sum, district) => sum + district.total, 0),
+      activeDistricts: districtData.length,
+      districts: districtData
+    });
+  } catch (error) {
+    serverError(res, 'SELLER_MAP_STATS_ERROR:', error);
+  }
+};
+
 // Public: one wallpaper picture
 exports.getWallpaper = async (req, res) => {
   try {

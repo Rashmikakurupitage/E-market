@@ -6,6 +6,7 @@ export const CATEGORIES = [
   'Food & Spices',
   'Beauty & Personal Care',
 ];
+export const BUSINESS_TYPES = [...CATEGORIES, 'Other'];
 
 const unsplash = (id) =>
   `https://images.unsplash.com/photo-${id}?w=640&h=520&fit=crop&auto=format&q=70`;

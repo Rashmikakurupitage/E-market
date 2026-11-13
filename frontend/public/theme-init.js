@@ -13,14 +13,8 @@ try {
     themeDocument.removeAttribute("data-theme");
     themeDocument.classList.remove("dark");
   }
-  var accent = themeStorage.getItem("lw-accent");
-  var pattern = themeStorage.getItem("lw-pattern");
-  if (/^(ocean|forest|royal|slate)$/.test(accent)) {
-    themeDocument.setAttribute("data-accent", accent);
-  }
-  if (/^(dots|lattice|waves)$/.test(pattern)) {
-    themeDocument.setAttribute("data-pattern", pattern);
-  } else {
-    themeDocument.removeAttribute("data-pattern");
-  }
+  themeStorage.removeItem("lw-accent");
+  themeStorage.removeItem("lw-pattern");
+  themeDocument.removeAttribute("data-accent");
+  themeDocument.removeAttribute("data-pattern");
 } catch {}
