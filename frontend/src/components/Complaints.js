@@ -331,6 +331,21 @@ export function CustomerComplaints({ onAuthError }) {
                 {complaint.order?.reference && <span className="text-ink/45">· {fill(c.forOrder, { reference: complaint.order.reference })}</span>}
               </p>
 
+              {complaint.statusHistory?.length > 0 && (
+                <div className="mt-4 rounded-[20px] bg-white p-4 ring-1 ring-ink/5">
+                  <p className="text-xs font-bold uppercase tracking-wider text-ink/55">{c.timelineTitle}</p>
+                  <ol className="mt-3 space-y-3">
+                    {complaint.statusHistory.map((entry, eventIndex) => (
+                      <li key={`${entry.status}-${entry.createdAt}-${eventIndex}`} className="flex items-start gap-2.5">
+                        <CircleCheck className={`mt-0.5 h-4 w-4 shrink-0 ${eventIndex === complaint.statusHistory.length - 1 ? 'text-magenta' : 'text-leaf'}`} />
+                        <span className="min-w-0 flex-1 text-sm font-medium text-ink">{c.timeline[entry.status] || entry.status}</span>
+                        <time dateTime={entry.createdAt} className="shrink-0 text-xs text-ink/45">{formatDate(entry.createdAt, lang)}</time>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
               <p className="mt-3 inline-block rounded-full bg-white px-3 py-1 text-xs font-semibold text-ink/70 ring-1 ring-ink/5">{c.reasons[complaint.reason] || complaint.reason}</p>
               <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-ink/80">{complaint.message}</p>
 

@@ -63,6 +63,7 @@ const normalizeOptionalUrl = (value) => {
   const trimmed = String(value).trim();
   return trimmed || null;
 };
+<<<<<<< Updated upstream
 const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 const normalizeSriLankanPhone = (value) => {
   const phone = String(value || '').replace(/[\s-]/g, '');
@@ -81,6 +82,23 @@ const signToken = (user, expiresIn = '7d') =>
     process.env.JWT_SECRET || 'fallback_secret',
     { expiresIn }
   );
+=======
+const MAX_IDENTITY_IMAGE_BYTES = 1024 * 1024;
+const parseIdentityImage = (value) => {
+  if (typeof value !== 'string' || value.length > 1_400_000) return null;
+  const match = value.match(/^data:image\/(jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/);
+  if (!match) return null;
+  const contentType = `image/${match[1]}`;
+  const data = Buffer.from(match[2], 'base64');
+  if (!data.length || data.length > MAX_IDENTITY_IMAGE_BYTES || data.toString('base64') !== match[2]) return null;
+
+  const validSignature =
+    (contentType === 'image/jpeg' && data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff) ||
+    (contentType === 'image/png' && data.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]))) ||
+    (contentType === 'image/webp' && data.toString('ascii', 0, 4) === 'RIFF' && data.toString('ascii', 8, 12) === 'WEBP');
+  return validSignature ? { data: nicVault.encryptBytes(data), contentType } : null;
+};
+>>>>>>> Stashed changes
 
 // Never send passwordHash back to the browser
 // NIC data (even encrypted) never leaves the server in a login or profile response
@@ -215,6 +233,30 @@ exports.register = async (req, res) => {
         });
       }
     }
+    let identityDocuments = null;
+    if (role === 'SELLER') {
+      if (req.body.identityConsent !== true) {
+        return res.status(400).json({ code: 'IDENTITY_CONSENT_REQUIRED', message: 'Consent is required to submit identity documents for review.' });
+      }
+      const front = parseIdentityImage(req.body.identityDocuments?.front);
+      const back = parseIdentityImage(req.body.identityDocuments?.back);
+      const selfie = parseIdentityImage(req.body.identityDocuments?.selfie);
+      if (!front || !back || !selfie) {
+        return res.status(400).json({ code: 'IDENTITY_DOCUMENTS_REQUIRED', message: 'Submit valid images of the NIC front and back and a live selfie.' });
+      }
+      identityDocuments = {
+        identityDocuments: {
+          create: {
+            frontImage: front.data,
+            frontType: front.contentType,
+            backImage: back.data,
+            backType: back.contentType,
+            selfie: selfie.data,
+            selfieType: selfie.contentType
+          }
+        }
+      };
+    }
     const normalizedNicNumber = makeSelfServiceNic(role);
     const sellerMessengerUrl = normalizeOptionalUrl(messengerUrl);
     const sellerFacebookUrl = normalizeOptionalUrl(facebookUrl);
@@ -272,8 +314,12 @@ exports.register = async (req, res) => {
                 messengerUrl: sellerMessengerUrl,
                 facebookUrl: sellerFacebookUrl,
                 description: description || null,
+<<<<<<< Updated upstream
                 nicFront: nicFront || null,
                 nicBack: nicBack || null
+=======
+                ...identityDocuments
+>>>>>>> Stashed changes
               }
             }
           }

@@ -202,8 +202,13 @@ exports.Prisma.SellerProfileScalarFieldEnum = {
   nicEncrypted: 'nicEncrypted',
   nicLast5: 'nicLast5',
   status: 'status',
+<<<<<<< Updated upstream:backend/src/generated/client/wasm.js
   nicFront: 'nicFront',
   nicBack: 'nicBack',
+=======
+  identityReviewStatus: 'identityReviewStatus',
+  identityReviewedAt: 'identityReviewedAt',
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/wasm.js
   whatsappNo: 'whatsappNo',
   facebookUrl: 'facebookUrl',
   messengerUrl: 'messengerUrl',
@@ -211,6 +216,17 @@ exports.Prisma.SellerProfileScalarFieldEnum = {
   removalNote: 'removalNote',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.SellerIdentityDocumentsScalarFieldEnum = {
+  sellerId: 'sellerId',
+  frontImage: 'frontImage',
+  frontType: 'frontType',
+  backImage: 'backImage',
+  backType: 'backType',
+  selfie: 'selfie',
+  selfieType: 'selfieType',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.CustomerProfileScalarFieldEnum = {
@@ -295,7 +311,20 @@ exports.Prisma.OrderScalarFieldEnum = {
   district: 'district',
   totalAmount: 'totalAmount',
   status: 'status',
+<<<<<<< Updated upstream:backend/src/generated/client/wasm.js
   notes: 'notes',
+=======
+  total: 'total',
+  deliveryName: 'deliveryName',
+  deliveryPhone: 'deliveryPhone',
+  deliveryAddress: 'deliveryAddress',
+  deliveryDistrict: 'deliveryDistrict',
+  trackingCarrier: 'trackingCarrier',
+  trackingNumber: 'trackingNumber',
+  trackingUrl: 'trackingUrl',
+  estimatedDeliveryAt: 'estimatedDeliveryAt',
+  note: 'note',
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/wasm.js
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 };
@@ -331,6 +360,31 @@ exports.Prisma.SiteSettingScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+<<<<<<< Updated upstream:backend/src/generated/client/wasm.js
+=======
+exports.Prisma.ComplaintScalarFieldEnum = {
+  id: 'id',
+  reference: 'reference',
+  customerId: 'customerId',
+  sellerId: 'sellerId',
+  orderId: 'orderId',
+  reason: 'reason',
+  message: 'message',
+  status: 'status',
+  adminNote: 'adminNote',
+  resolvedAt: 'resolvedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ComplaintStatusHistoryScalarFieldEnum = {
+  id: 'id',
+  complaintId: 'complaintId',
+  status: 'status',
+  createdAt: 'createdAt'
+};
+
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/wasm.js
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -367,6 +421,13 @@ exports.ApplicationStatus = exports.$Enums.ApplicationStatus = {
   REJECTED: 'REJECTED'
 };
 
+exports.IdentityReviewStatus = exports.$Enums.IdentityReviewStatus = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  NOT_REQUIRED: 'NOT_REQUIRED'
+};
+
 exports.OrderStatus = exports.$Enums.OrderStatus = {
   PENDING: 'PENDING',
   ACCEPTED: 'ACCEPTED',
@@ -390,6 +451,7 @@ exports.Prisma.ModelName = {
   ProfilePhoto: 'ProfilePhoto',
   AdminProfile: 'AdminProfile',
   SellerProfile: 'SellerProfile',
+  SellerIdentityDocuments: 'SellerIdentityDocuments',
   CustomerProfile: 'CustomerProfile',
   ProductImage: 'ProductImage',
   Product: 'Product',
@@ -399,8 +461,14 @@ exports.Prisma.ModelName = {
   ClickAnalytics: 'ClickAnalytics',
   Order: 'Order',
   OrderItem: 'OrderItem',
+<<<<<<< Updated upstream:backend/src/generated/client/wasm.js
   Complaint: 'Complaint',
   SiteSetting: 'SiteSetting'
+=======
+  SiteSetting: 'SiteSetting',
+  Complaint: 'Complaint',
+  ComplaintStatusHistory: 'ComplaintStatusHistory'
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/wasm.js
 };
 
 /**

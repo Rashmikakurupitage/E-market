@@ -494,6 +494,81 @@ exports.listSellers = async (req, res) => {
   }
 };
 
+exports.getSellerIdentityDocuments = async (req, res) => {
+  try {
+    const sellerId = String(req.params.id);
+    const documents = await prisma.sellerIdentityDocuments.findUnique({
+      where: { sellerId },
+      select: { frontImage: true, frontType: true, backImage: true, backType: true, selfie: true, selfieType: true }
+    });
+    if (!documents?.frontImage || !documents.frontType || !documents.backImage || !documents.backType || !documents.selfie || !documents.selfieType) {
+      return res.status(404).json({ code: 'IDENTITY_DOCUMENTS_NOT_FOUND', message: 'Identity documents are unavailable.' });
+    }
+
+    res.set({ 'Cache-Control': 'no-store', Pragma: 'no-cache' });
+    res.json({
+      front: `data:${documents.frontType};base64,${nicVault.decryptBytes(documents.frontImage).toString('base64')}`,
+      back: `data:${documents.backType};base64,${nicVault.decryptBytes(documents.backImage).toString('base64')}`,
+      selfie: `data:${documents.selfieType};base64,${nicVault.decryptBytes(documents.selfie).toString('base64')}`
+    });
+  } catch (error) {
+    serverError(res, 'ADMIN_SELLER_IDENTITY_DOCUMENTS_ERROR:', error);
+  }
+};
+
+exports.reviewSellerIdentity = async (req, res) => {
+  try {
+    const status = String(req.body?.status || '');
+    if (!['APPROVED', 'REJECTED'].includes(status)) {
+      return res.status(400).json({ code: 'INVALID_IDENTITY_REVIEW_STATUS', message: 'Choose approve or reject.' });
+    }
+
+    const sellerId = String(req.params.id);
+    const documents = await prisma.sellerIdentityDocuments.findUnique({
+      where: { sellerId },
+      select: { frontImage: true, backImage: true, selfie: true }
+    });
+    if (!documents?.frontImage || !documents.backImage || !documents.selfie) {
+      return res.status(404).json({ code: 'IDENTITY_DOCUMENTS_NOT_FOUND', message: 'Identity documents are unavailable.' });
+    }
+
+    const seller = await prisma.sellerProfile.findUnique({
+      where: { id: sellerId },
+      select: { identityReviewStatus: true }
+    });
+    if (!seller) {
+      return res.status(404).json({ code: 'NOT_FOUND', message: 'Seller not found.' });
+    }
+    if (seller.identityReviewStatus !== 'PENDING') {
+      return res.status(409).json({ code: 'IDENTITY_ALREADY_REVIEWED', message: 'Identity documents have already been reviewed.' });
+    }
+
+    const updated = await prisma.$transaction(async (transaction) => {
+      const result = await transaction.sellerProfile.updateMany({
+        where: { id: sellerId, identityReviewStatus: 'PENDING' },
+        data: {
+          identityReviewStatus: status,
+          identityReviewedAt: new Date(),
+          ...(status === 'REJECTED' ? { status: 'REJECTED' } : {})
+        }
+      });
+      if (!result.count) return false;
+      await transaction.sellerIdentityDocuments.updateMany({
+        where: { sellerId },
+        data: { frontImage: null, frontType: null, backImage: null, backType: null, selfie: null, selfieType: null }
+      });
+      return true;
+    });
+    if (!updated) {
+      return res.status(409).json({ code: 'IDENTITY_ALREADY_REVIEWED', message: 'Identity documents have already been reviewed.' });
+    }
+
+    res.json({ identityReviewStatus: status, sellerStatus: status === 'REJECTED' ? 'REJECTED' : undefined });
+  } catch (error) {
+    serverError(res, 'ADMIN_SELLER_IDENTITY_REVIEW_ERROR:', error);
+  }
+};
+
 // 3. One seller's products (to check them before approving)
 exports.getSellerProducts = async (req, res) => {
   try {
@@ -667,13 +742,40 @@ exports.setSellerStatus = async (req, res) => {
     }
 
     const sellerId = String(req.params.id);
+<<<<<<< Updated upstream
     const existingSeller = await prisma.sellerProfile.findUnique({
       where: { id: sellerId },
       include: {
         user: { select: { email: true, phone: true } },
         _count: { select: { products: true, analytics: true, reviews: true } }
       }
+=======
+    const existing = await prisma.sellerProfile.findUnique({
+      where: { id: sellerId },
+      select: { identityReviewStatus: true }
+>>>>>>> Stashed changes
     });
+    if (!existing) return res.status(404).json({ message: 'අලෙවිකරු සොයාගත නොහැක.' });
+    if (status === 'APPROVED' && !['APPROVED', 'NOT_REQUIRED'].includes(existing.identityReviewStatus)) {
+      return res.status(409).json({ code: 'IDENTITY_REVIEW_REQUIRED', message: 'Review the seller identity documents before approving this seller.' });
+    }
+
+    const updated = await prisma.$transaction(async (transaction) => {
+      const data = { status };
+      if (status === 'REJECTED' && existing.identityReviewStatus === 'PENDING') {
+        data.identityReviewStatus = 'REJECTED';
+        data.identityReviewedAt = new Date();
+      }
+      const seller = await transaction.sellerProfile.update({ where: { id: sellerId }, data });
+      if (status === 'REJECTED') {
+        await transaction.sellerIdentityDocuments.updateMany({
+          where: { sellerId },
+          data: { frontImage: null, frontType: null, backImage: null, backType: null, selfie: null, selfieType: null }
+        });
+      }
+      return seller;
+    });
+    const { nicNumber, nicHash, nicEncrypted, nicLast5, ...seller } = updated;
 
     if (!existingSeller) {
       return res.status(404).json({ message: 'අලෙවිකරු සොයාගත නොහැක.' });

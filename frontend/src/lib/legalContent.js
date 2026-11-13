@@ -1,6 +1,6 @@
 export const legalContent = {
   en: {
-    updated: 'Last updated: 8 October 2026',
+    updated: 'Last updated: 5 November 2026',
     draftNotice:
       'Publication note: This is a general information draft, not legal advice. The platform operator should have it reviewed by a qualified Sri Lankan lawyer and confirm the official privacy contact before launch.',
     privacy: {
@@ -13,6 +13,7 @@ export const legalContent = {
           paragraphs: [
             'Account information: your name, email address, phone number, password credential and account role. Passwords are stored as password hashes, not as readable passwords.',
             'Seller information: business name, district, description, contact links, products and related account or approval information.',
+            'New seller identity review: the NIC number, images of the NIC front and back, and a camera-captured selfie. Images are encrypted, visible only to authorized administrators for manual review, and deleted after an identity review decision. The platform does not perform automated face recognition or liveness analysis.',
             'Order information: where the ordering feature is used, the delivery name, phone number, address, district, order contents and order status.',
             'Platform activity: product contact clicks may be recorded with the product, seller, contact platform and time to provide seller analytics. The site also stores necessary session, language and shopping preferences in your browser.',
           ],
@@ -21,6 +22,7 @@ export const legalContent = {
           heading: 'How we use information',
           paragraphs: [
             'We use information to operate accounts, show seller listings, connect customers and sellers, process and track orders where available, provide support, protect the service, and produce seller or platform activity reports.',
+            'For new seller registrations, authorized administrators manually compare the submitted NIC images with the camera-captured selfie to review identity. The selfie is not used for face-recognition login.',
             'We may use account contact details for essential account, security or service messages. We do not promise that every message is encrypted or that any internet transmission is completely secure.',
           ],
         },
@@ -44,6 +46,7 @@ export const legalContent = {
           heading: 'Retention and your choices',
           paragraphs: [
             'Information is kept for as long as needed to operate the account and service, maintain order and activity records, resolve disputes, and meet applicable legal requirements. Actual retention periods depend on the record and operational requirements.',
+            'Seller NIC images and the registration selfie are deleted when an administrator records the identity review decision. The review decision and status may remain with the seller account.',
             'You may ask to access, correct or request deletion of your personal information, subject to identity checks, other people’s rights, records that must be retained, and applicable law. Use the official support or privacy contact published by the platform operator. Do not send passwords or identity documents through public channels.',
           ],
         },
@@ -117,7 +120,7 @@ export const legalContent = {
     },
   },
   si: {
-    updated: 'අවසන් යාවත්කාලීන කිරීම: 2026 ඔක්තෝබර් 8',
+    updated: 'අවසන් යාවත්කාලීන කිරීම: 2026 නොවැම්බර් 5',
     draftNotice:
       'ප්‍රකාශනයට පෙර: මෙය සාමාන්‍ය තොරතුරු සඳහා සකස් කළ කෙටුම්පතක් මිස නීති උපදෙසක් නොවේ. වෙබ් අඩවිය ප්‍රසිද්ධ කිරීමට පෙර ශ්‍රී ලංකාවේ සුදුසුකම් ලත් නීතිඥයෙකුගෙන් සමාලෝචනය කර, නිල රහස්‍යතා සම්බන්ධතා තොරතුරු තහවුරු කළ යුතුය.',
     privacy: {
@@ -130,6 +133,7 @@ export const legalContent = {
           paragraphs: [
             'ගිණුම් තොරතුරු: ඔබේ නම, email ලිපිනය, දුරකථන අංකය, මුරපද අක්තපත්‍රය සහ ගිණුම් වර්ගය. මුරපද ගබඩා කරන්නේ කියවිය හැකි මුරපද ලෙස නොව ආරක්ෂිත hash අගයන් ලෙසය.',
             'වික्रेතා තොරතුරු: ව්‍යාපාර නාමය, දිස්ත්‍රික්කය, විස්තරය, සම්බන්ධතා සබැඳි, නිෂ්පාදන සහ අදාළ ගිණුම් හෝ අනුමැති තොරතුරු.',
+            'නව ව්‍යවසායිකා ලියාපදිංචි කිරීමේදී NIC අංකය, NIC ඉදිරිපස හා පිටුපස රූප සහ කැමරාවෙන් ගත් සෙල්ෆියක් රැස් කරයි. රූප සංකේතනය කර, අතින් සමාලෝචනය සඳහා බලයලත් පරිපාලකයින්ට පමණක් පෙන්වා, හැඳුනුම්පත් සමාලෝචන තීරණයෙන් පසු මකා දමයි. ස්වයංක්‍රීය මුහුණු හඳුනාගැනීමක් හෝ සජීවීභාව විශ්ලේෂණයක් සිදු නොවේ.',
             'ඇණවුම් තොරතුරු: ඇණවුම් පහසුකම භාවිත කරන විට භාරදීමේ නම, දුරකථන අංකය, ලිපිනය, දිස්ත්‍රික්කය, ඇණවුම් අයිතම සහ තත්ත්වය.',
             'සේවා භාවිත තොරතුරු: විකුණුම්කරුගේ සංඛ්‍යාලේඛන සැපයීමට නිෂ්පාදනය, විකුණුම්කරු, සම්බන්ධතා වේදිකාව සහ වේලාව ඇතුළුව නිෂ්පාදන සම්බන්ධතා ක්ලික් කිරීම් සටහන් කළ හැක. සැසිය, භාෂාව සහ සාප්පු තේරීම් සඳහා අවශ්‍ය තොරතුරු ඔබේ බ්‍රවුසරයේ ද ගබඩා වේ.',
           ],
@@ -138,6 +142,8 @@ export const legalContent = {
           heading: 'තොරතුරු භාවිත කරන ආකාරය',
           paragraphs: [
             'ගිණුම් පවත්වාගෙන යාමට, විකුණුම්කරුවන්ගේ නිෂ්පාදන පෙන්වීමට, පාරිභෝගිකයන් සහ විකුණුම්කරුවන් සම්බන්ධ කිරීමට, ලබාගත හැකි විට ඇණවුම් පාලනය කිරීමට, සහාය සැපයීමට, සේවාව ආරක්ෂා කිරීමට සහ සේවා භාවිත වාර්තා සකස් කිරීමට තොරතුරු භාවිත කරමු.',
+            'නව ව්‍යවසායිකා ලියාපදිංචි කිරීම්වලදී, බලයලත් පරිපාලකයින් ඉදිරිපත් කළ NIC රූප සහ කැමරාවෙන් ගත් සෙල්ෆිය අතින් සසඳා බලයි. පිවිසීමේදී මුහුණු හඳුනාගැනීම සඳහා සෙල්ෆිය භාවිත නොවේ.',
+            'නව ව්‍යවසායිකා ලියාපදිංචි කිරීම්වලදී, බලයලත් පරිපාලකයින් ඉදිරිපත් කළ NIC රූප සහ කැමරාවෙන් ගත් සෙල්ෆිය අතින් සසඳා බලයි. පිවිසීමේදී මුහුණු හඳුනාගැනීම සඳහා සෙල්ෆිය භාවිත නොවේ.',
             'අත්‍යවශ්‍ය ගිණුම්, ආරක්ෂක හෝ සේවා පණිවිඩ සඳහා ගිණුම් සම්බන්ධතා තොරතුරු භාවිත කළ හැක. සෑම පණිවිඩයක්ම සංකේතනය කර ඇති බව හෝ අන්තර්ජාල සන්නිවේදනය සම්පූර්ණයෙන්ම ආරක්ෂිත බව අපි සහතික නොකරමු.',
           ],
         },
@@ -161,6 +167,8 @@ export const legalContent = {
           heading: 'තොරතුරු තබාගැනීම සහ ඔබේ තේරීම්',
           paragraphs: [
             'ගිණුම සහ සේවාව පවත්වාගෙන යාමට, ඇණවුම් හා ක්‍රියාකාරකම් වාර්තා තබාගැනීමට, ආරවුල් විසඳීමට සහ අදාළ නීතිමය අවශ්‍යතා සපුරාලීමට අවශ්‍ය කාලය තෙක් තොරතුරු තබාගත හැක. සැබෑ කාලසීමාව වාර්තාව සහ මෙහෙයුම් අවශ්‍යතා අනුව වෙනස් වේ.',
+            'පරිපාලකයෙකු හැඳුනුම්පත් සමාලෝචන තීරණය සටහන් කළ පසු විකුණුම්කරුගේ NIC රූප සහ ලියාපදිංචි සෙල්ෆිය මකා දමයි. සමාලෝචන තීරණය සහ තත්ත්වය ගිණුම සමඟ තබාගත හැක.',
+            'පරිපාලකයෙකු හැඳුනුම්පත් සමාලෝචன තීරණය සටහන් කළதும் විකුණුම්කරුගේ NIC රූப සහ ලියාපදිංචி සෙල්සி මකා දමයි. සමාලோசன தೀරණය සහ තත්ත්වය ගිණුම සමඟ තබාගත හැක.',
             'අනන්‍යතාව තහවුරු කිරීම, අන් අයගේ අයිතිවාසිකම්, රඳවා තබාගත යුතු වාර්තා සහ අදාළ නීතියට යටත්ව ඔබේ තොරතුරු වෙත ප්‍රවේශය, නිවැරදි කිරීම හෝ මකා දැමීම ඉල්ලා සිටිය හැක. වේදිකාවේ නිල සහාය හෝ රහස්‍යතා සම්බන්ධතා ක්‍රමය භාවිත කරන්න. මුරපද හෝ හැඳුනුම් ලේඛන පොදු මාර්ගවලින් නොයවන්න.',
           ],
         },
@@ -234,7 +242,7 @@ export const legalContent = {
     },
   },
   ta: {
-    updated: 'கடைசியாகப் புதுப்பிக்கப்பட்டது: 8 அக்டோபர் 2026',
+    updated: 'கடைசியாகப் புதுப்பிக்கப்பட்டது: 5 நவம்பர் 2026',
     draftNotice:
       'வெளியிடுவதற்கு முன்: இது பொதுத் தகவலுக்கான வரைவு மட்டுமே; சட்ட ஆலோசனை அல்ல. தளத்தை வெளியிடுவதற்கு முன் இலங்கைத் தகுதிபெற்ற வழக்கறிஞரால் பரிசீலிக்கவும், அதிகாரப்பூர்வ தனியுரிமைத் தொடர்பு விவரங்களை உறுதிப்படுத்தவும்.',
     privacy: {
@@ -247,6 +255,7 @@ export const legalContent = {
           paragraphs: [
             'கணக்குத் தகவல்கள்: உங்கள் பெயர், மின்னஞ்சல் முகவரி, தொலைபேசி எண், கடவுச்சொல் சான்று மற்றும் கணக்கு வகை. கடவுச்சொற்கள் வாசிக்கக்கூடிய வடிவில் அல்ல; hash செய்யப்பட்ட மதிப்புகளாகச் சேமிக்கப்படுகின்றன.',
             'விற்பனையாளர் தகவல்கள்: வணிகப் பெயர், மாவட்டம், விளக்கம், தொடர்பு இணைப்புகள், தயாரிப்புகள் மற்றும் தொடர்புடைய கணக்கு அல்லது ஒப்புதல் தகவல்கள்.',
+            'புதிய விற்பனையாளர் பதிவின்போது NIC எண், NIC முன் மற்றும் பின் பக்கப் படங்கள், கேமராவில் எடுத்த செல்ஃபி ஆகியவை சேகரிக்கப்படும். படங்கள் குறியாக்கம் செய்யப்பட்டு, கைமுறை மதிப்பாய்வுக்காக அங்கீகரிக்கப்பட்ட நிர்வாகிகளுக்கு மட்டுமே காட்டப்பட்டு, அடையாள மதிப்பாய்வு முடிவுக்குப் பிறகு நீக்கப்படும். தானியங்கி முக அடையாளமோ நேரலைச் சரிபார்ப்போ செய்யப்படாது.',
             'ஆர்டர் தகவல்கள்: ஆர்டர் வசதி பயன்படுத்தப்படும் போது, விநியோகப் பெயர், தொலைபேசி எண், முகவரி, மாவட்டம், ஆர்டர் விவரங்கள் மற்றும் நிலை.',
             'தளச் செயல்பாடு: விற்பனையாளர் புள்ளிவிவரங்களுக்காக தயாரிப்பு, விற்பனையாளர், தொடர்புத் தளம் மற்றும் நேரம் உள்ளிட்ட தொடர்புக் கிளிக்குகள் பதிவு செய்யப்படலாம். அமர்வு, மொழி மற்றும் ஷாப்பிங் விருப்பங்களுக்குத் தேவையான தகவல்களும் உங்கள் உலாவியில் சேமிக்கப்படும்.',
           ],
@@ -255,6 +264,7 @@ export const legalContent = {
           heading: 'தகவல்களை எவ்வாறு பயன்படுத்துகிறோம்',
           paragraphs: [
             'கணக்குகளை இயக்க, விற்பனையாளர் பட்டியல்களைக் காட்ட, வாடிக்கையாளர்களையும் விற்பனையாளர்களையும் இணைக்க, கிடைக்கும் இடங்களில் ஆர்டர்களை நிர்வகிக்க, ஆதரவு வழங்க, சேவையைப் பாதுகாக்க மற்றும் செயல்பாட்டு அறிக்கைகளைத் தயாரிக்க தகவல்களைப் பயன்படுத்துகிறோம்.',
+            'புதிய விற்பனையாளர் பதிவுகளில், அங்கீகரிக்கப்பட்ட நிர்வாகிகள் சமர்ப்பிக்கப்பட்ட NIC படங்களையும் கேமராவில் எடுத்த செல்ஃபியையும் கைமுறையாக ஒப்பிட்டு அடையாளத்தை மதிப்பாய்வு செய்கிறார்கள். உள்நுழையும்போது முக அடையாளத்திற்கு செல்ஃபி பயன்படுத்தப்படாது.',
             'அத்தியாவசிய கணக்கு, பாதுகாப்பு அல்லது சேவைச் செய்திகளுக்கு கணக்குத் தொடர்பு விவரங்களைப் பயன்படுத்தலாம். எல்லா செய்திகளும் குறியாக்கம் செய்யப்படுகின்றன அல்லது இணையப் பரிமாற்றம் முழுமையாகப் பாதுகாப்பானது என்று நாங்கள் உறுதியளிக்கவில்லை.',
           ],
         },
@@ -278,6 +288,7 @@ export const legalContent = {
           heading: 'தகவல் வைத்திருக்கும் காலமும் உங்கள் தேர்வுகளும்',
           paragraphs: [
             'கணக்கு மற்றும் சேவையை இயக்க, ஆர்டர் மற்றும் செயல்பாட்டு பதிவுகளைப் பராமரிக்க, தகராறுகளைத் தீர்க்க மற்றும் பொருந்தும் சட்டத் தேவைகளைப் பூர்த்தி செய்யத் தேவையான காலம் வரை தகவல்கள் வைக்கப்படும். உண்மையான காலம் பதிவு வகை மற்றும் செயல்பாட்டுத் தேவைகளைப் பொறுத்தது.',
+            'நிர்வாகி அடையாள மதிப்பாய்வு முடிவைப் பதிவு செய்ததும் விற்பனையாளரின் NIC படங்களும் பதிவின்போதைய செல்ஃபியும் நீக்கப்படும். மதிப்பாய்வு முடிவும் நிலையும் விற்பனையாளர் கணக்குடன் தொடர்ந்து இருக்கலாம்.',
             'அடையாளச் சரிபார்ப்பு, பிறரின் உரிமைகள், வைத்திருக்க வேண்டிய பதிவுகள் மற்றும் பொருந்தும் சட்டத்திற்கு உட்பட்டு, உங்கள் தகவலை அணுக, திருத்த அல்லது நீக்கக் கோரலாம். தளத்தின் அதிகாரப்பூர்வ ஆதரவு அல்லது தனியுரிமைத் தொடர்பைப் பயன்படுத்துங்கள். கடவுச்சொற்களையோ அடையாள ஆவணங்களையோ பொதுவான வழிகளில் அனுப்ப வேண்டாம்.',
           ],
         },

@@ -8,6 +8,7 @@ const { discountOf } = require('../utils/discount');
 const PHONE_PATTERN = /^(?:\+94|94|0)\d{9}$/;
 const MAX_QUANTITY = 99;
 const MAX_LINES = 50;
+const MAX_TRACKING_URL_LENGTH = 2048;
 
 // What a seller may change an order to, from each status
 const SELLER_NEXT_STATUS = {
@@ -30,6 +31,46 @@ const ITEMS = { items: { orderBy: { title: 'asc' } } };
 const findCustomer = (userId) => prisma.customerProfile.findUnique({ where: { userId } });
 const findSeller = (userId) => prisma.sellerProfile.findUnique({ where: { userId } });
 const checkoutConflict = (code, fields = {}) => Object.assign(new Error(code), { checkoutResponse: { code, ...fields } });
+
+function getShipmentDetails(body = {}) {
+  const trackingCarrier = String(body.trackingCarrier || '').trim();
+  const trackingNumber = String(body.trackingNumber || '').trim();
+  const trackingUrl = String(body.trackingUrl || '').trim();
+  const deliveryDate = String(body.estimatedDeliveryAt || '').trim();
+
+  if (trackingCarrier.length > 100 || trackingNumber.length > 100 || trackingUrl.length > MAX_TRACKING_URL_LENGTH) {
+    return { error: 'INVALID_SHIPMENT_DETAILS' };
+  }
+
+  if (trackingUrl) {
+    try {
+      const url = new URL(trackingUrl);
+      if (!['http:', 'https:'].includes(url.protocol) || !url.hostname || url.username || url.password) {
+        return { error: 'INVALID_TRACKING_URL' };
+      }
+    } catch {
+      return { error: 'INVALID_TRACKING_URL' };
+    }
+  }
+
+  let estimatedDeliveryAt = null;
+  if (deliveryDate) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(deliveryDate)) return { error: 'INVALID_SHIPMENT_DETAILS' };
+    estimatedDeliveryAt = new Date(`${deliveryDate}T00:00:00.000Z`);
+    if (!Number.isFinite(estimatedDeliveryAt.getTime()) || estimatedDeliveryAt.toISOString().slice(0, 10) !== deliveryDate) {
+      return { error: 'INVALID_SHIPMENT_DETAILS' };
+    }
+  }
+
+  return {
+    data: {
+      trackingCarrier: trackingCarrier || null,
+      trackingNumber: trackingNumber || null,
+      trackingUrl: trackingUrl || null,
+      estimatedDeliveryAt,
+    },
+  };
+}
 
 async function restoreOrderStock(tx, orderId) {
   const lines = await tx.orderItem.findMany({ where: { orderId, productId: { not: null } }, select: { productId: true, quantity: true } });
@@ -236,12 +277,26 @@ exports.updateOrderStatus = async (req, res) => {
     if (!order) return res.status(404).json({ code: 'NOT_FOUND', message: 'Order not found.' });
 
     const status = String(req.body?.status || '');
-    if (!SELLER_NEXT_STATUS[order.status].includes(status)) {
+    const isTrackingUpdate = order.status === 'SHIPPED' && status === 'SHIPPED';
+    const isShippingOrder = order.status === 'CONFIRMED' && status === 'SHIPPED';
+    if (!SELLER_NEXT_STATUS[order.status].includes(status) && !isTrackingUpdate) {
       return res.status(409).json({ code: 'BAD_STATUS', message: `A ${order.status} order cannot be changed to ${status || 'that'}.` });
     }
 
+    let shipmentData = {};
+    if (isShippingOrder || isTrackingUpdate) {
+      const shipment = getShipmentDetails(req.body);
+      if (shipment.error) {
+        return res.status(400).json({ code: shipment.error, message: 'Check the courier details and try again.' });
+      }
+      shipmentData = shipment.data;
+    }
+
     const updated = await prisma.$transaction(async (tx) => {
-      const changed = await tx.order.updateMany({ where: { id: order.id, sellerId: seller.id, status: order.status }, data: { status } });
+      const changed = await tx.order.updateMany({
+        where: { id: order.id, sellerId: seller.id, status: order.status },
+        data: { status, ...shipmentData },
+      });
       if (changed.count !== 1) return null;
       if (status === 'CANCELLED') await restoreOrderStock(tx, order.id);
       return tx.order.findUnique({ where: { id: order.id }, include: { ...ITEMS, customer: { select: { fullName: true } } } });

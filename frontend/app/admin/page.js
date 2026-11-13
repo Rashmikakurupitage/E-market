@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import {
   BadgeCheck, Package, Search, MapPin, Mail, Phone, IdCard, ArrowLeft,
   ChevronDown, ChevronUp, Eye, EyeOff, Trash2, CircleCheck, CircleAlert, LoaderCircle,
@@ -619,6 +620,95 @@ function SellerProducts({ sellerId, onAuthError }) {
   );
 }
 
+function SellerIdentityReview({ seller, onAuthError, onReviewed }) {
+  const { t } = useLanguage();
+  const a = t.admin;
+  const [open, setOpen] = useState(false);
+  const [images, setImages] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const toggle = async () => {
+    if (open) {
+      setOpen(false);
+      setImages(null);
+      setError('');
+      return;
+    }
+    setOpen(true);
+    setLoading(true);
+    setError('');
+    try {
+      const response = await API.get(`/admin/sellers/${seller.id}/identity-documents`);
+      setImages(response.data);
+    } catch (requestError) {
+      if (isAuthError(requestError)) onAuthError();
+      else setError(a.identityReviewLoadError);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const review = async (status) => {
+    setBusy(true);
+    setError('');
+    try {
+      await API.patch(`/admin/sellers/${seller.id}/identity-review`, { status });
+      onReviewed(status);
+    } catch (requestError) {
+      if (isAuthError(requestError)) onAuthError();
+      else setError(a.identityReviewActionError);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="mt-4 rounded-xl bg-cream p-4">
+      <button type="button" onClick={toggle} className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:underline">
+        {open ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+        {open ? a.hideIdentityDocuments : a.viewIdentityDocuments}
+      </button>
+      {open && (
+        <div className="mt-3 space-y-3">
+          {loading ? (
+            <ListMessage loading>{a.identityReviewLoading}</ListMessage>
+          ) : error ? (
+            <p role="alert" className="text-sm text-red-700">{error}</p>
+          ) : images ? (
+            <>
+              <div className="grid gap-3 md:grid-cols-3">
+                {[
+                  [a.identityFrontLabel, images.front],
+                  [a.identityBackLabel, images.back],
+                  [a.identitySelfieLabel, images.selfie],
+                ].map(([label, src]) => (
+                  <figure key={label} className="rounded-lg bg-white p-2 ring-1 ring-slate-200">
+                    <Image src={src} alt={label} width={640} height={400} unoptimized className="h-52 w-full object-contain" />
+                    <figcaption className="mt-1 text-center text-xs font-semibold text-slate-600">{label}</figcaption>
+                  </figure>
+                ))}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button type="button" disabled={busy} onClick={() => review('APPROVED')} className="rounded-full bg-green-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
+                  {busy ? <LoaderCircle className="inline h-4 w-4 animate-spin" /> : <BadgeCheck className="mr-1 inline h-4 w-4" />}
+                  {a.approveIdentity}
+                </button>
+                <button type="button" disabled={busy} onClick={() => review('REJECTED')} className="rounded-full bg-red-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">
+                  {busy ? <LoaderCircle className="inline h-4 w-4 animate-spin" /> : <CircleAlert className="mr-1 inline h-4 w-4" />}
+                  {a.rejectIdentity}
+                </button>
+              </div>
+              <p className="text-xs text-slate-500">{a.identityImagesDeleted}</p>
+            </>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function SellersPanel({ stats, onChanged, onAuthError }) {
   const { t } = useLanguage();
   const a = t.admin;
@@ -782,6 +872,7 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
       setReloadKey((key) => key + 1);
     } catch (err) {
       if (isAuthError(err)) onAuthError();
+      else if (err.response?.data?.code === 'IDENTITY_REVIEW_REQUIRED') onChanged(a.identityMustBeReviewed, true);
       else onChanged(a.actionError, true);
     } finally {
       setBusyId(null);
@@ -926,7 +1017,20 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                           </div>
                         )}
                       </dl>
+<<<<<<< Updated upstream
                       {seller.description && <p className="mt-2 text-sm italic text-slate-500 dark:text-slate-400">“{seller.description}”</p>}
+=======
+                      {seller.description && <p className="mt-2 text-sm italic text-slate-500">“{seller.description}”</p>}
+                      <p className="mt-2 text-xs font-semibold text-slate-600">
+                        {seller.identityReviewStatus === 'APPROVED'
+                          ? a.identityReviewApproved
+                          : seller.identityReviewStatus === 'REJECTED'
+                            ? a.identityReviewRejected
+                            : seller.identityReviewStatus === 'NOT_REQUIRED'
+                              ? a.identityReviewNotRequired
+                              : a.identityReviewPending}
+                      </p>
+>>>>>>> Stashed changes
                       <button
                         type="button"
                         onClick={() => setOpenId(open ? null : seller.id)}
@@ -943,7 +1047,17 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                   </div>
 
                   <div className="flex shrink-0 gap-2 lg:flex-col xl:flex-row">
-                    {seller.status !== 'APPROVED' && (
+                    {seller.identityReviewStatus === 'PENDING' && (
+                      <button
+                        type="button"
+                        onClick={() => setOpenId(open ? null : seller.id)}
+                        className="inline-flex items-center justify-center gap-1.5 rounded-full bg-amber-50 px-4 py-2 text-sm font-bold text-amber-900 ring-1 ring-amber-200 hover:bg-amber-100"
+                      >
+                        <Eye className="h-4 w-4" />
+                        {a.viewIdentityDocuments}
+                      </button>
+                    )}
+                    {seller.status !== 'APPROVED' && ['APPROVED', 'NOT_REQUIRED'].includes(seller.identityReviewStatus) && (
                       <button
                         type="button"
                         disabled={busy}
@@ -989,7 +1103,24 @@ function SellersPanel({ stats, onChanged, onAuthError }) {
                 </div>
 
                 {open && (
+<<<<<<< Updated upstream
                   <div className="mt-4 rounded-xl bg-cream p-4 dark:bg-slate-800/60">
+=======
+                  <div className="mt-4 rounded-xl bg-cream p-4">
+                    {seller.identityReviewStatus === 'PENDING' && (
+                      <p className="mb-3 text-sm font-semibold text-amber-900">{a.identityMustBeReviewed}</p>
+                    )}
+                    {seller.identityReviewStatus === 'PENDING' && (
+                      <SellerIdentityReview
+                        seller={seller}
+                        onAuthError={onAuthError}
+                        onReviewed={(identityStatus) => {
+                          onChanged(identityStatus === 'APPROVED' ? a.identityReviewApprovedMessage : a.identityReviewRejectedMessage);
+                          setReloadKey((key) => key + 1);
+                        }}
+                      />
+                    )}
+>>>>>>> Stashed changes
                     <SellerProducts sellerId={seller.id} onAuthError={onAuthError} />
                   </div>
                 )}

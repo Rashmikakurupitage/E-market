@@ -34,12 +34,31 @@ const decrypt = (payload) => {
   return Buffer.concat([decipher.update(raw.subarray(28)), decipher.final()]).toString('utf8');
 };
 
+const encryptBytes = (value) => {
+  const iv = crypto.randomBytes(12);
+  const cipher = crypto.createCipheriv('aes-256-gcm', getKey(), iv);
+  const encrypted = Buffer.concat([cipher.update(value), cipher.final()]);
+  return Buffer.concat([iv, cipher.getAuthTag(), encrypted]);
+};
+
+const decryptBytes = (payload) => {
+  const raw = Buffer.from(payload);
+  if (raw.length < 28) throw new Error('Encrypted identity image is invalid.');
+  const decipher = crypto.createDecipheriv('aes-256-gcm', getKey(), raw.subarray(0, 12));
+  decipher.setAuthTag(raw.subarray(12, 28));
+  return Buffer.concat([decipher.update(raw.subarray(28)), decipher.final()]);
+};
+
 // Everything to save for a NIC: { nicHash, nicEncrypted, nicLast5 }
 const protect = (nic) => ({ nicHash: hash(nic), nicEncrypted: encrypt(nic), nicLast5: normalize(nic).slice(-5) });
 
 // What an admin sees: *****4255V
 const mask = (last5) => (last5 ? `*****${last5}` : null);
 
+<<<<<<< Updated upstream
 const validateKey = () => getKey();
 
 module.exports = { NIC_PATTERN, isValidNic, normalize, hash, encrypt, decrypt, protect, mask, validateKey };
+=======
+module.exports = { NIC_PATTERN, isValidNic, normalize, hash, encrypt, decrypt, encryptBytes, decryptBytes, protect, mask, validateKey };
+>>>>>>> Stashed changes

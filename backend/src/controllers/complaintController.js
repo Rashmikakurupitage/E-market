@@ -21,7 +21,11 @@ const serverError = (res, label, error) => {
 
 const forCustomer = {
   seller: { select: { businessName: true, district: true } },
-  order: { select: { reference: true } }
+  order: { select: { reference: true } },
+  statusHistory: {
+    select: { status: true, createdAt: true },
+    orderBy: [{ createdAt: 'asc' }, { id: 'asc' }]
+  }
 };
 
 /* ---------- customers ---------- */
@@ -84,7 +88,15 @@ exports.createComplaint = async (req, res) => {
     }
 
     const complaint = await prisma.complaint.create({
-      data: { reference: makeReference(), customerId: customer.id, sellerId, orderId, reason, message },
+      data: {
+        reference: makeReference(),
+        customerId: customer.id,
+        sellerId,
+        orderId,
+        reason,
+        message,
+        statusHistory: { create: { status: 'OPEN' } },
+      },
       include: forCustomer
     });
     res.status(201).json(complaint);
@@ -248,12 +260,44 @@ exports.updateComplaint = async (req, res) => {
       return res.status(400).json({ code: 'NOTHING_TO_UPDATE', message: 'Nothing to update.' });
     }
 
-    const { count } = await prisma.complaint.updateMany({ where: { id: String(req.params.id) }, data });
-    if (count === 0) {
+    const result = await prisma.$transaction(async (tx) => {
+      const existing = await tx.complaint.findUnique({
+        where: { id: String(req.params.id) },
+        select: { id: true, status: true, adminNote: true },
+      });
+      if (!existing) return { error: 'NOT_FOUND' };
+
+      const updateData = { ...data };
+      if (updateData.status === existing.status) {
+        delete updateData.status;
+        delete updateData.resolvedAt;
+      }
+      if (updateData.adminNote === existing.adminNote) delete updateData.adminNote;
+      if (Object.keys(updateData).length === 0) {
+        return { complaint: await tx.complaint.findUnique({ where: { id: existing.id }, include: forAdmin }) };
+      }
+
+      const changed = await tx.complaint.updateMany({
+        where: { id: existing.id, status: existing.status, adminNote: existing.adminNote },
+        data: updateData,
+      });
+      if (changed.count === 0) return { error: 'CONFLICT' };
+
+      if (updateData.status !== undefined) {
+        await tx.complaintStatusHistory.create({
+          data: { complaintId: existing.id, status: updateData.status },
+        });
+      }
+
+      return { complaint: await tx.complaint.findUnique({ where: { id: existing.id }, include: forAdmin }) };
+    });
+    if (result.error === 'NOT_FOUND') {
       return res.status(404).json({ code: 'NOT_FOUND', message: 'Complaint not found.' });
     }
-    const complaint = await prisma.complaint.findUnique({ where: { id: String(req.params.id) }, include: forAdmin });
-    res.json(complaint);
+    if (result.error === 'CONFLICT') {
+      return res.status(409).json({ code: 'UPDATE_CONFLICT', message: 'The complaint changed. Refresh and try again.' });
+    }
+    res.json(result.complaint);
   } catch (error) {
     serverError(res, 'ADMIN_UPDATE_COMPLAINT_ERROR:', error);
   }

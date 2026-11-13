@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LoaderCircle, CircleAlert, CircleCheck, ArrowRight, KeyRound } from 'lucide-react';
 import API from '../../src/lib/api';
@@ -34,6 +35,39 @@ const emailErrorText = (data, r) => {
 };
 
 const cleanPhone = (value) => value.replace(/[\s-]/g, '');
+const MAX_IDENTITY_IMAGE_BYTES = 900 * 1024;
+
+const canvasToDataUrl = (canvas) => {
+  for (const quality of [0.86, 0.76, 0.66, 0.56, 0.46]) {
+    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+    const base64 = dataUrl.slice(dataUrl.indexOf(',') + 1);
+    if (Math.ceil(base64.length * 3 / 4) <= MAX_IDENTITY_IMAGE_BYTES) return dataUrl;
+  }
+  throw new Error('IMAGE_TOO_LARGE');
+};
+
+const compressImageFile = (file) => new Promise((resolve, reject) => {
+  const image = new Image();
+  const objectUrl = URL.createObjectURL(file);
+  image.onload = () => {
+    URL.revokeObjectURL(objectUrl);
+    const scale = Math.min(1, 1600 / Math.max(image.naturalWidth, image.naturalHeight));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(image.naturalWidth * scale);
+    canvas.height = Math.round(image.naturalHeight * scale);
+    canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+    try {
+      resolve(canvasToDataUrl(canvas));
+    } catch (error) {
+      reject(error);
+    }
+  };
+  image.onerror = () => {
+    URL.revokeObjectURL(objectUrl);
+    reject(new Error('IMAGE_INVALID'));
+  };
+  image.src = objectUrl;
+});
 
 // Auto-capitalize first letter of each word (e.g. "kamal" -> "Kamal", "nimal perera" -> "Nimal Perera")
 const capitalizeName = (value) => {
@@ -56,7 +90,7 @@ function SectionTitle({ number, children }) {
   );
 }
 
-function SellerRegisterForm({ onRegistered, onVerify }) {
+function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
   const { t } = useLanguage();
   const r = t.register;
 
@@ -88,6 +122,7 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
   const [fieldErrors, setFieldErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+<<<<<<< Updated upstream
 
   const handleResetPhotos = () => {
     setNicFront('');
@@ -189,6 +224,38 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
       console.error('Back photo error:', err);
     }
   };
+=======
+  const [currentStep, setCurrentStep] = useState(0);
+  const [identityImages, setIdentityImages] = useState({ front: '', back: '', selfie: '' });
+  const [identityConsent, setIdentityConsent] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraError, setCameraError] = useState('');
+  const [cameraLoading, setCameraLoading] = useState(false);
+  const videoRef = useRef(null);
+  const cameraStreamRef = useRef(null);
+  const cameraGenerationRef = useRef(0);
+  const stepFieldsetRef = useRef(null);
+  const stepperRef = useRef(null);
+
+  useEffect(() => {
+    if (cameraOpen && cameraStreamRef.current && videoRef.current) {
+      videoRef.current.srcObject = cameraStreamRef.current;
+    }
+  }, [cameraOpen, cameraLoading]);
+
+  useEffect(() => () => {
+    cameraGenerationRef.current += 1;
+    cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
+  }, []);
+
+  useEffect(() => {
+    if (currentStep === 0) return;
+    stepperRef.current?.scrollIntoView({
+      behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+      block: 'start',
+    });
+  }, [currentStep]);
+>>>>>>> Stashed changes
 
   const handleChange = (e) => {
     let { name, value } = e.target;
@@ -240,9 +307,55 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
     if (!whatsappSameAsPhone && !PHONE_PATTERN.test(cleanPhone(formData.whatsappNo))) {
       errors.whatsappNo = r.phoneInvalid;
     }
+    if (!identityImages.front || !identityImages.back || !identityImages.selfie) errors.identityDocuments = r.identityImagesRequired;
+    if (!identityConsent) errors.identityConsent = r.identityConsentRequired;
     return errors;
   };
 
+<<<<<<< Updated upstream
+=======
+  const validateCurrentStep = () => {
+    const fieldset = stepFieldsetRef.current;
+    if (fieldset && !fieldset.reportValidity()) return false;
+
+    const errors = {};
+    if (currentStep === 0) {
+      if (!nicInfo.valid) errors.nic = r.nicIncorrect;
+      else if (nicInfo.gender === 'male') errors.nic = r.nicWomenOnly;
+      if (!isStrongPassword(formData.password)) errors.password = r.passwordRule;
+      if (formData.password !== formData.confirmPassword) errors.confirmPassword = r.passwordMismatch;
+    }
+    if (currentStep === 2) {
+      if (!PHONE_PATTERN.test(cleanPhone(formData.phone))) errors.phone = r.phoneInvalid;
+      if (!whatsappSameAsPhone && !PHONE_PATTERN.test(cleanPhone(formData.whatsappNo))) {
+        errors.whatsappNo = r.phoneInvalid;
+      }
+    }
+    if (currentStep === 3) {
+      if (!identityImages.front || !identityImages.back || !identityImages.selfie) errors.identityDocuments = r.identityImagesRequired;
+      if (!identityConsent) errors.identityConsent = r.identityConsentRequired;
+    }
+
+    setFieldErrors((previous) => ({ ...previous, ...errors }));
+    const firstError = Object.keys(errors)[0];
+    if (firstError) {
+      document.getElementById(firstError)?.focus();
+      return false;
+    }
+    return true;
+  };
+
+  const moveToStep = (step) => {
+    if (step <= currentStep) {
+      setError('');
+      setCurrentStep(step);
+    } else if (step === currentStep + 1 && validateCurrentStep()) {
+      setError('');
+      setCurrentStep(step);
+    }
+  };
+
+>>>>>>> Stashed changes
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -283,10 +396,15 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         whatsappNo: whatsappSameAsPhone ? phone : cleanPhone(formData.whatsappNo),
         messengerUrl: formData.messengerUrl.trim(),
         facebookUrl: formData.facebookUrl.trim(),
+<<<<<<< Updated upstream
         nicFront: nicFront || null,
         nicBack: nicBack || null,
         facePhoto: facePhoto || null,
         faceVerification: faceVerification || null,
+=======
+        identityConsent,
+        identityDocuments: identityImages,
+>>>>>>> Stashed changes
       });
 
       // Log the new seller straight in
@@ -298,9 +416,22 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
       saveSession(res.data.token, res.data.user);
       onRegistered();
     } catch (err) {
-      if (!err.response) {
+      const data = err.response?.data;
+      if (data?.code === 'NIC_TAKEN') {
+        onNicTaken();
+      } else if (data?.code === 'INVALID_NIC' || data?.code === 'WOMEN_ONLY') {
+        setCurrentStep(0);
+        setFieldErrors((previous) => ({
+          ...previous,
+          nic: data.code === 'WOMEN_ONLY' ? r.nicWomenOnly : r.nicIncorrect,
+        }));
+      } else if (data?.code === 'IDENTITY_DOCUMENTS_REQUIRED' || data?.code === 'IDENTITY_CONSENT_REQUIRED') {
+        setCurrentStep(3);
+        setError(data.code === 'IDENTITY_CONSENT_REQUIRED' ? r.identityConsentRequired : r.identityImagesRequired);
+      } else if (!err.response) {
         setError(r.networkError);
       } else {
+<<<<<<< Updated upstream
         const respData = err.response.data;
         if (respData?.code === 'FACE_VERIFICATION_REQUIRED') {
           setFieldErrors((prev) => ({ ...prev, facePhoto: r.faceVerificationRequired || 'A live face check is required.' }));
@@ -323,9 +454,73 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
           document.getElementById('nicPhotosSection')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
         setError(emailErrorText(respData, r) || respData?.message || r.genericError);
+=======
+        setError(emailErrorText(data, r) || data?.message || r.genericError);
+>>>>>>> Stashed changes
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const steps = [r.sectionPersonal, r.sectionBusiness, r.sectionContact, r.identitySection];
+  const setIdentityImageFromFile = async (key, file) => {
+    setError('');
+    try {
+      const data = await compressImageFile(file);
+      setIdentityImages((images) => ({ ...images, [key]: data }));
+      setFieldErrors((previous) => ({ ...previous, identityDocuments: undefined }));
+    } catch (imageError) {
+      setError(imageError.message === 'IMAGE_TOO_LARGE' ? r.identityImageTooLarge : r.identityImageInvalid);
+    }
+  };
+  const openCamera = async () => {
+    setCameraError('');
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError(r.cameraUnavailable);
+      return;
+    }
+    const generation = ++cameraGenerationRef.current;
+    setCameraLoading(true);
+    setCameraOpen(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      if (generation !== cameraGenerationRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      cameraStreamRef.current = stream;
+    } catch {
+      if (generation === cameraGenerationRef.current) setCameraError(r.cameraPermission);
+    } finally {
+      if (generation === cameraGenerationRef.current) setCameraLoading(false);
+    }
+  };
+  const closeCamera = () => {
+    cameraGenerationRef.current += 1;
+    cameraStreamRef.current?.getTracks().forEach((track) => track.stop());
+    cameraStreamRef.current = null;
+    setCameraOpen(false);
+    setCameraLoading(false);
+  };
+  const captureSelfie = () => {
+    const video = videoRef.current;
+    if (!video?.videoWidth || !video.videoHeight) {
+      setCameraError(r.cameraNotReady);
+      return;
+    }
+    const scale = Math.min(1, 1600 / Math.max(video.videoWidth, video.videoHeight));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(video.videoWidth * scale);
+    canvas.height = Math.round(video.videoHeight * scale);
+    canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+    try {
+      setIdentityImages((images) => ({ ...images, selfie: canvasToDataUrl(canvas) }));
+      setFieldErrors((previous) => ({ ...previous, identityDocuments: undefined }));
+      closeCamera();
+      setCameraError('');
+    } catch {
+      setCameraError(r.identityImageTooLarge);
     }
   };
 
@@ -338,6 +533,41 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         </div>
       )}
 
+<<<<<<< Updated upstream
+=======
+      <div ref={stepperRef} className="scroll-mt-40 space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-bold text-slate-800">
+            {r.stepProgress.replace('{current}', String(currentStep + 1)).replace('{total}', String(steps.length))}
+          </p>
+          <p className="text-xs font-semibold text-slate-500">
+            {steps[currentStep]}
+          </p>
+        </div>
+        <div className="h-2 overflow-hidden rounded-full bg-slate-100" role="progressbar" aria-valuemin={1} aria-valuemax={steps.length} aria-valuenow={currentStep + 1} aria-label={r.stepProgress.replace('{current}', String(currentStep + 1)).replace('{total}', String(steps.length))}>
+          <div className="h-full rounded-full bg-brand-600 transition-[width] duration-300" style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }} />
+        </div>
+        <ol className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {steps.map((label, index) => (
+            <li key={label}>
+              <button
+                type="button"
+                onClick={() => moveToStep(index)}
+                aria-current={index === currentStep ? 'step' : undefined}
+                disabled={index > currentStep}
+                className={`flex min-h-11 w-full items-center gap-2 rounded-xl px-2 text-left text-xs font-semibold transition sm:px-3 ${index === currentStep ? 'bg-brand-50 text-brand-800 ring-1 ring-brand-200' : index < currentStep ? 'text-brand-700 hover:bg-brand-50' : 'cursor-not-allowed text-slate-400'}`}
+              >
+                <span className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] ${index < currentStep ? 'bg-brand-600 text-white' : index === currentStep ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                  {index < currentStep ? <CircleCheck className="h-4 w-4" /> : index + 1}
+                </span>
+                <span className="truncate">{label}</span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </div>
+
+>>>>>>> Stashed changes
       {/* 1. Personal details */}
       <fieldset className="space-y-4">
         <SectionTitle number={1}>
@@ -520,11 +750,80 @@ function SellerRegisterForm({ onRegistered, onVerify }) {
         </div>
       </fieldset>
 
+<<<<<<< Updated upstream
       <div className="space-y-4">
         <button type="submit" disabled={loading} className={primaryButtonClass}>
           {loading && <LoaderCircle className="h-4 w-4 animate-spin" />}
           {loading ? r.submitting : r.submit}
         </button>
+=======
+      {currentStep === 3 && <fieldset className="space-y-4">
+        <SectionTitle number={4}>{r.identitySection}</SectionTitle>
+        <p className="rounded-xl bg-amber-50 p-3.5 text-sm text-amber-900 ring-1 ring-amber-200">{r.identityReviewInfo}</p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {[
+            { key: 'front', label: r.nicFront },
+            { key: 'back', label: r.nicBack },
+          ].map(({ key, label }) => (
+            <Field key={key} id={`identity-${key}`} label={label} required>
+              <input
+                id={`identity-${key}`}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) setIdentityImageFromFile(key, file);
+                  event.target.value = '';
+                }}
+                className="block w-full text-sm text-slate-600 file:mr-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-2 file:font-semibold file:text-brand-700 hover:file:bg-brand-100"
+              />
+              {identityImages[key] && <Image src={identityImages[key]} alt={label} width={640} height={400} unoptimized className="mt-2 max-h-40 w-full rounded-lg border border-slate-200 bg-white object-contain" />}
+            </Field>
+          ))}
+          <div className="space-y-3 sm:col-span-2">
+            <p className="text-sm font-semibold text-slate-800">{r.liveSelfie}</p>
+            {cameraOpen ? (
+              <div className="space-y-3">
+                <video ref={videoRef} autoPlay playsInline muted className="max-h-80 w-full rounded-xl bg-slate-900 object-contain" />
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={captureSelfie} disabled={cameraLoading || !!cameraError} className="rounded-full bg-brand-600 px-4 py-2 text-sm font-bold text-white disabled:opacity-50">{cameraLoading ? r.cameraStarting : r.captureSelfie}</button>
+                  <button type="button" onClick={closeCamera} className="rounded-full px-4 py-2 text-sm font-semibold text-slate-700 ring-1 ring-slate-200">{r.cancelCamera}</button>
+                </div>
+              </div>
+            ) : (
+              <button type="button" onClick={openCamera} className="rounded-full bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-700 ring-1 ring-brand-200 hover:bg-brand-100">{identityImages.selfie ? r.retakeSelfie : r.startCamera}</button>
+            )}
+            {cameraError && <p role="alert" className="text-sm text-red-700">{cameraError}</p>}
+            {identityImages.selfie && !cameraOpen && <Image src={identityImages.selfie} alt={r.liveSelfie} width={640} height={640} unoptimized className="max-h-56 w-full rounded-lg border border-slate-200 bg-white object-contain" />}
+          </div>
+        </div>
+        {fieldErrors.identityDocuments && <p role="alert" className="text-sm text-red-700">{fieldErrors.identityDocuments}</p>}
+        <label className="flex items-start gap-3 rounded-xl bg-slate-50 p-4 text-sm text-slate-700">
+          <input type="checkbox" checked={identityConsent} onChange={(event) => { setIdentityConsent(event.target.checked); setFieldErrors((previous) => ({ ...previous, identityConsent: undefined })); }} className="mt-0.5 h-4 w-4 shrink-0 accent-brand-600" />
+          <span>{r.identityConsent}</span>
+        </label>
+        {fieldErrors.identityConsent && <p role="alert" className="text-sm text-red-700">{fieldErrors.identityConsent}</p>}
+      </fieldset>}
+
+      <div className="space-y-4 border-t border-slate-100 pt-5">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-between">
+          {currentStep > 0 ? (
+            <button type="button" onClick={() => moveToStep(currentStep - 1)} className="min-h-12 rounded-xl px-5 text-sm font-bold text-slate-700 ring-1 ring-slate-200 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100">
+              {r.stepBack}
+            </button>
+          ) : <span />}
+          {currentStep < steps.length - 1 ? (
+            <button type="button" onClick={() => moveToStep(currentStep + 1)} className={`${primaryButtonClass} min-h-12 sm:min-w-40`}>
+              {r.stepNext}<ArrowRight className="h-4 w-4" />
+            </button>
+          ) : (
+            <button type="submit" disabled={loading} className={`${primaryButtonClass} min-h-12 sm:min-w-56`}>
+              {loading && <LoaderCircle className="h-4 w-4 animate-spin" />}
+              {loading ? r.submitting : r.submit}
+            </button>
+          )}
+        </div>
+>>>>>>> Stashed changes
         <p className="text-center text-sm text-slate-500">
           {r.haveAccount}{' '}
           <Link href="/login" className="font-semibold text-brand-700 hover:underline">
@@ -760,7 +1059,11 @@ function Register() {
               {type === 'customer' ? (
                 <CustomerRegisterForm onRegistered={() => setRegistered('customer')} onVerify={goVerify} />
               ) : (
-                <SellerRegisterForm onRegistered={() => setRegistered('seller')} onVerify={goVerify} />
+                <SellerRegisterForm
+                  onRegistered={() => setRegistered('seller')}
+                  onVerify={goVerify}
+                  onNicTaken={() => router.push('/login?nicRegistered=1')}
+                />
               )}
             </>
           )}

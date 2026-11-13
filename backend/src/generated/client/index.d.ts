@@ -54,6 +54,11 @@ export type AdminProfile = $Result.DefaultSelection<Prisma.$AdminProfilePayload>
  */
 export type SellerProfile = $Result.DefaultSelection<Prisma.$SellerProfilePayload>
 /**
+ * Model SellerIdentityDocuments
+ * 
+ */
+export type SellerIdentityDocuments = $Result.DefaultSelection<Prisma.$SellerIdentityDocumentsPayload>
+/**
  * Model CustomerProfile
  * 
  */
@@ -104,10 +109,17 @@ export type OrderItem = $Result.DefaultSelection<Prisma.$OrderItemPayload>
  */
 export type Complaint = $Result.DefaultSelection<Prisma.$ComplaintPayload>
 /**
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
  * Model SiteSetting
  * 
  */
 export type SiteSetting = $Result.DefaultSelection<Prisma.$SiteSettingPayload>
+=======
+ * Model ComplaintStatusHistory
+ * 
+ */
+export type ComplaintStatusHistory = $Result.DefaultSelection<Prisma.$ComplaintStatusHistoryPayload>
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
 
 /**
  * Enums
@@ -129,6 +141,16 @@ export const ApplicationStatus: {
 };
 
 export type ApplicationStatus = (typeof ApplicationStatus)[keyof typeof ApplicationStatus]
+
+
+export const IdentityReviewStatus: {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  NOT_REQUIRED: 'NOT_REQUIRED'
+};
+
+export type IdentityReviewStatus = (typeof IdentityReviewStatus)[keyof typeof IdentityReviewStatus]
 
 
 export const OrderStatus: {
@@ -159,6 +181,10 @@ export const Role: typeof $Enums.Role
 export type ApplicationStatus = $Enums.ApplicationStatus
 
 export const ApplicationStatus: typeof $Enums.ApplicationStatus
+
+export type IdentityReviewStatus = $Enums.IdentityReviewStatus
+
+export const IdentityReviewStatus: typeof $Enums.IdentityReviewStatus
 
 export type OrderStatus = $Enums.OrderStatus
 
@@ -372,6 +398,16 @@ export class PrismaClient<
   get sellerProfile(): Prisma.SellerProfileDelegate<ExtArgs>;
 
   /**
+   * `prisma.sellerIdentityDocuments`: Exposes CRUD operations for the **SellerIdentityDocuments** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more SellerIdentityDocuments
+    * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.findMany()
+    * ```
+    */
+  get sellerIdentityDocuments(): Prisma.SellerIdentityDocumentsDelegate<ExtArgs>;
+
+  /**
    * `prisma.customerProfile`: Exposes CRUD operations for the **CustomerProfile** model.
     * Example usage:
     * ```ts
@@ -472,6 +508,7 @@ export class PrismaClient<
   get complaint(): Prisma.ComplaintDelegate<ExtArgs>;
 
   /**
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
    * `prisma.siteSetting`: Exposes CRUD operations for the **SiteSetting** model.
     * Example usage:
     * ```ts
@@ -480,6 +517,16 @@ export class PrismaClient<
     * ```
     */
   get siteSetting(): Prisma.SiteSettingDelegate<ExtArgs>;
+=======
+   * `prisma.complaintStatusHistory`: Exposes CRUD operations for the **ComplaintStatusHistory** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ComplaintStatusHistories
+    * const complaintStatusHistories = await prisma.complaintStatusHistory.findMany()
+    * ```
+    */
+  get complaintStatusHistory(): Prisma.ComplaintStatusHistoryDelegate<ExtArgs>;
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
 }
 
 export namespace Prisma {
@@ -929,6 +976,7 @@ export namespace Prisma {
     ProfilePhoto: 'ProfilePhoto',
     AdminProfile: 'AdminProfile',
     SellerProfile: 'SellerProfile',
+    SellerIdentityDocuments: 'SellerIdentityDocuments',
     CustomerProfile: 'CustomerProfile',
     ProductImage: 'ProductImage',
     Product: 'Product',
@@ -938,8 +986,14 @@ export namespace Prisma {
     ClickAnalytics: 'ClickAnalytics',
     Order: 'Order',
     OrderItem: 'OrderItem',
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     Complaint: 'Complaint',
     SiteSetting: 'SiteSetting'
+=======
+    SiteSetting: 'SiteSetting',
+    Complaint: 'Complaint',
+    ComplaintStatusHistory: 'ComplaintStatusHistory'
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -955,7 +1009,11 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
       modelProps: "user" | "learningCourse" | "learningCourseMedia" | "learningProgress" | "learningCertificate" | "profilePhoto" | "adminProfile" | "sellerProfile" | "customerProfile" | "productImage" | "product" | "wishlistItem" | "productReview" | "sellerReview" | "clickAnalytics" | "order" | "orderItem" | "complaint" | "siteSetting"
+=======
+      modelProps: "user" | "learningCourse" | "learningCourseMedia" | "learningProgress" | "learningCertificate" | "profilePhoto" | "adminProfile" | "sellerProfile" | "sellerIdentityDocuments" | "customerProfile" | "productImage" | "product" | "wishlistItem" | "productReview" | "clickAnalytics" | "order" | "orderItem" | "siteSetting" | "complaint" | "complaintStatusHistory"
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1516,6 +1574,76 @@ export namespace Prisma {
           count: {
             args: Prisma.SellerProfileCountArgs<ExtArgs>
             result: $Utils.Optional<SellerProfileCountAggregateOutputType> | number
+          }
+        }
+      }
+      SellerIdentityDocuments: {
+        payload: Prisma.$SellerIdentityDocumentsPayload<ExtArgs>
+        fields: Prisma.SellerIdentityDocumentsFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SellerIdentityDocumentsFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SellerIdentityDocumentsPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SellerIdentityDocumentsFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SellerIdentityDocumentsPayload>
+          }
+          findFirst: {
+            args: Prisma.SellerIdentityDocumentsFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SellerIdentityDocumentsPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SellerIdentityDocumentsFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SellerIdentityDocumentsPayload>
+          }
+          findMany: {
+            args: Prisma.SellerIdentityDocumentsFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SellerIdentityDocumentsPayload>[]
+          }
+          create: {
+            args: Prisma.SellerIdentityDocumentsCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SellerIdentityDocumentsPayload>
+          }
+          createMany: {
+            args: Prisma.SellerIdentityDocumentsCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SellerIdentityDocumentsCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SellerIdentityDocumentsPayload>[]
+          }
+          delete: {
+            args: Prisma.SellerIdentityDocumentsDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SellerIdentityDocumentsPayload>
+          }
+          update: {
+            args: Prisma.SellerIdentityDocumentsUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SellerIdentityDocumentsPayload>
+          }
+          deleteMany: {
+            args: Prisma.SellerIdentityDocumentsDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SellerIdentityDocumentsUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.SellerIdentityDocumentsUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SellerIdentityDocumentsPayload>
+          }
+          aggregate: {
+            args: Prisma.SellerIdentityDocumentsAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSellerIdentityDocuments>
+          }
+          groupBy: {
+            args: Prisma.SellerIdentityDocumentsGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SellerIdentityDocumentsGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SellerIdentityDocumentsCountArgs<ExtArgs>
+            result: $Utils.Optional<SellerIdentityDocumentsCountAggregateOutputType> | number
           }
         }
       }
@@ -2219,6 +2347,7 @@ export namespace Prisma {
           }
         }
       }
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
       SiteSetting: {
         payload: Prisma.$SiteSettingPayload<ExtArgs>
         fields: Prisma.SiteSettingFieldRefs
@@ -2286,6 +2415,75 @@ export namespace Prisma {
           count: {
             args: Prisma.SiteSettingCountArgs<ExtArgs>
             result: $Utils.Optional<SiteSettingCountAggregateOutputType> | number
+=======
+      ComplaintStatusHistory: {
+        payload: Prisma.$ComplaintStatusHistoryPayload<ExtArgs>
+        fields: Prisma.ComplaintStatusHistoryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ComplaintStatusHistoryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComplaintStatusHistoryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ComplaintStatusHistoryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComplaintStatusHistoryPayload>
+          }
+          findFirst: {
+            args: Prisma.ComplaintStatusHistoryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComplaintStatusHistoryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ComplaintStatusHistoryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComplaintStatusHistoryPayload>
+          }
+          findMany: {
+            args: Prisma.ComplaintStatusHistoryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComplaintStatusHistoryPayload>[]
+          }
+          create: {
+            args: Prisma.ComplaintStatusHistoryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComplaintStatusHistoryPayload>
+          }
+          createMany: {
+            args: Prisma.ComplaintStatusHistoryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ComplaintStatusHistoryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComplaintStatusHistoryPayload>[]
+          }
+          delete: {
+            args: Prisma.ComplaintStatusHistoryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComplaintStatusHistoryPayload>
+          }
+          update: {
+            args: Prisma.ComplaintStatusHistoryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComplaintStatusHistoryPayload>
+          }
+          deleteMany: {
+            args: Prisma.ComplaintStatusHistoryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ComplaintStatusHistoryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ComplaintStatusHistoryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ComplaintStatusHistoryPayload>
+          }
+          aggregate: {
+            args: Prisma.ComplaintStatusHistoryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateComplaintStatusHistory>
+          }
+          groupBy: {
+            args: Prisma.ComplaintStatusHistoryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ComplaintStatusHistoryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ComplaintStatusHistoryCountArgs<ExtArgs>
+            result: $Utils.Optional<ComplaintStatusHistoryCountAggregateOutputType> | number
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
           }
         }
       }
@@ -2745,6 +2943,37 @@ export namespace Prisma {
    */
   export type OrderCountOutputTypeCountComplaintsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: ComplaintWhereInput
+  }
+
+
+  /**
+   * Count Type ComplaintCountOutputType
+   */
+
+  export type ComplaintCountOutputType = {
+    statusHistory: number
+  }
+
+  export type ComplaintCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    statusHistory?: boolean | ComplaintCountOutputTypeCountStatusHistoryArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ComplaintCountOutputType without action
+   */
+  export type ComplaintCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintCountOutputType
+     */
+    select?: ComplaintCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ComplaintCountOutputType without action
+   */
+  export type ComplaintCountOutputTypeCountStatusHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ComplaintStatusHistoryWhereInput
   }
 
 
@@ -9609,8 +9838,13 @@ export namespace Prisma {
     nicEncrypted: string | null
     nicLast5: string | null
     status: $Enums.ApplicationStatus | null
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront: string | null
     nicBack: string | null
+=======
+    identityReviewStatus: $Enums.IdentityReviewStatus | null
+    identityReviewedAt: Date | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo: string | null
     facebookUrl: string | null
     messengerUrl: string | null
@@ -9635,8 +9869,13 @@ export namespace Prisma {
     nicEncrypted: string | null
     nicLast5: string | null
     status: $Enums.ApplicationStatus | null
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront: string | null
     nicBack: string | null
+=======
+    identityReviewStatus: $Enums.IdentityReviewStatus | null
+    identityReviewedAt: Date | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo: string | null
     facebookUrl: string | null
     messengerUrl: string | null
@@ -9661,8 +9900,13 @@ export namespace Prisma {
     nicEncrypted: number
     nicLast5: number
     status: number
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront: number
     nicBack: number
+=======
+    identityReviewStatus: number
+    identityReviewedAt: number
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo: number
     facebookUrl: number
     messengerUrl: number
@@ -9689,8 +9933,13 @@ export namespace Prisma {
     nicEncrypted?: true
     nicLast5?: true
     status?: true
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: true
     nicBack?: true
+=======
+    identityReviewStatus?: true
+    identityReviewedAt?: true
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: true
     facebookUrl?: true
     messengerUrl?: true
@@ -9715,8 +9964,13 @@ export namespace Prisma {
     nicEncrypted?: true
     nicLast5?: true
     status?: true
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: true
     nicBack?: true
+=======
+    identityReviewStatus?: true
+    identityReviewedAt?: true
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: true
     facebookUrl?: true
     messengerUrl?: true
@@ -9741,8 +9995,13 @@ export namespace Prisma {
     nicEncrypted?: true
     nicLast5?: true
     status?: true
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: true
     nicBack?: true
+=======
+    identityReviewStatus?: true
+    identityReviewedAt?: true
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: true
     facebookUrl?: true
     messengerUrl?: true
@@ -9840,8 +10099,13 @@ export namespace Prisma {
     nicEncrypted: string | null
     nicLast5: string | null
     status: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront: string | null
     nicBack: string | null
+=======
+    identityReviewStatus: $Enums.IdentityReviewStatus
+    identityReviewedAt: Date | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo: string | null
     facebookUrl: string | null
     messengerUrl: string | null
@@ -9883,8 +10147,13 @@ export namespace Prisma {
     nicEncrypted?: boolean
     nicLast5?: boolean
     status?: boolean
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: boolean
     nicBack?: boolean
+=======
+    identityReviewStatus?: boolean
+    identityReviewedAt?: boolean
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: boolean
     facebookUrl?: boolean
     messengerUrl?: boolean
@@ -9893,6 +10162,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
+    identityDocuments?: boolean | SellerProfile$identityDocumentsArgs<ExtArgs>
     products?: boolean | SellerProfile$productsArgs<ExtArgs>
     analytics?: boolean | SellerProfile$analyticsArgs<ExtArgs>
     orders?: boolean | SellerProfile$ordersArgs<ExtArgs>
@@ -9916,8 +10186,13 @@ export namespace Prisma {
     nicEncrypted?: boolean
     nicLast5?: boolean
     status?: boolean
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: boolean
     nicBack?: boolean
+=======
+    identityReviewStatus?: boolean
+    identityReviewedAt?: boolean
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: boolean
     facebookUrl?: boolean
     messengerUrl?: boolean
@@ -9943,8 +10218,13 @@ export namespace Prisma {
     nicEncrypted?: boolean
     nicLast5?: boolean
     status?: boolean
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: boolean
     nicBack?: boolean
+=======
+    identityReviewStatus?: boolean
+    identityReviewedAt?: boolean
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: boolean
     facebookUrl?: boolean
     messengerUrl?: boolean
@@ -9956,6 +10236,7 @@ export namespace Prisma {
 
   export type SellerProfileInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
+    identityDocuments?: boolean | SellerProfile$identityDocumentsArgs<ExtArgs>
     products?: boolean | SellerProfile$productsArgs<ExtArgs>
     analytics?: boolean | SellerProfile$analyticsArgs<ExtArgs>
     orders?: boolean | SellerProfile$ordersArgs<ExtArgs>
@@ -9971,6 +10252,7 @@ export namespace Prisma {
     name: "SellerProfile"
     objects: {
       user: Prisma.$UserPayload<ExtArgs>
+      identityDocuments: Prisma.$SellerIdentityDocumentsPayload<ExtArgs> | null
       products: Prisma.$ProductPayload<ExtArgs>[]
       analytics: Prisma.$ClickAnalyticsPayload<ExtArgs>[]
       orders: Prisma.$OrderPayload<ExtArgs>[]
@@ -9992,8 +10274,13 @@ export namespace Prisma {
       nicEncrypted: string | null
       nicLast5: string | null
       status: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
       nicFront: string | null
       nicBack: string | null
+=======
+      identityReviewStatus: $Enums.IdentityReviewStatus
+      identityReviewedAt: Date | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
       whatsappNo: string | null
       facebookUrl: string | null
       messengerUrl: string | null
@@ -10366,6 +10653,7 @@ export namespace Prisma {
   export interface Prisma__SellerProfileClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    identityDocuments<T extends SellerProfile$identityDocumentsArgs<ExtArgs> = {}>(args?: Subset<T, SellerProfile$identityDocumentsArgs<ExtArgs>>): Prisma__SellerIdentityDocumentsClient<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     products<T extends SellerProfile$productsArgs<ExtArgs> = {}>(args?: Subset<T, SellerProfile$productsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ProductPayload<ExtArgs>, T, "findMany"> | Null>
     analytics<T extends SellerProfile$analyticsArgs<ExtArgs> = {}>(args?: Subset<T, SellerProfile$analyticsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ClickAnalyticsPayload<ExtArgs>, T, "findMany"> | Null>
     orders<T extends SellerProfile$ordersArgs<ExtArgs> = {}>(args?: Subset<T, SellerProfile$ordersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findMany"> | Null>
@@ -10414,8 +10702,13 @@ export namespace Prisma {
     readonly nicEncrypted: FieldRef<"SellerProfile", 'String'>
     readonly nicLast5: FieldRef<"SellerProfile", 'String'>
     readonly status: FieldRef<"SellerProfile", 'ApplicationStatus'>
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     readonly nicFront: FieldRef<"SellerProfile", 'String'>
     readonly nicBack: FieldRef<"SellerProfile", 'String'>
+=======
+    readonly identityReviewStatus: FieldRef<"SellerProfile", 'IdentityReviewStatus'>
+    readonly identityReviewedAt: FieldRef<"SellerProfile", 'DateTime'>
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     readonly whatsappNo: FieldRef<"SellerProfile", 'String'>
     readonly facebookUrl: FieldRef<"SellerProfile", 'String'>
     readonly messengerUrl: FieldRef<"SellerProfile", 'String'>
@@ -10741,6 +11034,21 @@ export namespace Prisma {
   }
 
   /**
+   * SellerProfile.identityDocuments
+   */
+  export type SellerProfile$identityDocumentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
+    where?: SellerIdentityDocumentsWhereInput
+  }
+
+  /**
    * SellerProfile.products
    */
   export type SellerProfile$productsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -10852,6 +11160,975 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: SellerProfileInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model SellerIdentityDocuments
+   */
+
+  export type AggregateSellerIdentityDocuments = {
+    _count: SellerIdentityDocumentsCountAggregateOutputType | null
+    _min: SellerIdentityDocumentsMinAggregateOutputType | null
+    _max: SellerIdentityDocumentsMaxAggregateOutputType | null
+  }
+
+  export type SellerIdentityDocumentsMinAggregateOutputType = {
+    sellerId: string | null
+    frontImage: Buffer | null
+    frontType: string | null
+    backImage: Buffer | null
+    backType: string | null
+    selfie: Buffer | null
+    selfieType: string | null
+    createdAt: Date | null
+  }
+
+  export type SellerIdentityDocumentsMaxAggregateOutputType = {
+    sellerId: string | null
+    frontImage: Buffer | null
+    frontType: string | null
+    backImage: Buffer | null
+    backType: string | null
+    selfie: Buffer | null
+    selfieType: string | null
+    createdAt: Date | null
+  }
+
+  export type SellerIdentityDocumentsCountAggregateOutputType = {
+    sellerId: number
+    frontImage: number
+    frontType: number
+    backImage: number
+    backType: number
+    selfie: number
+    selfieType: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type SellerIdentityDocumentsMinAggregateInputType = {
+    sellerId?: true
+    frontImage?: true
+    frontType?: true
+    backImage?: true
+    backType?: true
+    selfie?: true
+    selfieType?: true
+    createdAt?: true
+  }
+
+  export type SellerIdentityDocumentsMaxAggregateInputType = {
+    sellerId?: true
+    frontImage?: true
+    frontType?: true
+    backImage?: true
+    backType?: true
+    selfie?: true
+    selfieType?: true
+    createdAt?: true
+  }
+
+  export type SellerIdentityDocumentsCountAggregateInputType = {
+    sellerId?: true
+    frontImage?: true
+    frontType?: true
+    backImage?: true
+    backType?: true
+    selfie?: true
+    selfieType?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type SellerIdentityDocumentsAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SellerIdentityDocuments to aggregate.
+     */
+    where?: SellerIdentityDocumentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SellerIdentityDocuments to fetch.
+     */
+    orderBy?: SellerIdentityDocumentsOrderByWithRelationInput | SellerIdentityDocumentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SellerIdentityDocumentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SellerIdentityDocuments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SellerIdentityDocuments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned SellerIdentityDocuments
+    **/
+    _count?: true | SellerIdentityDocumentsCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SellerIdentityDocumentsMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SellerIdentityDocumentsMaxAggregateInputType
+  }
+
+  export type GetSellerIdentityDocumentsAggregateType<T extends SellerIdentityDocumentsAggregateArgs> = {
+        [P in keyof T & keyof AggregateSellerIdentityDocuments]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSellerIdentityDocuments[P]>
+      : GetScalarType<T[P], AggregateSellerIdentityDocuments[P]>
+  }
+
+
+
+
+  export type SellerIdentityDocumentsGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SellerIdentityDocumentsWhereInput
+    orderBy?: SellerIdentityDocumentsOrderByWithAggregationInput | SellerIdentityDocumentsOrderByWithAggregationInput[]
+    by: SellerIdentityDocumentsScalarFieldEnum[] | SellerIdentityDocumentsScalarFieldEnum
+    having?: SellerIdentityDocumentsScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SellerIdentityDocumentsCountAggregateInputType | true
+    _min?: SellerIdentityDocumentsMinAggregateInputType
+    _max?: SellerIdentityDocumentsMaxAggregateInputType
+  }
+
+  export type SellerIdentityDocumentsGroupByOutputType = {
+    sellerId: string
+    frontImage: Buffer | null
+    frontType: string | null
+    backImage: Buffer | null
+    backType: string | null
+    selfie: Buffer | null
+    selfieType: string | null
+    createdAt: Date
+    _count: SellerIdentityDocumentsCountAggregateOutputType | null
+    _min: SellerIdentityDocumentsMinAggregateOutputType | null
+    _max: SellerIdentityDocumentsMaxAggregateOutputType | null
+  }
+
+  type GetSellerIdentityDocumentsGroupByPayload<T extends SellerIdentityDocumentsGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SellerIdentityDocumentsGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SellerIdentityDocumentsGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SellerIdentityDocumentsGroupByOutputType[P]>
+            : GetScalarType<T[P], SellerIdentityDocumentsGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SellerIdentityDocumentsSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    sellerId?: boolean
+    frontImage?: boolean
+    frontType?: boolean
+    backImage?: boolean
+    backType?: boolean
+    selfie?: boolean
+    selfieType?: boolean
+    createdAt?: boolean
+    seller?: boolean | SellerProfileDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sellerIdentityDocuments"]>
+
+  export type SellerIdentityDocumentsSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    sellerId?: boolean
+    frontImage?: boolean
+    frontType?: boolean
+    backImage?: boolean
+    backType?: boolean
+    selfie?: boolean
+    selfieType?: boolean
+    createdAt?: boolean
+    seller?: boolean | SellerProfileDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["sellerIdentityDocuments"]>
+
+  export type SellerIdentityDocumentsSelectScalar = {
+    sellerId?: boolean
+    frontImage?: boolean
+    frontType?: boolean
+    backImage?: boolean
+    backType?: boolean
+    selfie?: boolean
+    selfieType?: boolean
+    createdAt?: boolean
+  }
+
+  export type SellerIdentityDocumentsInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    seller?: boolean | SellerProfileDefaultArgs<ExtArgs>
+  }
+  export type SellerIdentityDocumentsIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    seller?: boolean | SellerProfileDefaultArgs<ExtArgs>
+  }
+
+  export type $SellerIdentityDocumentsPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "SellerIdentityDocuments"
+    objects: {
+      seller: Prisma.$SellerProfilePayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      sellerId: string
+      frontImage: Buffer | null
+      frontType: string | null
+      backImage: Buffer | null
+      backType: string | null
+      selfie: Buffer | null
+      selfieType: string | null
+      createdAt: Date
+    }, ExtArgs["result"]["sellerIdentityDocuments"]>
+    composites: {}
+  }
+
+  type SellerIdentityDocumentsGetPayload<S extends boolean | null | undefined | SellerIdentityDocumentsDefaultArgs> = $Result.GetResult<Prisma.$SellerIdentityDocumentsPayload, S>
+
+  type SellerIdentityDocumentsCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<SellerIdentityDocumentsFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: SellerIdentityDocumentsCountAggregateInputType | true
+    }
+
+  export interface SellerIdentityDocumentsDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['SellerIdentityDocuments'], meta: { name: 'SellerIdentityDocuments' } }
+    /**
+     * Find zero or one SellerIdentityDocuments that matches the filter.
+     * @param {SellerIdentityDocumentsFindUniqueArgs} args - Arguments to find a SellerIdentityDocuments
+     * @example
+     * // Get one SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SellerIdentityDocumentsFindUniqueArgs>(args: SelectSubset<T, SellerIdentityDocumentsFindUniqueArgs<ExtArgs>>): Prisma__SellerIdentityDocumentsClient<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one SellerIdentityDocuments that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {SellerIdentityDocumentsFindUniqueOrThrowArgs} args - Arguments to find a SellerIdentityDocuments
+     * @example
+     * // Get one SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SellerIdentityDocumentsFindUniqueOrThrowArgs>(args: SelectSubset<T, SellerIdentityDocumentsFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SellerIdentityDocumentsClient<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first SellerIdentityDocuments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SellerIdentityDocumentsFindFirstArgs} args - Arguments to find a SellerIdentityDocuments
+     * @example
+     * // Get one SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SellerIdentityDocumentsFindFirstArgs>(args?: SelectSubset<T, SellerIdentityDocumentsFindFirstArgs<ExtArgs>>): Prisma__SellerIdentityDocumentsClient<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first SellerIdentityDocuments that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SellerIdentityDocumentsFindFirstOrThrowArgs} args - Arguments to find a SellerIdentityDocuments
+     * @example
+     * // Get one SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SellerIdentityDocumentsFindFirstOrThrowArgs>(args?: SelectSubset<T, SellerIdentityDocumentsFindFirstOrThrowArgs<ExtArgs>>): Prisma__SellerIdentityDocumentsClient<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more SellerIdentityDocuments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SellerIdentityDocumentsFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.findMany()
+     * 
+     * // Get first 10 SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.findMany({ take: 10 })
+     * 
+     * // Only select the `sellerId`
+     * const sellerIdentityDocumentsWithSellerIdOnly = await prisma.sellerIdentityDocuments.findMany({ select: { sellerId: true } })
+     * 
+     */
+    findMany<T extends SellerIdentityDocumentsFindManyArgs>(args?: SelectSubset<T, SellerIdentityDocumentsFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a SellerIdentityDocuments.
+     * @param {SellerIdentityDocumentsCreateArgs} args - Arguments to create a SellerIdentityDocuments.
+     * @example
+     * // Create one SellerIdentityDocuments
+     * const SellerIdentityDocuments = await prisma.sellerIdentityDocuments.create({
+     *   data: {
+     *     // ... data to create a SellerIdentityDocuments
+     *   }
+     * })
+     * 
+     */
+    create<T extends SellerIdentityDocumentsCreateArgs>(args: SelectSubset<T, SellerIdentityDocumentsCreateArgs<ExtArgs>>): Prisma__SellerIdentityDocumentsClient<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many SellerIdentityDocuments.
+     * @param {SellerIdentityDocumentsCreateManyArgs} args - Arguments to create many SellerIdentityDocuments.
+     * @example
+     * // Create many SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SellerIdentityDocumentsCreateManyArgs>(args?: SelectSubset<T, SellerIdentityDocumentsCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many SellerIdentityDocuments and returns the data saved in the database.
+     * @param {SellerIdentityDocumentsCreateManyAndReturnArgs} args - Arguments to create many SellerIdentityDocuments.
+     * @example
+     * // Create many SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many SellerIdentityDocuments and only return the `sellerId`
+     * const sellerIdentityDocumentsWithSellerIdOnly = await prisma.sellerIdentityDocuments.createManyAndReturn({ 
+     *   select: { sellerId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SellerIdentityDocumentsCreateManyAndReturnArgs>(args?: SelectSubset<T, SellerIdentityDocumentsCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a SellerIdentityDocuments.
+     * @param {SellerIdentityDocumentsDeleteArgs} args - Arguments to delete one SellerIdentityDocuments.
+     * @example
+     * // Delete one SellerIdentityDocuments
+     * const SellerIdentityDocuments = await prisma.sellerIdentityDocuments.delete({
+     *   where: {
+     *     // ... filter to delete one SellerIdentityDocuments
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SellerIdentityDocumentsDeleteArgs>(args: SelectSubset<T, SellerIdentityDocumentsDeleteArgs<ExtArgs>>): Prisma__SellerIdentityDocumentsClient<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one SellerIdentityDocuments.
+     * @param {SellerIdentityDocumentsUpdateArgs} args - Arguments to update one SellerIdentityDocuments.
+     * @example
+     * // Update one SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SellerIdentityDocumentsUpdateArgs>(args: SelectSubset<T, SellerIdentityDocumentsUpdateArgs<ExtArgs>>): Prisma__SellerIdentityDocumentsClient<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more SellerIdentityDocuments.
+     * @param {SellerIdentityDocumentsDeleteManyArgs} args - Arguments to filter SellerIdentityDocuments to delete.
+     * @example
+     * // Delete a few SellerIdentityDocuments
+     * const { count } = await prisma.sellerIdentityDocuments.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SellerIdentityDocumentsDeleteManyArgs>(args?: SelectSubset<T, SellerIdentityDocumentsDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more SellerIdentityDocuments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SellerIdentityDocumentsUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SellerIdentityDocumentsUpdateManyArgs>(args: SelectSubset<T, SellerIdentityDocumentsUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one SellerIdentityDocuments.
+     * @param {SellerIdentityDocumentsUpsertArgs} args - Arguments to update or create a SellerIdentityDocuments.
+     * @example
+     * // Update or create a SellerIdentityDocuments
+     * const sellerIdentityDocuments = await prisma.sellerIdentityDocuments.upsert({
+     *   create: {
+     *     // ... data to create a SellerIdentityDocuments
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the SellerIdentityDocuments we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SellerIdentityDocumentsUpsertArgs>(args: SelectSubset<T, SellerIdentityDocumentsUpsertArgs<ExtArgs>>): Prisma__SellerIdentityDocumentsClient<$Result.GetResult<Prisma.$SellerIdentityDocumentsPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of SellerIdentityDocuments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SellerIdentityDocumentsCountArgs} args - Arguments to filter SellerIdentityDocuments to count.
+     * @example
+     * // Count the number of SellerIdentityDocuments
+     * const count = await prisma.sellerIdentityDocuments.count({
+     *   where: {
+     *     // ... the filter for the SellerIdentityDocuments we want to count
+     *   }
+     * })
+    **/
+    count<T extends SellerIdentityDocumentsCountArgs>(
+      args?: Subset<T, SellerIdentityDocumentsCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SellerIdentityDocumentsCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a SellerIdentityDocuments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SellerIdentityDocumentsAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SellerIdentityDocumentsAggregateArgs>(args: Subset<T, SellerIdentityDocumentsAggregateArgs>): Prisma.PrismaPromise<GetSellerIdentityDocumentsAggregateType<T>>
+
+    /**
+     * Group by SellerIdentityDocuments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SellerIdentityDocumentsGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SellerIdentityDocumentsGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SellerIdentityDocumentsGroupByArgs['orderBy'] }
+        : { orderBy?: SellerIdentityDocumentsGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SellerIdentityDocumentsGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSellerIdentityDocumentsGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the SellerIdentityDocuments model
+   */
+  readonly fields: SellerIdentityDocumentsFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for SellerIdentityDocuments.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SellerIdentityDocumentsClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    seller<T extends SellerProfileDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SellerProfileDefaultArgs<ExtArgs>>): Prisma__SellerProfileClient<$Result.GetResult<Prisma.$SellerProfilePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the SellerIdentityDocuments model
+   */ 
+  interface SellerIdentityDocumentsFieldRefs {
+    readonly sellerId: FieldRef<"SellerIdentityDocuments", 'String'>
+    readonly frontImage: FieldRef<"SellerIdentityDocuments", 'Bytes'>
+    readonly frontType: FieldRef<"SellerIdentityDocuments", 'String'>
+    readonly backImage: FieldRef<"SellerIdentityDocuments", 'Bytes'>
+    readonly backType: FieldRef<"SellerIdentityDocuments", 'String'>
+    readonly selfie: FieldRef<"SellerIdentityDocuments", 'Bytes'>
+    readonly selfieType: FieldRef<"SellerIdentityDocuments", 'String'>
+    readonly createdAt: FieldRef<"SellerIdentityDocuments", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * SellerIdentityDocuments findUnique
+   */
+  export type SellerIdentityDocumentsFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
+    /**
+     * Filter, which SellerIdentityDocuments to fetch.
+     */
+    where: SellerIdentityDocumentsWhereUniqueInput
+  }
+
+  /**
+   * SellerIdentityDocuments findUniqueOrThrow
+   */
+  export type SellerIdentityDocumentsFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
+    /**
+     * Filter, which SellerIdentityDocuments to fetch.
+     */
+    where: SellerIdentityDocumentsWhereUniqueInput
+  }
+
+  /**
+   * SellerIdentityDocuments findFirst
+   */
+  export type SellerIdentityDocumentsFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
+    /**
+     * Filter, which SellerIdentityDocuments to fetch.
+     */
+    where?: SellerIdentityDocumentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SellerIdentityDocuments to fetch.
+     */
+    orderBy?: SellerIdentityDocumentsOrderByWithRelationInput | SellerIdentityDocumentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SellerIdentityDocuments.
+     */
+    cursor?: SellerIdentityDocumentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SellerIdentityDocuments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SellerIdentityDocuments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SellerIdentityDocuments.
+     */
+    distinct?: SellerIdentityDocumentsScalarFieldEnum | SellerIdentityDocumentsScalarFieldEnum[]
+  }
+
+  /**
+   * SellerIdentityDocuments findFirstOrThrow
+   */
+  export type SellerIdentityDocumentsFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
+    /**
+     * Filter, which SellerIdentityDocuments to fetch.
+     */
+    where?: SellerIdentityDocumentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SellerIdentityDocuments to fetch.
+     */
+    orderBy?: SellerIdentityDocumentsOrderByWithRelationInput | SellerIdentityDocumentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for SellerIdentityDocuments.
+     */
+    cursor?: SellerIdentityDocumentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SellerIdentityDocuments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SellerIdentityDocuments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of SellerIdentityDocuments.
+     */
+    distinct?: SellerIdentityDocumentsScalarFieldEnum | SellerIdentityDocumentsScalarFieldEnum[]
+  }
+
+  /**
+   * SellerIdentityDocuments findMany
+   */
+  export type SellerIdentityDocumentsFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
+    /**
+     * Filter, which SellerIdentityDocuments to fetch.
+     */
+    where?: SellerIdentityDocumentsWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of SellerIdentityDocuments to fetch.
+     */
+    orderBy?: SellerIdentityDocumentsOrderByWithRelationInput | SellerIdentityDocumentsOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing SellerIdentityDocuments.
+     */
+    cursor?: SellerIdentityDocumentsWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` SellerIdentityDocuments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` SellerIdentityDocuments.
+     */
+    skip?: number
+    distinct?: SellerIdentityDocumentsScalarFieldEnum | SellerIdentityDocumentsScalarFieldEnum[]
+  }
+
+  /**
+   * SellerIdentityDocuments create
+   */
+  export type SellerIdentityDocumentsCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
+    /**
+     * The data needed to create a SellerIdentityDocuments.
+     */
+    data: XOR<SellerIdentityDocumentsCreateInput, SellerIdentityDocumentsUncheckedCreateInput>
+  }
+
+  /**
+   * SellerIdentityDocuments createMany
+   */
+  export type SellerIdentityDocumentsCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many SellerIdentityDocuments.
+     */
+    data: SellerIdentityDocumentsCreateManyInput | SellerIdentityDocumentsCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * SellerIdentityDocuments createManyAndReturn
+   */
+  export type SellerIdentityDocumentsCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many SellerIdentityDocuments.
+     */
+    data: SellerIdentityDocumentsCreateManyInput | SellerIdentityDocumentsCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * SellerIdentityDocuments update
+   */
+  export type SellerIdentityDocumentsUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
+    /**
+     * The data needed to update a SellerIdentityDocuments.
+     */
+    data: XOR<SellerIdentityDocumentsUpdateInput, SellerIdentityDocumentsUncheckedUpdateInput>
+    /**
+     * Choose, which SellerIdentityDocuments to update.
+     */
+    where: SellerIdentityDocumentsWhereUniqueInput
+  }
+
+  /**
+   * SellerIdentityDocuments updateMany
+   */
+  export type SellerIdentityDocumentsUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update SellerIdentityDocuments.
+     */
+    data: XOR<SellerIdentityDocumentsUpdateManyMutationInput, SellerIdentityDocumentsUncheckedUpdateManyInput>
+    /**
+     * Filter which SellerIdentityDocuments to update
+     */
+    where?: SellerIdentityDocumentsWhereInput
+  }
+
+  /**
+   * SellerIdentityDocuments upsert
+   */
+  export type SellerIdentityDocumentsUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
+    /**
+     * The filter to search for the SellerIdentityDocuments to update in case it exists.
+     */
+    where: SellerIdentityDocumentsWhereUniqueInput
+    /**
+     * In case the SellerIdentityDocuments found by the `where` argument doesn't exist, create a new SellerIdentityDocuments with this data.
+     */
+    create: XOR<SellerIdentityDocumentsCreateInput, SellerIdentityDocumentsUncheckedCreateInput>
+    /**
+     * In case the SellerIdentityDocuments was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SellerIdentityDocumentsUpdateInput, SellerIdentityDocumentsUncheckedUpdateInput>
+  }
+
+  /**
+   * SellerIdentityDocuments delete
+   */
+  export type SellerIdentityDocumentsDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
+    /**
+     * Filter which SellerIdentityDocuments to delete.
+     */
+    where: SellerIdentityDocumentsWhereUniqueInput
+  }
+
+  /**
+   * SellerIdentityDocuments deleteMany
+   */
+  export type SellerIdentityDocumentsDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which SellerIdentityDocuments to delete
+     */
+    where?: SellerIdentityDocumentsWhereInput
+  }
+
+  /**
+   * SellerIdentityDocuments without action
+   */
+  export type SellerIdentityDocumentsDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the SellerIdentityDocuments
+     */
+    select?: SellerIdentityDocumentsSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: SellerIdentityDocumentsInclude<ExtArgs> | null
   }
 
 
@@ -17997,7 +19274,20 @@ export namespace Prisma {
     district: string | null
     totalAmount: Decimal | null
     status: $Enums.OrderStatus | null
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes: string | null
+=======
+    total: Decimal | null
+    deliveryName: string | null
+    deliveryPhone: string | null
+    deliveryAddress: string | null
+    deliveryDistrict: string | null
+    trackingCarrier: string | null
+    trackingNumber: string | null
+    trackingUrl: string | null
+    estimatedDeliveryAt: Date | null
+    note: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -18013,7 +19303,20 @@ export namespace Prisma {
     district: string | null
     totalAmount: Decimal | null
     status: $Enums.OrderStatus | null
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes: string | null
+=======
+    total: Decimal | null
+    deliveryName: string | null
+    deliveryPhone: string | null
+    deliveryAddress: string | null
+    deliveryDistrict: string | null
+    trackingCarrier: string | null
+    trackingNumber: string | null
+    trackingUrl: string | null
+    estimatedDeliveryAt: Date | null
+    note: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt: Date | null
     updatedAt: Date | null
   }
@@ -18029,7 +19332,20 @@ export namespace Prisma {
     district: number
     totalAmount: number
     status: number
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes: number
+=======
+    total: number
+    deliveryName: number
+    deliveryPhone: number
+    deliveryAddress: number
+    deliveryDistrict: number
+    trackingCarrier: number
+    trackingNumber: number
+    trackingUrl: number
+    estimatedDeliveryAt: number
+    note: number
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt: number
     updatedAt: number
     _all: number
@@ -18055,7 +19371,20 @@ export namespace Prisma {
     district?: true
     totalAmount?: true
     status?: true
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: true
+=======
+    total?: true
+    deliveryName?: true
+    deliveryPhone?: true
+    deliveryAddress?: true
+    deliveryDistrict?: true
+    trackingCarrier?: true
+    trackingNumber?: true
+    trackingUrl?: true
+    estimatedDeliveryAt?: true
+    note?: true
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: true
     updatedAt?: true
   }
@@ -18071,7 +19400,20 @@ export namespace Prisma {
     district?: true
     totalAmount?: true
     status?: true
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: true
+=======
+    total?: true
+    deliveryName?: true
+    deliveryPhone?: true
+    deliveryAddress?: true
+    deliveryDistrict?: true
+    trackingCarrier?: true
+    trackingNumber?: true
+    trackingUrl?: true
+    estimatedDeliveryAt?: true
+    note?: true
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: true
     updatedAt?: true
   }
@@ -18087,7 +19429,20 @@ export namespace Prisma {
     district?: true
     totalAmount?: true
     status?: true
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: true
+=======
+    total?: true
+    deliveryName?: true
+    deliveryPhone?: true
+    deliveryAddress?: true
+    deliveryDistrict?: true
+    trackingCarrier?: true
+    trackingNumber?: true
+    trackingUrl?: true
+    estimatedDeliveryAt?: true
+    note?: true
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: true
     updatedAt?: true
     _all?: true
@@ -18190,7 +19545,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal
     status: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes: string | null
+=======
+    total: Decimal
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier: string | null
+    trackingNumber: string | null
+    trackingUrl: string | null
+    estimatedDeliveryAt: Date | null
+    note: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt: Date
     updatedAt: Date
     _count: OrderCountAggregateOutputType | null
@@ -18225,7 +19593,20 @@ export namespace Prisma {
     district?: boolean
     totalAmount?: boolean
     status?: boolean
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: boolean
+=======
+    total?: boolean
+    deliveryName?: boolean
+    deliveryPhone?: boolean
+    deliveryAddress?: boolean
+    deliveryDistrict?: boolean
+    trackingCarrier?: boolean
+    trackingNumber?: boolean
+    trackingUrl?: boolean
+    estimatedDeliveryAt?: boolean
+    note?: boolean
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerProfileDefaultArgs<ExtArgs>
@@ -18246,7 +19627,20 @@ export namespace Prisma {
     district?: boolean
     totalAmount?: boolean
     status?: boolean
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: boolean
+=======
+    total?: boolean
+    deliveryName?: boolean
+    deliveryPhone?: boolean
+    deliveryAddress?: boolean
+    deliveryDistrict?: boolean
+    trackingCarrier?: boolean
+    trackingNumber?: boolean
+    trackingUrl?: boolean
+    estimatedDeliveryAt?: boolean
+    note?: boolean
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: boolean
     updatedAt?: boolean
     customer?: boolean | CustomerProfileDefaultArgs<ExtArgs>
@@ -18264,7 +19658,20 @@ export namespace Prisma {
     district?: boolean
     totalAmount?: boolean
     status?: boolean
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: boolean
+=======
+    total?: boolean
+    deliveryName?: boolean
+    deliveryPhone?: boolean
+    deliveryAddress?: boolean
+    deliveryDistrict?: boolean
+    trackingCarrier?: boolean
+    trackingNumber?: boolean
+    trackingUrl?: boolean
+    estimatedDeliveryAt?: boolean
+    note?: boolean
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: boolean
     updatedAt?: boolean
   }
@@ -18300,7 +19707,20 @@ export namespace Prisma {
       district: string
       totalAmount: Prisma.Decimal
       status: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
       notes: string | null
+=======
+      total: Prisma.Decimal
+      deliveryName: string
+      deliveryPhone: string
+      deliveryAddress: string
+      deliveryDistrict: string
+      trackingCarrier: string | null
+      trackingNumber: string | null
+      trackingUrl: string | null
+      estimatedDeliveryAt: Date | null
+      note: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
       createdAt: Date
       updatedAt: Date
     }, ExtArgs["result"]["order"]>
@@ -18710,7 +20130,20 @@ export namespace Prisma {
     readonly district: FieldRef<"Order", 'String'>
     readonly totalAmount: FieldRef<"Order", 'Decimal'>
     readonly status: FieldRef<"Order", 'OrderStatus'>
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     readonly notes: FieldRef<"Order", 'String'>
+=======
+    readonly total: FieldRef<"Order", 'Decimal'>
+    readonly deliveryName: FieldRef<"Order", 'String'>
+    readonly deliveryPhone: FieldRef<"Order", 'String'>
+    readonly deliveryAddress: FieldRef<"Order", 'String'>
+    readonly deliveryDistrict: FieldRef<"Order", 'String'>
+    readonly trackingCarrier: FieldRef<"Order", 'String'>
+    readonly trackingNumber: FieldRef<"Order", 'String'>
+    readonly trackingUrl: FieldRef<"Order", 'String'>
+    readonly estimatedDeliveryAt: FieldRef<"Order", 'DateTime'>
+    readonly note: FieldRef<"Order", 'String'>
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     readonly createdAt: FieldRef<"Order", 'DateTime'>
     readonly updatedAt: FieldRef<"Order", 'DateTime'>
   }
@@ -21970,6 +23403,2000 @@ export namespace Prisma {
 
 
   /**
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+   * Model Complaint
+   */
+
+  export type AggregateComplaint = {
+    _count: ComplaintCountAggregateOutputType | null
+    _min: ComplaintMinAggregateOutputType | null
+    _max: ComplaintMaxAggregateOutputType | null
+  }
+
+  export type ComplaintMinAggregateOutputType = {
+    id: string | null
+    reference: string | null
+    customerId: string | null
+    sellerId: string | null
+    orderId: string | null
+    reason: string | null
+    message: string | null
+    status: $Enums.ComplaintStatus | null
+    adminNote: string | null
+    resolvedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ComplaintMaxAggregateOutputType = {
+    id: string | null
+    reference: string | null
+    customerId: string | null
+    sellerId: string | null
+    orderId: string | null
+    reason: string | null
+    message: string | null
+    status: $Enums.ComplaintStatus | null
+    adminNote: string | null
+    resolvedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type ComplaintCountAggregateOutputType = {
+    id: number
+    reference: number
+    customerId: number
+    sellerId: number
+    orderId: number
+    reason: number
+    message: number
+    status: number
+    adminNote: number
+    resolvedAt: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type ComplaintMinAggregateInputType = {
+    id?: true
+    reference?: true
+    customerId?: true
+    sellerId?: true
+    orderId?: true
+    reason?: true
+    message?: true
+    status?: true
+    adminNote?: true
+    resolvedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ComplaintMaxAggregateInputType = {
+    id?: true
+    reference?: true
+    customerId?: true
+    sellerId?: true
+    orderId?: true
+    reason?: true
+    message?: true
+    status?: true
+    adminNote?: true
+    resolvedAt?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type ComplaintCountAggregateInputType = {
+    id?: true
+    reference?: true
+    customerId?: true
+    sellerId?: true
+    orderId?: true
+    reason?: true
+    message?: true
+    status?: true
+    adminNote?: true
+    resolvedAt?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type ComplaintAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Complaint to aggregate.
+     */
+    where?: ComplaintWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Complaints to fetch.
+     */
+    orderBy?: ComplaintOrderByWithRelationInput | ComplaintOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ComplaintWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Complaints from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Complaints.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Complaints
+    **/
+    _count?: true | ComplaintCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ComplaintMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ComplaintMaxAggregateInputType
+  }
+
+  export type GetComplaintAggregateType<T extends ComplaintAggregateArgs> = {
+        [P in keyof T & keyof AggregateComplaint]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateComplaint[P]>
+      : GetScalarType<T[P], AggregateComplaint[P]>
+  }
+
+
+
+
+  export type ComplaintGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ComplaintWhereInput
+    orderBy?: ComplaintOrderByWithAggregationInput | ComplaintOrderByWithAggregationInput[]
+    by: ComplaintScalarFieldEnum[] | ComplaintScalarFieldEnum
+    having?: ComplaintScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ComplaintCountAggregateInputType | true
+    _min?: ComplaintMinAggregateInputType
+    _max?: ComplaintMaxAggregateInputType
+  }
+
+  export type ComplaintGroupByOutputType = {
+    id: string
+    reference: string
+    customerId: string
+    sellerId: string
+    orderId: string | null
+    reason: string
+    message: string
+    status: $Enums.ComplaintStatus
+    adminNote: string | null
+    resolvedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
+    _count: ComplaintCountAggregateOutputType | null
+    _min: ComplaintMinAggregateOutputType | null
+    _max: ComplaintMaxAggregateOutputType | null
+  }
+
+  type GetComplaintGroupByPayload<T extends ComplaintGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ComplaintGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ComplaintGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ComplaintGroupByOutputType[P]>
+            : GetScalarType<T[P], ComplaintGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ComplaintSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    reference?: boolean
+    customerId?: boolean
+    sellerId?: boolean
+    orderId?: boolean
+    reason?: boolean
+    message?: boolean
+    status?: boolean
+    adminNote?: boolean
+    resolvedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerProfileDefaultArgs<ExtArgs>
+    seller?: boolean | SellerProfileDefaultArgs<ExtArgs>
+    order?: boolean | Complaint$orderArgs<ExtArgs>
+    statusHistory?: boolean | Complaint$statusHistoryArgs<ExtArgs>
+    _count?: boolean | ComplaintCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["complaint"]>
+
+  export type ComplaintSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    reference?: boolean
+    customerId?: boolean
+    sellerId?: boolean
+    orderId?: boolean
+    reason?: boolean
+    message?: boolean
+    status?: boolean
+    adminNote?: boolean
+    resolvedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    customer?: boolean | CustomerProfileDefaultArgs<ExtArgs>
+    seller?: boolean | SellerProfileDefaultArgs<ExtArgs>
+    order?: boolean | Complaint$orderArgs<ExtArgs>
+  }, ExtArgs["result"]["complaint"]>
+
+  export type ComplaintSelectScalar = {
+    id?: boolean
+    reference?: boolean
+    customerId?: boolean
+    sellerId?: boolean
+    orderId?: boolean
+    reason?: boolean
+    message?: boolean
+    status?: boolean
+    adminNote?: boolean
+    resolvedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type ComplaintInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerProfileDefaultArgs<ExtArgs>
+    seller?: boolean | SellerProfileDefaultArgs<ExtArgs>
+    order?: boolean | Complaint$orderArgs<ExtArgs>
+    statusHistory?: boolean | Complaint$statusHistoryArgs<ExtArgs>
+    _count?: boolean | ComplaintCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ComplaintIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    customer?: boolean | CustomerProfileDefaultArgs<ExtArgs>
+    seller?: boolean | SellerProfileDefaultArgs<ExtArgs>
+    order?: boolean | Complaint$orderArgs<ExtArgs>
+  }
+
+  export type $ComplaintPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Complaint"
+    objects: {
+      customer: Prisma.$CustomerProfilePayload<ExtArgs>
+      seller: Prisma.$SellerProfilePayload<ExtArgs>
+      order: Prisma.$OrderPayload<ExtArgs> | null
+      statusHistory: Prisma.$ComplaintStatusHistoryPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      reference: string
+      customerId: string
+      sellerId: string
+      orderId: string | null
+      reason: string
+      message: string
+      status: $Enums.ComplaintStatus
+      adminNote: string | null
+      resolvedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["complaint"]>
+    composites: {}
+  }
+
+  type ComplaintGetPayload<S extends boolean | null | undefined | ComplaintDefaultArgs> = $Result.GetResult<Prisma.$ComplaintPayload, S>
+
+  type ComplaintCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ComplaintFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ComplaintCountAggregateInputType | true
+    }
+
+  export interface ComplaintDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Complaint'], meta: { name: 'Complaint' } }
+    /**
+     * Find zero or one Complaint that matches the filter.
+     * @param {ComplaintFindUniqueArgs} args - Arguments to find a Complaint
+     * @example
+     * // Get one Complaint
+     * const complaint = await prisma.complaint.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ComplaintFindUniqueArgs>(args: SelectSubset<T, ComplaintFindUniqueArgs<ExtArgs>>): Prisma__ComplaintClient<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Complaint that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ComplaintFindUniqueOrThrowArgs} args - Arguments to find a Complaint
+     * @example
+     * // Get one Complaint
+     * const complaint = await prisma.complaint.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ComplaintFindUniqueOrThrowArgs>(args: SelectSubset<T, ComplaintFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ComplaintClient<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Complaint that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintFindFirstArgs} args - Arguments to find a Complaint
+     * @example
+     * // Get one Complaint
+     * const complaint = await prisma.complaint.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ComplaintFindFirstArgs>(args?: SelectSubset<T, ComplaintFindFirstArgs<ExtArgs>>): Prisma__ComplaintClient<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Complaint that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintFindFirstOrThrowArgs} args - Arguments to find a Complaint
+     * @example
+     * // Get one Complaint
+     * const complaint = await prisma.complaint.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ComplaintFindFirstOrThrowArgs>(args?: SelectSubset<T, ComplaintFindFirstOrThrowArgs<ExtArgs>>): Prisma__ComplaintClient<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Complaints that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Complaints
+     * const complaints = await prisma.complaint.findMany()
+     * 
+     * // Get first 10 Complaints
+     * const complaints = await prisma.complaint.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const complaintWithIdOnly = await prisma.complaint.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ComplaintFindManyArgs>(args?: SelectSubset<T, ComplaintFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Complaint.
+     * @param {ComplaintCreateArgs} args - Arguments to create a Complaint.
+     * @example
+     * // Create one Complaint
+     * const Complaint = await prisma.complaint.create({
+     *   data: {
+     *     // ... data to create a Complaint
+     *   }
+     * })
+     * 
+     */
+    create<T extends ComplaintCreateArgs>(args: SelectSubset<T, ComplaintCreateArgs<ExtArgs>>): Prisma__ComplaintClient<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Complaints.
+     * @param {ComplaintCreateManyArgs} args - Arguments to create many Complaints.
+     * @example
+     * // Create many Complaints
+     * const complaint = await prisma.complaint.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ComplaintCreateManyArgs>(args?: SelectSubset<T, ComplaintCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Complaints and returns the data saved in the database.
+     * @param {ComplaintCreateManyAndReturnArgs} args - Arguments to create many Complaints.
+     * @example
+     * // Create many Complaints
+     * const complaint = await prisma.complaint.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Complaints and only return the `id`
+     * const complaintWithIdOnly = await prisma.complaint.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ComplaintCreateManyAndReturnArgs>(args?: SelectSubset<T, ComplaintCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Complaint.
+     * @param {ComplaintDeleteArgs} args - Arguments to delete one Complaint.
+     * @example
+     * // Delete one Complaint
+     * const Complaint = await prisma.complaint.delete({
+     *   where: {
+     *     // ... filter to delete one Complaint
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ComplaintDeleteArgs>(args: SelectSubset<T, ComplaintDeleteArgs<ExtArgs>>): Prisma__ComplaintClient<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Complaint.
+     * @param {ComplaintUpdateArgs} args - Arguments to update one Complaint.
+     * @example
+     * // Update one Complaint
+     * const complaint = await prisma.complaint.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ComplaintUpdateArgs>(args: SelectSubset<T, ComplaintUpdateArgs<ExtArgs>>): Prisma__ComplaintClient<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Complaints.
+     * @param {ComplaintDeleteManyArgs} args - Arguments to filter Complaints to delete.
+     * @example
+     * // Delete a few Complaints
+     * const { count } = await prisma.complaint.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ComplaintDeleteManyArgs>(args?: SelectSubset<T, ComplaintDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Complaints.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Complaints
+     * const complaint = await prisma.complaint.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ComplaintUpdateManyArgs>(args: SelectSubset<T, ComplaintUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Complaint.
+     * @param {ComplaintUpsertArgs} args - Arguments to update or create a Complaint.
+     * @example
+     * // Update or create a Complaint
+     * const complaint = await prisma.complaint.upsert({
+     *   create: {
+     *     // ... data to create a Complaint
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Complaint we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ComplaintUpsertArgs>(args: SelectSubset<T, ComplaintUpsertArgs<ExtArgs>>): Prisma__ComplaintClient<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Complaints.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintCountArgs} args - Arguments to filter Complaints to count.
+     * @example
+     * // Count the number of Complaints
+     * const count = await prisma.complaint.count({
+     *   where: {
+     *     // ... the filter for the Complaints we want to count
+     *   }
+     * })
+    **/
+    count<T extends ComplaintCountArgs>(
+      args?: Subset<T, ComplaintCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ComplaintCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Complaint.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ComplaintAggregateArgs>(args: Subset<T, ComplaintAggregateArgs>): Prisma.PrismaPromise<GetComplaintAggregateType<T>>
+
+    /**
+     * Group by Complaint.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ComplaintGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ComplaintGroupByArgs['orderBy'] }
+        : { orderBy?: ComplaintGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ComplaintGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetComplaintGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Complaint model
+   */
+  readonly fields: ComplaintFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Complaint.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ComplaintClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    customer<T extends CustomerProfileDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CustomerProfileDefaultArgs<ExtArgs>>): Prisma__CustomerProfileClient<$Result.GetResult<Prisma.$CustomerProfilePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    seller<T extends SellerProfileDefaultArgs<ExtArgs> = {}>(args?: Subset<T, SellerProfileDefaultArgs<ExtArgs>>): Prisma__SellerProfileClient<$Result.GetResult<Prisma.$SellerProfilePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    order<T extends Complaint$orderArgs<ExtArgs> = {}>(args?: Subset<T, Complaint$orderArgs<ExtArgs>>): Prisma__OrderClient<$Result.GetResult<Prisma.$OrderPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    statusHistory<T extends Complaint$statusHistoryArgs<ExtArgs> = {}>(args?: Subset<T, Complaint$statusHistoryArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Complaint model
+   */ 
+  interface ComplaintFieldRefs {
+    readonly id: FieldRef<"Complaint", 'String'>
+    readonly reference: FieldRef<"Complaint", 'String'>
+    readonly customerId: FieldRef<"Complaint", 'String'>
+    readonly sellerId: FieldRef<"Complaint", 'String'>
+    readonly orderId: FieldRef<"Complaint", 'String'>
+    readonly reason: FieldRef<"Complaint", 'String'>
+    readonly message: FieldRef<"Complaint", 'String'>
+    readonly status: FieldRef<"Complaint", 'ComplaintStatus'>
+    readonly adminNote: FieldRef<"Complaint", 'String'>
+    readonly resolvedAt: FieldRef<"Complaint", 'DateTime'>
+    readonly createdAt: FieldRef<"Complaint", 'DateTime'>
+    readonly updatedAt: FieldRef<"Complaint", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Complaint findUnique
+   */
+  export type ComplaintFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintInclude<ExtArgs> | null
+    /**
+     * Filter, which Complaint to fetch.
+     */
+    where: ComplaintWhereUniqueInput
+  }
+
+  /**
+   * Complaint findUniqueOrThrow
+   */
+  export type ComplaintFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintInclude<ExtArgs> | null
+    /**
+     * Filter, which Complaint to fetch.
+     */
+    where: ComplaintWhereUniqueInput
+  }
+
+  /**
+   * Complaint findFirst
+   */
+  export type ComplaintFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintInclude<ExtArgs> | null
+    /**
+     * Filter, which Complaint to fetch.
+     */
+    where?: ComplaintWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Complaints to fetch.
+     */
+    orderBy?: ComplaintOrderByWithRelationInput | ComplaintOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Complaints.
+     */
+    cursor?: ComplaintWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Complaints from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Complaints.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Complaints.
+     */
+    distinct?: ComplaintScalarFieldEnum | ComplaintScalarFieldEnum[]
+  }
+
+  /**
+   * Complaint findFirstOrThrow
+   */
+  export type ComplaintFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintInclude<ExtArgs> | null
+    /**
+     * Filter, which Complaint to fetch.
+     */
+    where?: ComplaintWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Complaints to fetch.
+     */
+    orderBy?: ComplaintOrderByWithRelationInput | ComplaintOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Complaints.
+     */
+    cursor?: ComplaintWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Complaints from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Complaints.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Complaints.
+     */
+    distinct?: ComplaintScalarFieldEnum | ComplaintScalarFieldEnum[]
+  }
+
+  /**
+   * Complaint findMany
+   */
+  export type ComplaintFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintInclude<ExtArgs> | null
+    /**
+     * Filter, which Complaints to fetch.
+     */
+    where?: ComplaintWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Complaints to fetch.
+     */
+    orderBy?: ComplaintOrderByWithRelationInput | ComplaintOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Complaints.
+     */
+    cursor?: ComplaintWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Complaints from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Complaints.
+     */
+    skip?: number
+    distinct?: ComplaintScalarFieldEnum | ComplaintScalarFieldEnum[]
+  }
+
+  /**
+   * Complaint create
+   */
+  export type ComplaintCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Complaint.
+     */
+    data: XOR<ComplaintCreateInput, ComplaintUncheckedCreateInput>
+  }
+
+  /**
+   * Complaint createMany
+   */
+  export type ComplaintCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Complaints.
+     */
+    data: ComplaintCreateManyInput | ComplaintCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Complaint createManyAndReturn
+   */
+  export type ComplaintCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Complaints.
+     */
+    data: ComplaintCreateManyInput | ComplaintCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Complaint update
+   */
+  export type ComplaintUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Complaint.
+     */
+    data: XOR<ComplaintUpdateInput, ComplaintUncheckedUpdateInput>
+    /**
+     * Choose, which Complaint to update.
+     */
+    where: ComplaintWhereUniqueInput
+  }
+
+  /**
+   * Complaint updateMany
+   */
+  export type ComplaintUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Complaints.
+     */
+    data: XOR<ComplaintUpdateManyMutationInput, ComplaintUncheckedUpdateManyInput>
+    /**
+     * Filter which Complaints to update
+     */
+    where?: ComplaintWhereInput
+  }
+
+  /**
+   * Complaint upsert
+   */
+  export type ComplaintUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Complaint to update in case it exists.
+     */
+    where: ComplaintWhereUniqueInput
+    /**
+     * In case the Complaint found by the `where` argument doesn't exist, create a new Complaint with this data.
+     */
+    create: XOR<ComplaintCreateInput, ComplaintUncheckedCreateInput>
+    /**
+     * In case the Complaint was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ComplaintUpdateInput, ComplaintUncheckedUpdateInput>
+  }
+
+  /**
+   * Complaint delete
+   */
+  export type ComplaintDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintInclude<ExtArgs> | null
+    /**
+     * Filter which Complaint to delete.
+     */
+    where: ComplaintWhereUniqueInput
+  }
+
+  /**
+   * Complaint deleteMany
+   */
+  export type ComplaintDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Complaints to delete
+     */
+    where?: ComplaintWhereInput
+  }
+
+  /**
+   * Complaint.order
+   */
+  export type Complaint$orderArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Order
+     */
+    select?: OrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OrderInclude<ExtArgs> | null
+    where?: OrderWhereInput
+  }
+
+  /**
+   * Complaint.statusHistory
+   */
+  export type Complaint$statusHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+    where?: ComplaintStatusHistoryWhereInput
+    orderBy?: ComplaintStatusHistoryOrderByWithRelationInput | ComplaintStatusHistoryOrderByWithRelationInput[]
+    cursor?: ComplaintStatusHistoryWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ComplaintStatusHistoryScalarFieldEnum | ComplaintStatusHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * Complaint without action
+   */
+  export type ComplaintDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Complaint
+     */
+    select?: ComplaintSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ComplaintStatusHistory
+   */
+
+  export type AggregateComplaintStatusHistory = {
+    _count: ComplaintStatusHistoryCountAggregateOutputType | null
+    _min: ComplaintStatusHistoryMinAggregateOutputType | null
+    _max: ComplaintStatusHistoryMaxAggregateOutputType | null
+  }
+
+  export type ComplaintStatusHistoryMinAggregateOutputType = {
+    id: string | null
+    complaintId: string | null
+    status: $Enums.ComplaintStatus | null
+    createdAt: Date | null
+  }
+
+  export type ComplaintStatusHistoryMaxAggregateOutputType = {
+    id: string | null
+    complaintId: string | null
+    status: $Enums.ComplaintStatus | null
+    createdAt: Date | null
+  }
+
+  export type ComplaintStatusHistoryCountAggregateOutputType = {
+    id: number
+    complaintId: number
+    status: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ComplaintStatusHistoryMinAggregateInputType = {
+    id?: true
+    complaintId?: true
+    status?: true
+    createdAt?: true
+  }
+
+  export type ComplaintStatusHistoryMaxAggregateInputType = {
+    id?: true
+    complaintId?: true
+    status?: true
+    createdAt?: true
+  }
+
+  export type ComplaintStatusHistoryCountAggregateInputType = {
+    id?: true
+    complaintId?: true
+    status?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ComplaintStatusHistoryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ComplaintStatusHistory to aggregate.
+     */
+    where?: ComplaintStatusHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ComplaintStatusHistories to fetch.
+     */
+    orderBy?: ComplaintStatusHistoryOrderByWithRelationInput | ComplaintStatusHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ComplaintStatusHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ComplaintStatusHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ComplaintStatusHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ComplaintStatusHistories
+    **/
+    _count?: true | ComplaintStatusHistoryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ComplaintStatusHistoryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ComplaintStatusHistoryMaxAggregateInputType
+  }
+
+  export type GetComplaintStatusHistoryAggregateType<T extends ComplaintStatusHistoryAggregateArgs> = {
+        [P in keyof T & keyof AggregateComplaintStatusHistory]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateComplaintStatusHistory[P]>
+      : GetScalarType<T[P], AggregateComplaintStatusHistory[P]>
+  }
+
+
+
+
+  export type ComplaintStatusHistoryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ComplaintStatusHistoryWhereInput
+    orderBy?: ComplaintStatusHistoryOrderByWithAggregationInput | ComplaintStatusHistoryOrderByWithAggregationInput[]
+    by: ComplaintStatusHistoryScalarFieldEnum[] | ComplaintStatusHistoryScalarFieldEnum
+    having?: ComplaintStatusHistoryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ComplaintStatusHistoryCountAggregateInputType | true
+    _min?: ComplaintStatusHistoryMinAggregateInputType
+    _max?: ComplaintStatusHistoryMaxAggregateInputType
+  }
+
+  export type ComplaintStatusHistoryGroupByOutputType = {
+    id: string
+    complaintId: string
+    status: $Enums.ComplaintStatus
+    createdAt: Date
+    _count: ComplaintStatusHistoryCountAggregateOutputType | null
+    _min: ComplaintStatusHistoryMinAggregateOutputType | null
+    _max: ComplaintStatusHistoryMaxAggregateOutputType | null
+  }
+
+  type GetComplaintStatusHistoryGroupByPayload<T extends ComplaintStatusHistoryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ComplaintStatusHistoryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ComplaintStatusHistoryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ComplaintStatusHistoryGroupByOutputType[P]>
+            : GetScalarType<T[P], ComplaintStatusHistoryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ComplaintStatusHistorySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    complaintId?: boolean
+    status?: boolean
+    createdAt?: boolean
+    complaint?: boolean | ComplaintDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["complaintStatusHistory"]>
+
+  export type ComplaintStatusHistorySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    complaintId?: boolean
+    status?: boolean
+    createdAt?: boolean
+    complaint?: boolean | ComplaintDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["complaintStatusHistory"]>
+
+  export type ComplaintStatusHistorySelectScalar = {
+    id?: boolean
+    complaintId?: boolean
+    status?: boolean
+    createdAt?: boolean
+  }
+
+  export type ComplaintStatusHistoryInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    complaint?: boolean | ComplaintDefaultArgs<ExtArgs>
+  }
+  export type ComplaintStatusHistoryIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    complaint?: boolean | ComplaintDefaultArgs<ExtArgs>
+  }
+
+  export type $ComplaintStatusHistoryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ComplaintStatusHistory"
+    objects: {
+      complaint: Prisma.$ComplaintPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      complaintId: string
+      status: $Enums.ComplaintStatus
+      createdAt: Date
+    }, ExtArgs["result"]["complaintStatusHistory"]>
+    composites: {}
+  }
+
+  type ComplaintStatusHistoryGetPayload<S extends boolean | null | undefined | ComplaintStatusHistoryDefaultArgs> = $Result.GetResult<Prisma.$ComplaintStatusHistoryPayload, S>
+
+  type ComplaintStatusHistoryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ComplaintStatusHistoryFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ComplaintStatusHistoryCountAggregateInputType | true
+    }
+
+  export interface ComplaintStatusHistoryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ComplaintStatusHistory'], meta: { name: 'ComplaintStatusHistory' } }
+    /**
+     * Find zero or one ComplaintStatusHistory that matches the filter.
+     * @param {ComplaintStatusHistoryFindUniqueArgs} args - Arguments to find a ComplaintStatusHistory
+     * @example
+     * // Get one ComplaintStatusHistory
+     * const complaintStatusHistory = await prisma.complaintStatusHistory.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ComplaintStatusHistoryFindUniqueArgs>(args: SelectSubset<T, ComplaintStatusHistoryFindUniqueArgs<ExtArgs>>): Prisma__ComplaintStatusHistoryClient<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ComplaintStatusHistory that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ComplaintStatusHistoryFindUniqueOrThrowArgs} args - Arguments to find a ComplaintStatusHistory
+     * @example
+     * // Get one ComplaintStatusHistory
+     * const complaintStatusHistory = await prisma.complaintStatusHistory.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ComplaintStatusHistoryFindUniqueOrThrowArgs>(args: SelectSubset<T, ComplaintStatusHistoryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ComplaintStatusHistoryClient<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ComplaintStatusHistory that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintStatusHistoryFindFirstArgs} args - Arguments to find a ComplaintStatusHistory
+     * @example
+     * // Get one ComplaintStatusHistory
+     * const complaintStatusHistory = await prisma.complaintStatusHistory.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ComplaintStatusHistoryFindFirstArgs>(args?: SelectSubset<T, ComplaintStatusHistoryFindFirstArgs<ExtArgs>>): Prisma__ComplaintStatusHistoryClient<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ComplaintStatusHistory that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintStatusHistoryFindFirstOrThrowArgs} args - Arguments to find a ComplaintStatusHistory
+     * @example
+     * // Get one ComplaintStatusHistory
+     * const complaintStatusHistory = await prisma.complaintStatusHistory.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ComplaintStatusHistoryFindFirstOrThrowArgs>(args?: SelectSubset<T, ComplaintStatusHistoryFindFirstOrThrowArgs<ExtArgs>>): Prisma__ComplaintStatusHistoryClient<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ComplaintStatusHistories that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintStatusHistoryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ComplaintStatusHistories
+     * const complaintStatusHistories = await prisma.complaintStatusHistory.findMany()
+     * 
+     * // Get first 10 ComplaintStatusHistories
+     * const complaintStatusHistories = await prisma.complaintStatusHistory.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const complaintStatusHistoryWithIdOnly = await prisma.complaintStatusHistory.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ComplaintStatusHistoryFindManyArgs>(args?: SelectSubset<T, ComplaintStatusHistoryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ComplaintStatusHistory.
+     * @param {ComplaintStatusHistoryCreateArgs} args - Arguments to create a ComplaintStatusHistory.
+     * @example
+     * // Create one ComplaintStatusHistory
+     * const ComplaintStatusHistory = await prisma.complaintStatusHistory.create({
+     *   data: {
+     *     // ... data to create a ComplaintStatusHistory
+     *   }
+     * })
+     * 
+     */
+    create<T extends ComplaintStatusHistoryCreateArgs>(args: SelectSubset<T, ComplaintStatusHistoryCreateArgs<ExtArgs>>): Prisma__ComplaintStatusHistoryClient<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ComplaintStatusHistories.
+     * @param {ComplaintStatusHistoryCreateManyArgs} args - Arguments to create many ComplaintStatusHistories.
+     * @example
+     * // Create many ComplaintStatusHistories
+     * const complaintStatusHistory = await prisma.complaintStatusHistory.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ComplaintStatusHistoryCreateManyArgs>(args?: SelectSubset<T, ComplaintStatusHistoryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ComplaintStatusHistories and returns the data saved in the database.
+     * @param {ComplaintStatusHistoryCreateManyAndReturnArgs} args - Arguments to create many ComplaintStatusHistories.
+     * @example
+     * // Create many ComplaintStatusHistories
+     * const complaintStatusHistory = await prisma.complaintStatusHistory.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ComplaintStatusHistories and only return the `id`
+     * const complaintStatusHistoryWithIdOnly = await prisma.complaintStatusHistory.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ComplaintStatusHistoryCreateManyAndReturnArgs>(args?: SelectSubset<T, ComplaintStatusHistoryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ComplaintStatusHistory.
+     * @param {ComplaintStatusHistoryDeleteArgs} args - Arguments to delete one ComplaintStatusHistory.
+     * @example
+     * // Delete one ComplaintStatusHistory
+     * const ComplaintStatusHistory = await prisma.complaintStatusHistory.delete({
+     *   where: {
+     *     // ... filter to delete one ComplaintStatusHistory
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ComplaintStatusHistoryDeleteArgs>(args: SelectSubset<T, ComplaintStatusHistoryDeleteArgs<ExtArgs>>): Prisma__ComplaintStatusHistoryClient<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ComplaintStatusHistory.
+     * @param {ComplaintStatusHistoryUpdateArgs} args - Arguments to update one ComplaintStatusHistory.
+     * @example
+     * // Update one ComplaintStatusHistory
+     * const complaintStatusHistory = await prisma.complaintStatusHistory.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ComplaintStatusHistoryUpdateArgs>(args: SelectSubset<T, ComplaintStatusHistoryUpdateArgs<ExtArgs>>): Prisma__ComplaintStatusHistoryClient<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ComplaintStatusHistories.
+     * @param {ComplaintStatusHistoryDeleteManyArgs} args - Arguments to filter ComplaintStatusHistories to delete.
+     * @example
+     * // Delete a few ComplaintStatusHistories
+     * const { count } = await prisma.complaintStatusHistory.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ComplaintStatusHistoryDeleteManyArgs>(args?: SelectSubset<T, ComplaintStatusHistoryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ComplaintStatusHistories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintStatusHistoryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ComplaintStatusHistories
+     * const complaintStatusHistory = await prisma.complaintStatusHistory.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ComplaintStatusHistoryUpdateManyArgs>(args: SelectSubset<T, ComplaintStatusHistoryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ComplaintStatusHistory.
+     * @param {ComplaintStatusHistoryUpsertArgs} args - Arguments to update or create a ComplaintStatusHistory.
+     * @example
+     * // Update or create a ComplaintStatusHistory
+     * const complaintStatusHistory = await prisma.complaintStatusHistory.upsert({
+     *   create: {
+     *     // ... data to create a ComplaintStatusHistory
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ComplaintStatusHistory we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ComplaintStatusHistoryUpsertArgs>(args: SelectSubset<T, ComplaintStatusHistoryUpsertArgs<ExtArgs>>): Prisma__ComplaintStatusHistoryClient<$Result.GetResult<Prisma.$ComplaintStatusHistoryPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ComplaintStatusHistories.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintStatusHistoryCountArgs} args - Arguments to filter ComplaintStatusHistories to count.
+     * @example
+     * // Count the number of ComplaintStatusHistories
+     * const count = await prisma.complaintStatusHistory.count({
+     *   where: {
+     *     // ... the filter for the ComplaintStatusHistories we want to count
+     *   }
+     * })
+    **/
+    count<T extends ComplaintStatusHistoryCountArgs>(
+      args?: Subset<T, ComplaintStatusHistoryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ComplaintStatusHistoryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ComplaintStatusHistory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintStatusHistoryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ComplaintStatusHistoryAggregateArgs>(args: Subset<T, ComplaintStatusHistoryAggregateArgs>): Prisma.PrismaPromise<GetComplaintStatusHistoryAggregateType<T>>
+
+    /**
+     * Group by ComplaintStatusHistory.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ComplaintStatusHistoryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ComplaintStatusHistoryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ComplaintStatusHistoryGroupByArgs['orderBy'] }
+        : { orderBy?: ComplaintStatusHistoryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ComplaintStatusHistoryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetComplaintStatusHistoryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ComplaintStatusHistory model
+   */
+  readonly fields: ComplaintStatusHistoryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ComplaintStatusHistory.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ComplaintStatusHistoryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    complaint<T extends ComplaintDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ComplaintDefaultArgs<ExtArgs>>): Prisma__ComplaintClient<$Result.GetResult<Prisma.$ComplaintPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ComplaintStatusHistory model
+   */ 
+  interface ComplaintStatusHistoryFieldRefs {
+    readonly id: FieldRef<"ComplaintStatusHistory", 'String'>
+    readonly complaintId: FieldRef<"ComplaintStatusHistory", 'String'>
+    readonly status: FieldRef<"ComplaintStatusHistory", 'ComplaintStatus'>
+    readonly createdAt: FieldRef<"ComplaintStatusHistory", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ComplaintStatusHistory findUnique
+   */
+  export type ComplaintStatusHistoryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which ComplaintStatusHistory to fetch.
+     */
+    where: ComplaintStatusHistoryWhereUniqueInput
+  }
+
+  /**
+   * ComplaintStatusHistory findUniqueOrThrow
+   */
+  export type ComplaintStatusHistoryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which ComplaintStatusHistory to fetch.
+     */
+    where: ComplaintStatusHistoryWhereUniqueInput
+  }
+
+  /**
+   * ComplaintStatusHistory findFirst
+   */
+  export type ComplaintStatusHistoryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which ComplaintStatusHistory to fetch.
+     */
+    where?: ComplaintStatusHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ComplaintStatusHistories to fetch.
+     */
+    orderBy?: ComplaintStatusHistoryOrderByWithRelationInput | ComplaintStatusHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ComplaintStatusHistories.
+     */
+    cursor?: ComplaintStatusHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ComplaintStatusHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ComplaintStatusHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ComplaintStatusHistories.
+     */
+    distinct?: ComplaintStatusHistoryScalarFieldEnum | ComplaintStatusHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * ComplaintStatusHistory findFirstOrThrow
+   */
+  export type ComplaintStatusHistoryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which ComplaintStatusHistory to fetch.
+     */
+    where?: ComplaintStatusHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ComplaintStatusHistories to fetch.
+     */
+    orderBy?: ComplaintStatusHistoryOrderByWithRelationInput | ComplaintStatusHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ComplaintStatusHistories.
+     */
+    cursor?: ComplaintStatusHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ComplaintStatusHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ComplaintStatusHistories.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ComplaintStatusHistories.
+     */
+    distinct?: ComplaintStatusHistoryScalarFieldEnum | ComplaintStatusHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * ComplaintStatusHistory findMany
+   */
+  export type ComplaintStatusHistoryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+    /**
+     * Filter, which ComplaintStatusHistories to fetch.
+     */
+    where?: ComplaintStatusHistoryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ComplaintStatusHistories to fetch.
+     */
+    orderBy?: ComplaintStatusHistoryOrderByWithRelationInput | ComplaintStatusHistoryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ComplaintStatusHistories.
+     */
+    cursor?: ComplaintStatusHistoryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ComplaintStatusHistories from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ComplaintStatusHistories.
+     */
+    skip?: number
+    distinct?: ComplaintStatusHistoryScalarFieldEnum | ComplaintStatusHistoryScalarFieldEnum[]
+  }
+
+  /**
+   * ComplaintStatusHistory create
+   */
+  export type ComplaintStatusHistoryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ComplaintStatusHistory.
+     */
+    data: XOR<ComplaintStatusHistoryCreateInput, ComplaintStatusHistoryUncheckedCreateInput>
+  }
+
+  /**
+   * ComplaintStatusHistory createMany
+   */
+  export type ComplaintStatusHistoryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ComplaintStatusHistories.
+     */
+    data: ComplaintStatusHistoryCreateManyInput | ComplaintStatusHistoryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ComplaintStatusHistory createManyAndReturn
+   */
+  export type ComplaintStatusHistoryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ComplaintStatusHistories.
+     */
+    data: ComplaintStatusHistoryCreateManyInput | ComplaintStatusHistoryCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ComplaintStatusHistory update
+   */
+  export type ComplaintStatusHistoryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ComplaintStatusHistory.
+     */
+    data: XOR<ComplaintStatusHistoryUpdateInput, ComplaintStatusHistoryUncheckedUpdateInput>
+    /**
+     * Choose, which ComplaintStatusHistory to update.
+     */
+    where: ComplaintStatusHistoryWhereUniqueInput
+  }
+
+  /**
+   * ComplaintStatusHistory updateMany
+   */
+  export type ComplaintStatusHistoryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ComplaintStatusHistories.
+     */
+    data: XOR<ComplaintStatusHistoryUpdateManyMutationInput, ComplaintStatusHistoryUncheckedUpdateManyInput>
+    /**
+     * Filter which ComplaintStatusHistories to update
+     */
+    where?: ComplaintStatusHistoryWhereInput
+  }
+
+  /**
+   * ComplaintStatusHistory upsert
+   */
+  export type ComplaintStatusHistoryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ComplaintStatusHistory to update in case it exists.
+     */
+    where: ComplaintStatusHistoryWhereUniqueInput
+    /**
+     * In case the ComplaintStatusHistory found by the `where` argument doesn't exist, create a new ComplaintStatusHistory with this data.
+     */
+    create: XOR<ComplaintStatusHistoryCreateInput, ComplaintStatusHistoryUncheckedCreateInput>
+    /**
+     * In case the ComplaintStatusHistory was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ComplaintStatusHistoryUpdateInput, ComplaintStatusHistoryUncheckedUpdateInput>
+  }
+
+  /**
+   * ComplaintStatusHistory delete
+   */
+  export type ComplaintStatusHistoryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+    /**
+     * Filter which ComplaintStatusHistory to delete.
+     */
+    where: ComplaintStatusHistoryWhereUniqueInput
+  }
+
+  /**
+   * ComplaintStatusHistory deleteMany
+   */
+  export type ComplaintStatusHistoryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ComplaintStatusHistories to delete
+     */
+    where?: ComplaintStatusHistoryWhereInput
+  }
+
+  /**
+   * ComplaintStatusHistory without action
+   */
+  export type ComplaintStatusHistoryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ComplaintStatusHistory
+     */
+    select?: ComplaintStatusHistorySelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ComplaintStatusHistoryInclude<ExtArgs> | null
+  }
+
+
+  /**
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
    * Enums
    */
 
@@ -22084,8 +25511,13 @@ export namespace Prisma {
     nicEncrypted: 'nicEncrypted',
     nicLast5: 'nicLast5',
     status: 'status',
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront: 'nicFront',
     nicBack: 'nicBack',
+=======
+    identityReviewStatus: 'identityReviewStatus',
+    identityReviewedAt: 'identityReviewedAt',
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo: 'whatsappNo',
     facebookUrl: 'facebookUrl',
     messengerUrl: 'messengerUrl',
@@ -22096,6 +25528,20 @@ export namespace Prisma {
   };
 
   export type SellerProfileScalarFieldEnum = (typeof SellerProfileScalarFieldEnum)[keyof typeof SellerProfileScalarFieldEnum]
+
+
+  export const SellerIdentityDocumentsScalarFieldEnum: {
+    sellerId: 'sellerId',
+    frontImage: 'frontImage',
+    frontType: 'frontType',
+    backImage: 'backImage',
+    backType: 'backType',
+    selfie: 'selfie',
+    selfieType: 'selfieType',
+    createdAt: 'createdAt'
+  };
+
+  export type SellerIdentityDocumentsScalarFieldEnum = (typeof SellerIdentityDocumentsScalarFieldEnum)[keyof typeof SellerIdentityDocumentsScalarFieldEnum]
 
 
   export const CustomerProfileScalarFieldEnum: {
@@ -22201,7 +25647,20 @@ export namespace Prisma {
     district: 'district',
     totalAmount: 'totalAmount',
     status: 'status',
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes: 'notes',
+=======
+    total: 'total',
+    deliveryName: 'deliveryName',
+    deliveryPhone: 'deliveryPhone',
+    deliveryAddress: 'deliveryAddress',
+    deliveryDistrict: 'deliveryDistrict',
+    trackingCarrier: 'trackingCarrier',
+    trackingNumber: 'trackingNumber',
+    trackingUrl: 'trackingUrl',
+    estimatedDeliveryAt: 'estimatedDeliveryAt',
+    note: 'note',
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
@@ -22249,6 +25708,37 @@ export namespace Prisma {
   export type SiteSettingScalarFieldEnum = (typeof SiteSettingScalarFieldEnum)[keyof typeof SiteSettingScalarFieldEnum]
 
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+  export const ComplaintScalarFieldEnum: {
+    id: 'id',
+    reference: 'reference',
+    customerId: 'customerId',
+    sellerId: 'sellerId',
+    orderId: 'orderId',
+    reason: 'reason',
+    message: 'message',
+    status: 'status',
+    adminNote: 'adminNote',
+    resolvedAt: 'resolvedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type ComplaintScalarFieldEnum = (typeof ComplaintScalarFieldEnum)[keyof typeof ComplaintScalarFieldEnum]
+
+
+  export const ComplaintStatusHistoryScalarFieldEnum: {
+    id: 'id',
+    complaintId: 'complaintId',
+    status: 'status',
+    createdAt: 'createdAt'
+  };
+
+  export type ComplaintStatusHistoryScalarFieldEnum = (typeof ComplaintStatusHistoryScalarFieldEnum)[keyof typeof ComplaintStatusHistoryScalarFieldEnum]
+
+
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -22389,6 +25879,20 @@ export namespace Prisma {
    * Reference to a field of type 'ApplicationStatus[]'
    */
   export type ListEnumApplicationStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ApplicationStatus[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'IdentityReviewStatus'
+   */
+  export type EnumIdentityReviewStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdentityReviewStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'IdentityReviewStatus[]'
+   */
+  export type ListEnumIdentityReviewStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'IdentityReviewStatus[]'>
     
 
 
@@ -22920,8 +26424,13 @@ export namespace Prisma {
     nicEncrypted?: StringNullableFilter<"SellerProfile"> | string | null
     nicLast5?: StringNullableFilter<"SellerProfile"> | string | null
     status?: EnumApplicationStatusFilter<"SellerProfile"> | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: StringNullableFilter<"SellerProfile"> | string | null
     nicBack?: StringNullableFilter<"SellerProfile"> | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFilter<"SellerProfile"> | $Enums.IdentityReviewStatus
+    identityReviewedAt?: DateTimeNullableFilter<"SellerProfile"> | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: StringNullableFilter<"SellerProfile"> | string | null
     facebookUrl?: StringNullableFilter<"SellerProfile"> | string | null
     messengerUrl?: StringNullableFilter<"SellerProfile"> | string | null
@@ -22930,6 +26439,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"SellerProfile"> | Date | string
     updatedAt?: DateTimeFilter<"SellerProfile"> | Date | string
     user?: XOR<UserRelationFilter, UserWhereInput>
+    identityDocuments?: XOR<SellerIdentityDocumentsNullableRelationFilter, SellerIdentityDocumentsWhereInput> | null
     products?: ProductListRelationFilter
     analytics?: ClickAnalyticsListRelationFilter
     orders?: OrderListRelationFilter
@@ -22952,8 +26462,13 @@ export namespace Prisma {
     nicEncrypted?: SortOrderInput | SortOrder
     nicLast5?: SortOrderInput | SortOrder
     status?: SortOrder
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: SortOrderInput | SortOrder
     nicBack?: SortOrderInput | SortOrder
+=======
+    identityReviewStatus?: SortOrder
+    identityReviewedAt?: SortOrderInput | SortOrder
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: SortOrderInput | SortOrder
     facebookUrl?: SortOrderInput | SortOrder
     messengerUrl?: SortOrderInput | SortOrder
@@ -22962,6 +26477,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
+    identityDocuments?: SellerIdentityDocumentsOrderByWithRelationInput
     products?: ProductOrderByRelationAggregateInput
     analytics?: ClickAnalyticsOrderByRelationAggregateInput
     orders?: OrderOrderByRelationAggregateInput
@@ -22987,8 +26503,13 @@ export namespace Prisma {
     nicEncrypted?: StringNullableFilter<"SellerProfile"> | string | null
     nicLast5?: StringNullableFilter<"SellerProfile"> | string | null
     status?: EnumApplicationStatusFilter<"SellerProfile"> | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: StringNullableFilter<"SellerProfile"> | string | null
     nicBack?: StringNullableFilter<"SellerProfile"> | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFilter<"SellerProfile"> | $Enums.IdentityReviewStatus
+    identityReviewedAt?: DateTimeNullableFilter<"SellerProfile"> | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: StringNullableFilter<"SellerProfile"> | string | null
     facebookUrl?: StringNullableFilter<"SellerProfile"> | string | null
     messengerUrl?: StringNullableFilter<"SellerProfile"> | string | null
@@ -22997,6 +26518,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"SellerProfile"> | Date | string
     updatedAt?: DateTimeFilter<"SellerProfile"> | Date | string
     user?: XOR<UserRelationFilter, UserWhereInput>
+    identityDocuments?: XOR<SellerIdentityDocumentsNullableRelationFilter, SellerIdentityDocumentsWhereInput> | null
     products?: ProductListRelationFilter
     analytics?: ClickAnalyticsListRelationFilter
     orders?: OrderListRelationFilter
@@ -23019,8 +26541,13 @@ export namespace Prisma {
     nicEncrypted?: SortOrderInput | SortOrder
     nicLast5?: SortOrderInput | SortOrder
     status?: SortOrder
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: SortOrderInput | SortOrder
     nicBack?: SortOrderInput | SortOrder
+=======
+    identityReviewStatus?: SortOrder
+    identityReviewedAt?: SortOrderInput | SortOrder
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: SortOrderInput | SortOrder
     facebookUrl?: SortOrderInput | SortOrder
     messengerUrl?: SortOrderInput | SortOrder
@@ -23051,8 +26578,13 @@ export namespace Prisma {
     nicEncrypted?: StringNullableWithAggregatesFilter<"SellerProfile"> | string | null
     nicLast5?: StringNullableWithAggregatesFilter<"SellerProfile"> | string | null
     status?: EnumApplicationStatusWithAggregatesFilter<"SellerProfile"> | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: StringNullableWithAggregatesFilter<"SellerProfile"> | string | null
     nicBack?: StringNullableWithAggregatesFilter<"SellerProfile"> | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusWithAggregatesFilter<"SellerProfile"> | $Enums.IdentityReviewStatus
+    identityReviewedAt?: DateTimeNullableWithAggregatesFilter<"SellerProfile"> | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: StringNullableWithAggregatesFilter<"SellerProfile"> | string | null
     facebookUrl?: StringNullableWithAggregatesFilter<"SellerProfile"> | string | null
     messengerUrl?: StringNullableWithAggregatesFilter<"SellerProfile"> | string | null
@@ -23060,6 +26592,76 @@ export namespace Prisma {
     removalNote?: StringNullableWithAggregatesFilter<"SellerProfile"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"SellerProfile"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"SellerProfile"> | Date | string
+  }
+
+  export type SellerIdentityDocumentsWhereInput = {
+    AND?: SellerIdentityDocumentsWhereInput | SellerIdentityDocumentsWhereInput[]
+    OR?: SellerIdentityDocumentsWhereInput[]
+    NOT?: SellerIdentityDocumentsWhereInput | SellerIdentityDocumentsWhereInput[]
+    sellerId?: StringFilter<"SellerIdentityDocuments"> | string
+    frontImage?: BytesNullableFilter<"SellerIdentityDocuments"> | Buffer | null
+    frontType?: StringNullableFilter<"SellerIdentityDocuments"> | string | null
+    backImage?: BytesNullableFilter<"SellerIdentityDocuments"> | Buffer | null
+    backType?: StringNullableFilter<"SellerIdentityDocuments"> | string | null
+    selfie?: BytesNullableFilter<"SellerIdentityDocuments"> | Buffer | null
+    selfieType?: StringNullableFilter<"SellerIdentityDocuments"> | string | null
+    createdAt?: DateTimeFilter<"SellerIdentityDocuments"> | Date | string
+    seller?: XOR<SellerProfileRelationFilter, SellerProfileWhereInput>
+  }
+
+  export type SellerIdentityDocumentsOrderByWithRelationInput = {
+    sellerId?: SortOrder
+    frontImage?: SortOrderInput | SortOrder
+    frontType?: SortOrderInput | SortOrder
+    backImage?: SortOrderInput | SortOrder
+    backType?: SortOrderInput | SortOrder
+    selfie?: SortOrderInput | SortOrder
+    selfieType?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    seller?: SellerProfileOrderByWithRelationInput
+  }
+
+  export type SellerIdentityDocumentsWhereUniqueInput = Prisma.AtLeast<{
+    sellerId?: string
+    AND?: SellerIdentityDocumentsWhereInput | SellerIdentityDocumentsWhereInput[]
+    OR?: SellerIdentityDocumentsWhereInput[]
+    NOT?: SellerIdentityDocumentsWhereInput | SellerIdentityDocumentsWhereInput[]
+    frontImage?: BytesNullableFilter<"SellerIdentityDocuments"> | Buffer | null
+    frontType?: StringNullableFilter<"SellerIdentityDocuments"> | string | null
+    backImage?: BytesNullableFilter<"SellerIdentityDocuments"> | Buffer | null
+    backType?: StringNullableFilter<"SellerIdentityDocuments"> | string | null
+    selfie?: BytesNullableFilter<"SellerIdentityDocuments"> | Buffer | null
+    selfieType?: StringNullableFilter<"SellerIdentityDocuments"> | string | null
+    createdAt?: DateTimeFilter<"SellerIdentityDocuments"> | Date | string
+    seller?: XOR<SellerProfileRelationFilter, SellerProfileWhereInput>
+  }, "sellerId">
+
+  export type SellerIdentityDocumentsOrderByWithAggregationInput = {
+    sellerId?: SortOrder
+    frontImage?: SortOrderInput | SortOrder
+    frontType?: SortOrderInput | SortOrder
+    backImage?: SortOrderInput | SortOrder
+    backType?: SortOrderInput | SortOrder
+    selfie?: SortOrderInput | SortOrder
+    selfieType?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    _count?: SellerIdentityDocumentsCountOrderByAggregateInput
+    _max?: SellerIdentityDocumentsMaxOrderByAggregateInput
+    _min?: SellerIdentityDocumentsMinOrderByAggregateInput
+  }
+
+  export type SellerIdentityDocumentsScalarWhereWithAggregatesInput = {
+    AND?: SellerIdentityDocumentsScalarWhereWithAggregatesInput | SellerIdentityDocumentsScalarWhereWithAggregatesInput[]
+    OR?: SellerIdentityDocumentsScalarWhereWithAggregatesInput[]
+    NOT?: SellerIdentityDocumentsScalarWhereWithAggregatesInput | SellerIdentityDocumentsScalarWhereWithAggregatesInput[]
+    sellerId?: StringWithAggregatesFilter<"SellerIdentityDocuments"> | string
+    frontImage?: BytesNullableWithAggregatesFilter<"SellerIdentityDocuments"> | Buffer | null
+    frontType?: StringNullableWithAggregatesFilter<"SellerIdentityDocuments"> | string | null
+    backImage?: BytesNullableWithAggregatesFilter<"SellerIdentityDocuments"> | Buffer | null
+    backType?: StringNullableWithAggregatesFilter<"SellerIdentityDocuments"> | string | null
+    selfie?: BytesNullableWithAggregatesFilter<"SellerIdentityDocuments"> | Buffer | null
+    selfieType?: StringNullableWithAggregatesFilter<"SellerIdentityDocuments"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"SellerIdentityDocuments"> | Date | string
   }
 
   export type CustomerProfileWhereInput = {
@@ -23587,7 +27189,20 @@ export namespace Prisma {
     district?: StringFilter<"Order"> | string
     totalAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: StringNullableFilter<"Order"> | string | null
+=======
+    total?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFilter<"Order"> | string
+    deliveryPhone?: StringFilter<"Order"> | string
+    deliveryAddress?: StringFilter<"Order"> | string
+    deliveryDistrict?: StringFilter<"Order"> | string
+    trackingCarrier?: StringNullableFilter<"Order"> | string | null
+    trackingNumber?: StringNullableFilter<"Order"> | string | null
+    trackingUrl?: StringNullableFilter<"Order"> | string | null
+    estimatedDeliveryAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    note?: StringNullableFilter<"Order"> | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     customer?: XOR<CustomerProfileRelationFilter, CustomerProfileWhereInput>
@@ -23607,7 +27222,20 @@ export namespace Prisma {
     district?: SortOrder
     totalAmount?: SortOrder
     status?: SortOrder
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: SortOrderInput | SortOrder
+=======
+    total?: SortOrder
+    deliveryName?: SortOrder
+    deliveryPhone?: SortOrder
+    deliveryAddress?: SortOrder
+    deliveryDistrict?: SortOrder
+    trackingCarrier?: SortOrderInput | SortOrder
+    trackingNumber?: SortOrderInput | SortOrder
+    trackingUrl?: SortOrderInput | SortOrder
+    estimatedDeliveryAt?: SortOrderInput | SortOrder
+    note?: SortOrderInput | SortOrder
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: SortOrder
     updatedAt?: SortOrder
     customer?: CustomerProfileOrderByWithRelationInput
@@ -23630,7 +27258,20 @@ export namespace Prisma {
     district?: StringFilter<"Order"> | string
     totalAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: StringNullableFilter<"Order"> | string | null
+=======
+    total?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFilter<"Order"> | string
+    deliveryPhone?: StringFilter<"Order"> | string
+    deliveryAddress?: StringFilter<"Order"> | string
+    deliveryDistrict?: StringFilter<"Order"> | string
+    trackingCarrier?: StringNullableFilter<"Order"> | string | null
+    trackingNumber?: StringNullableFilter<"Order"> | string | null
+    trackingUrl?: StringNullableFilter<"Order"> | string | null
+    estimatedDeliveryAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    note?: StringNullableFilter<"Order"> | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
     customer?: XOR<CustomerProfileRelationFilter, CustomerProfileWhereInput>
@@ -23650,7 +27291,20 @@ export namespace Prisma {
     district?: SortOrder
     totalAmount?: SortOrder
     status?: SortOrder
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: SortOrderInput | SortOrder
+=======
+    total?: SortOrder
+    deliveryName?: SortOrder
+    deliveryPhone?: SortOrder
+    deliveryAddress?: SortOrder
+    deliveryDistrict?: SortOrder
+    trackingCarrier?: SortOrderInput | SortOrder
+    trackingNumber?: SortOrderInput | SortOrder
+    trackingUrl?: SortOrderInput | SortOrder
+    estimatedDeliveryAt?: SortOrderInput | SortOrder
+    note?: SortOrderInput | SortOrder
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: SortOrder
     updatedAt?: SortOrder
     _count?: OrderCountOrderByAggregateInput
@@ -23674,7 +27328,20 @@ export namespace Prisma {
     district?: StringWithAggregatesFilter<"Order"> | string
     totalAmount?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusWithAggregatesFilter<"Order"> | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: StringNullableWithAggregatesFilter<"Order"> | string | null
+=======
+    total?: DecimalWithAggregatesFilter<"Order"> | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringWithAggregatesFilter<"Order"> | string
+    deliveryPhone?: StringWithAggregatesFilter<"Order"> | string
+    deliveryAddress?: StringWithAggregatesFilter<"Order"> | string
+    deliveryDistrict?: StringWithAggregatesFilter<"Order"> | string
+    trackingCarrier?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    trackingNumber?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    trackingUrl?: StringNullableWithAggregatesFilter<"Order"> | string | null
+    estimatedDeliveryAt?: DateTimeNullableWithAggregatesFilter<"Order"> | Date | string | null
+    note?: StringNullableWithAggregatesFilter<"Order"> | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Order"> | Date | string
   }
@@ -23887,6 +27554,158 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"SiteSetting"> | Date | string
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+  export type ComplaintWhereInput = {
+    AND?: ComplaintWhereInput | ComplaintWhereInput[]
+    OR?: ComplaintWhereInput[]
+    NOT?: ComplaintWhereInput | ComplaintWhereInput[]
+    id?: StringFilter<"Complaint"> | string
+    reference?: StringFilter<"Complaint"> | string
+    customerId?: StringFilter<"Complaint"> | string
+    sellerId?: StringFilter<"Complaint"> | string
+    orderId?: StringNullableFilter<"Complaint"> | string | null
+    reason?: StringFilter<"Complaint"> | string
+    message?: StringFilter<"Complaint"> | string
+    status?: EnumComplaintStatusFilter<"Complaint"> | $Enums.ComplaintStatus
+    adminNote?: StringNullableFilter<"Complaint"> | string | null
+    resolvedAt?: DateTimeNullableFilter<"Complaint"> | Date | string | null
+    createdAt?: DateTimeFilter<"Complaint"> | Date | string
+    updatedAt?: DateTimeFilter<"Complaint"> | Date | string
+    customer?: XOR<CustomerProfileRelationFilter, CustomerProfileWhereInput>
+    seller?: XOR<SellerProfileRelationFilter, SellerProfileWhereInput>
+    order?: XOR<OrderNullableRelationFilter, OrderWhereInput> | null
+    statusHistory?: ComplaintStatusHistoryListRelationFilter
+  }
+
+  export type ComplaintOrderByWithRelationInput = {
+    id?: SortOrder
+    reference?: SortOrder
+    customerId?: SortOrder
+    sellerId?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    reason?: SortOrder
+    message?: SortOrder
+    status?: SortOrder
+    adminNote?: SortOrderInput | SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    customer?: CustomerProfileOrderByWithRelationInput
+    seller?: SellerProfileOrderByWithRelationInput
+    order?: OrderOrderByWithRelationInput
+    statusHistory?: ComplaintStatusHistoryOrderByRelationAggregateInput
+  }
+
+  export type ComplaintWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ComplaintWhereInput | ComplaintWhereInput[]
+    OR?: ComplaintWhereInput[]
+    NOT?: ComplaintWhereInput | ComplaintWhereInput[]
+    reference?: StringFilter<"Complaint"> | string
+    customerId?: StringFilter<"Complaint"> | string
+    sellerId?: StringFilter<"Complaint"> | string
+    orderId?: StringNullableFilter<"Complaint"> | string | null
+    reason?: StringFilter<"Complaint"> | string
+    message?: StringFilter<"Complaint"> | string
+    status?: EnumComplaintStatusFilter<"Complaint"> | $Enums.ComplaintStatus
+    adminNote?: StringNullableFilter<"Complaint"> | string | null
+    resolvedAt?: DateTimeNullableFilter<"Complaint"> | Date | string | null
+    createdAt?: DateTimeFilter<"Complaint"> | Date | string
+    updatedAt?: DateTimeFilter<"Complaint"> | Date | string
+    customer?: XOR<CustomerProfileRelationFilter, CustomerProfileWhereInput>
+    seller?: XOR<SellerProfileRelationFilter, SellerProfileWhereInput>
+    order?: XOR<OrderNullableRelationFilter, OrderWhereInput> | null
+    statusHistory?: ComplaintStatusHistoryListRelationFilter
+  }, "id">
+
+  export type ComplaintOrderByWithAggregationInput = {
+    id?: SortOrder
+    reference?: SortOrder
+    customerId?: SortOrder
+    sellerId?: SortOrder
+    orderId?: SortOrderInput | SortOrder
+    reason?: SortOrder
+    message?: SortOrder
+    status?: SortOrder
+    adminNote?: SortOrderInput | SortOrder
+    resolvedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: ComplaintCountOrderByAggregateInput
+    _max?: ComplaintMaxOrderByAggregateInput
+    _min?: ComplaintMinOrderByAggregateInput
+  }
+
+  export type ComplaintScalarWhereWithAggregatesInput = {
+    AND?: ComplaintScalarWhereWithAggregatesInput | ComplaintScalarWhereWithAggregatesInput[]
+    OR?: ComplaintScalarWhereWithAggregatesInput[]
+    NOT?: ComplaintScalarWhereWithAggregatesInput | ComplaintScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Complaint"> | string
+    reference?: StringWithAggregatesFilter<"Complaint"> | string
+    customerId?: StringWithAggregatesFilter<"Complaint"> | string
+    sellerId?: StringWithAggregatesFilter<"Complaint"> | string
+    orderId?: StringNullableWithAggregatesFilter<"Complaint"> | string | null
+    reason?: StringWithAggregatesFilter<"Complaint"> | string
+    message?: StringWithAggregatesFilter<"Complaint"> | string
+    status?: EnumComplaintStatusWithAggregatesFilter<"Complaint"> | $Enums.ComplaintStatus
+    adminNote?: StringNullableWithAggregatesFilter<"Complaint"> | string | null
+    resolvedAt?: DateTimeNullableWithAggregatesFilter<"Complaint"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"Complaint"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Complaint"> | Date | string
+  }
+
+  export type ComplaintStatusHistoryWhereInput = {
+    AND?: ComplaintStatusHistoryWhereInput | ComplaintStatusHistoryWhereInput[]
+    OR?: ComplaintStatusHistoryWhereInput[]
+    NOT?: ComplaintStatusHistoryWhereInput | ComplaintStatusHistoryWhereInput[]
+    id?: StringFilter<"ComplaintStatusHistory"> | string
+    complaintId?: StringFilter<"ComplaintStatusHistory"> | string
+    status?: EnumComplaintStatusFilter<"ComplaintStatusHistory"> | $Enums.ComplaintStatus
+    createdAt?: DateTimeFilter<"ComplaintStatusHistory"> | Date | string
+    complaint?: XOR<ComplaintRelationFilter, ComplaintWhereInput>
+  }
+
+  export type ComplaintStatusHistoryOrderByWithRelationInput = {
+    id?: SortOrder
+    complaintId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    complaint?: ComplaintOrderByWithRelationInput
+  }
+
+  export type ComplaintStatusHistoryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: ComplaintStatusHistoryWhereInput | ComplaintStatusHistoryWhereInput[]
+    OR?: ComplaintStatusHistoryWhereInput[]
+    NOT?: ComplaintStatusHistoryWhereInput | ComplaintStatusHistoryWhereInput[]
+    complaintId?: StringFilter<"ComplaintStatusHistory"> | string
+    status?: EnumComplaintStatusFilter<"ComplaintStatusHistory"> | $Enums.ComplaintStatus
+    createdAt?: DateTimeFilter<"ComplaintStatusHistory"> | Date | string
+    complaint?: XOR<ComplaintRelationFilter, ComplaintWhereInput>
+  }, "id">
+
+  export type ComplaintStatusHistoryOrderByWithAggregationInput = {
+    id?: SortOrder
+    complaintId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+    _count?: ComplaintStatusHistoryCountOrderByAggregateInput
+    _max?: ComplaintStatusHistoryMaxOrderByAggregateInput
+    _min?: ComplaintStatusHistoryMinOrderByAggregateInput
+  }
+
+  export type ComplaintStatusHistoryScalarWhereWithAggregatesInput = {
+    AND?: ComplaintStatusHistoryScalarWhereWithAggregatesInput | ComplaintStatusHistoryScalarWhereWithAggregatesInput[]
+    OR?: ComplaintStatusHistoryScalarWhereWithAggregatesInput[]
+    NOT?: ComplaintStatusHistoryScalarWhereWithAggregatesInput | ComplaintStatusHistoryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"ComplaintStatusHistory"> | string
+    complaintId?: StringWithAggregatesFilter<"ComplaintStatusHistory"> | string
+    status?: EnumComplaintStatusWithAggregatesFilter<"ComplaintStatusHistory"> | $Enums.ComplaintStatus
+    createdAt?: DateTimeWithAggregatesFilter<"ComplaintStatusHistory"> | Date | string
+  }
+
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   export type UserCreateInput = {
     id?: string
     email?: string | null
@@ -24379,8 +28198,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -24389,6 +28213,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutSellerProfileInput
+    identityDocuments?: SellerIdentityDocumentsCreateNestedOneWithoutSellerInput
     products?: ProductCreateNestedManyWithoutSellerInput
     analytics?: ClickAnalyticsCreateNestedManyWithoutSellerInput
     orders?: OrderCreateNestedManyWithoutSellerInput
@@ -24411,8 +28236,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -24420,6 +28250,7 @@ export namespace Prisma {
     removalNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedCreateNestedOneWithoutSellerInput
     products?: ProductUncheckedCreateNestedManyWithoutSellerInput
     analytics?: ClickAnalyticsUncheckedCreateNestedManyWithoutSellerInput
     orders?: OrderUncheckedCreateNestedManyWithoutSellerInput
@@ -24441,8 +28272,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -24451,6 +28287,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSellerProfileNestedInput
+    identityDocuments?: SellerIdentityDocumentsUpdateOneWithoutSellerNestedInput
     products?: ProductUpdateManyWithoutSellerNestedInput
     analytics?: ClickAnalyticsUpdateManyWithoutSellerNestedInput
     orders?: OrderUpdateManyWithoutSellerNestedInput
@@ -24473,8 +28310,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -24482,6 +28324,7 @@ export namespace Prisma {
     removalNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedUpdateOneWithoutSellerNestedInput
     products?: ProductUncheckedUpdateManyWithoutSellerNestedInput
     analytics?: ClickAnalyticsUncheckedUpdateManyWithoutSellerNestedInput
     orders?: OrderUncheckedUpdateManyWithoutSellerNestedInput
@@ -24504,8 +28347,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -24529,8 +28377,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -24555,8 +28408,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -24564,6 +28422,82 @@ export namespace Prisma {
     removalNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SellerIdentityDocumentsCreateInput = {
+    frontImage?: Buffer | null
+    frontType?: string | null
+    backImage?: Buffer | null
+    backType?: string | null
+    selfie?: Buffer | null
+    selfieType?: string | null
+    createdAt?: Date | string
+    seller: SellerProfileCreateNestedOneWithoutIdentityDocumentsInput
+  }
+
+  export type SellerIdentityDocumentsUncheckedCreateInput = {
+    sellerId: string
+    frontImage?: Buffer | null
+    frontType?: string | null
+    backImage?: Buffer | null
+    backType?: string | null
+    selfie?: Buffer | null
+    selfieType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SellerIdentityDocumentsUpdateInput = {
+    frontImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    frontType?: NullableStringFieldUpdateOperationsInput | string | null
+    backImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    backType?: NullableStringFieldUpdateOperationsInput | string | null
+    selfie?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    selfieType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    seller?: SellerProfileUpdateOneRequiredWithoutIdentityDocumentsNestedInput
+  }
+
+  export type SellerIdentityDocumentsUncheckedUpdateInput = {
+    sellerId?: StringFieldUpdateOperationsInput | string
+    frontImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    frontType?: NullableStringFieldUpdateOperationsInput | string | null
+    backImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    backType?: NullableStringFieldUpdateOperationsInput | string | null
+    selfie?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    selfieType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SellerIdentityDocumentsCreateManyInput = {
+    sellerId: string
+    frontImage?: Buffer | null
+    frontType?: string | null
+    backImage?: Buffer | null
+    backType?: string | null
+    selfie?: Buffer | null
+    selfieType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SellerIdentityDocumentsUpdateManyMutationInput = {
+    frontImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    frontType?: NullableStringFieldUpdateOperationsInput | string | null
+    backImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    backType?: NullableStringFieldUpdateOperationsInput | string | null
+    selfie?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    selfieType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SellerIdentityDocumentsUncheckedUpdateManyInput = {
+    sellerId?: StringFieldUpdateOperationsInput | string
+    frontImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    frontType?: NullableStringFieldUpdateOperationsInput | string | null
+    backImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    backType?: NullableStringFieldUpdateOperationsInput | string | null
+    selfie?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    selfieType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type CustomerProfileCreateInput = {
@@ -25101,7 +29035,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerProfileCreateNestedOneWithoutOrdersInput
@@ -25121,7 +29068,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -25137,7 +29097,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerProfileUpdateOneRequiredWithoutOrdersNestedInput
@@ -25157,7 +29130,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -25175,7 +29161,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -25189,7 +29188,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -25205,7 +29217,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -25422,6 +29447,163 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+  export type ComplaintCreateInput = {
+    id?: string
+    reference: string
+    reason: string
+    message: string
+    status?: $Enums.ComplaintStatus
+    adminNote?: string | null
+    resolvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerProfileCreateNestedOneWithoutComplaintsInput
+    seller: SellerProfileCreateNestedOneWithoutComplaintsInput
+    order?: OrderCreateNestedOneWithoutComplaintsInput
+    statusHistory?: ComplaintStatusHistoryCreateNestedManyWithoutComplaintInput
+  }
+
+  export type ComplaintUncheckedCreateInput = {
+    id?: string
+    reference: string
+    customerId: string
+    sellerId: string
+    orderId?: string | null
+    reason: string
+    message: string
+    status?: $Enums.ComplaintStatus
+    adminNote?: string | null
+    resolvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    statusHistory?: ComplaintStatusHistoryUncheckedCreateNestedManyWithoutComplaintInput
+  }
+
+  export type ComplaintUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reference?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    adminNote?: NullableStringFieldUpdateOperationsInput | string | null
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerProfileUpdateOneRequiredWithoutComplaintsNestedInput
+    seller?: SellerProfileUpdateOneRequiredWithoutComplaintsNestedInput
+    order?: OrderUpdateOneWithoutComplaintsNestedInput
+    statusHistory?: ComplaintStatusHistoryUpdateManyWithoutComplaintNestedInput
+  }
+
+  export type ComplaintUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reference?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sellerId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    adminNote?: NullableStringFieldUpdateOperationsInput | string | null
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    statusHistory?: ComplaintStatusHistoryUncheckedUpdateManyWithoutComplaintNestedInput
+  }
+
+  export type ComplaintCreateManyInput = {
+    id?: string
+    reference: string
+    customerId: string
+    sellerId: string
+    orderId?: string | null
+    reason: string
+    message: string
+    status?: $Enums.ComplaintStatus
+    adminNote?: string | null
+    resolvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ComplaintUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reference?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    adminNote?: NullableStringFieldUpdateOperationsInput | string | null
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComplaintUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reference?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sellerId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    adminNote?: NullableStringFieldUpdateOperationsInput | string | null
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComplaintStatusHistoryCreateInput = {
+    id?: string
+    status: $Enums.ComplaintStatus
+    createdAt?: Date | string
+    complaint: ComplaintCreateNestedOneWithoutStatusHistoryInput
+  }
+
+  export type ComplaintStatusHistoryUncheckedCreateInput = {
+    id?: string
+    complaintId: string
+    status: $Enums.ComplaintStatus
+    createdAt?: Date | string
+  }
+
+  export type ComplaintStatusHistoryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    complaint?: ComplaintUpdateOneRequiredWithoutStatusHistoryNestedInput
+  }
+
+  export type ComplaintStatusHistoryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    complaintId?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComplaintStatusHistoryCreateManyInput = {
+    id?: string
+    complaintId: string
+    status: $Enums.ComplaintStatus
+    createdAt?: Date | string
+  }
+
+  export type ComplaintStatusHistoryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComplaintStatusHistoryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    complaintId?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -25947,6 +30129,18 @@ export namespace Prisma {
     not?: NestedEnumApplicationStatusFilter<$PrismaModel> | $Enums.ApplicationStatus
   }
 
+  export type EnumIdentityReviewStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.IdentityReviewStatus | EnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.IdentityReviewStatus[] | ListEnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.IdentityReviewStatus[] | ListEnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumIdentityReviewStatusFilter<$PrismaModel> | $Enums.IdentityReviewStatus
+  }
+
+  export type SellerIdentityDocumentsNullableRelationFilter = {
+    is?: SellerIdentityDocumentsWhereInput | null
+    isNot?: SellerIdentityDocumentsWhereInput | null
+  }
+
   export type ProductListRelationFilter = {
     every?: ProductWhereInput
     some?: ProductWhereInput
@@ -26012,8 +30206,13 @@ export namespace Prisma {
     nicEncrypted?: SortOrder
     nicLast5?: SortOrder
     status?: SortOrder
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: SortOrder
     nicBack?: SortOrder
+=======
+    identityReviewStatus?: SortOrder
+    identityReviewedAt?: SortOrder
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: SortOrder
     facebookUrl?: SortOrder
     messengerUrl?: SortOrder
@@ -26038,8 +30237,13 @@ export namespace Prisma {
     nicEncrypted?: SortOrder
     nicLast5?: SortOrder
     status?: SortOrder
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: SortOrder
     nicBack?: SortOrder
+=======
+    identityReviewStatus?: SortOrder
+    identityReviewedAt?: SortOrder
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: SortOrder
     facebookUrl?: SortOrder
     messengerUrl?: SortOrder
@@ -26064,8 +30268,13 @@ export namespace Prisma {
     nicEncrypted?: SortOrder
     nicLast5?: SortOrder
     status?: SortOrder
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: SortOrder
     nicBack?: SortOrder
+=======
+    identityReviewStatus?: SortOrder
+    identityReviewedAt?: SortOrder
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: SortOrder
     facebookUrl?: SortOrder
     messengerUrl?: SortOrder
@@ -26083,6 +30292,71 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumApplicationStatusFilter<$PrismaModel>
     _max?: NestedEnumApplicationStatusFilter<$PrismaModel>
+  }
+
+  export type EnumIdentityReviewStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.IdentityReviewStatus | EnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.IdentityReviewStatus[] | ListEnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.IdentityReviewStatus[] | ListEnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumIdentityReviewStatusWithAggregatesFilter<$PrismaModel> | $Enums.IdentityReviewStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumIdentityReviewStatusFilter<$PrismaModel>
+    _max?: NestedEnumIdentityReviewStatusFilter<$PrismaModel>
+  }
+
+  export type BytesNullableFilter<$PrismaModel = never> = {
+    equals?: Buffer | BytesFieldRefInput<$PrismaModel> | null
+    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel> | null
+    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel> | null
+    not?: NestedBytesNullableFilter<$PrismaModel> | Buffer | null
+  }
+
+  export type SellerProfileRelationFilter = {
+    is?: SellerProfileWhereInput
+    isNot?: SellerProfileWhereInput
+  }
+
+  export type SellerIdentityDocumentsCountOrderByAggregateInput = {
+    sellerId?: SortOrder
+    frontImage?: SortOrder
+    frontType?: SortOrder
+    backImage?: SortOrder
+    backType?: SortOrder
+    selfie?: SortOrder
+    selfieType?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SellerIdentityDocumentsMaxOrderByAggregateInput = {
+    sellerId?: SortOrder
+    frontImage?: SortOrder
+    frontType?: SortOrder
+    backImage?: SortOrder
+    backType?: SortOrder
+    selfie?: SortOrder
+    selfieType?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type SellerIdentityDocumentsMinOrderByAggregateInput = {
+    sellerId?: SortOrder
+    frontImage?: SortOrder
+    frontType?: SortOrder
+    backImage?: SortOrder
+    backType?: SortOrder
+    selfie?: SortOrder
+    selfieType?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type BytesNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Buffer | BytesFieldRefInput<$PrismaModel> | null
+    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel> | null
+    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel> | null
+    not?: NestedBytesNullableWithAggregatesFilter<$PrismaModel> | Buffer | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBytesNullableFilter<$PrismaModel>
+    _max?: NestedBytesNullableFilter<$PrismaModel>
   }
 
   export type ProductReviewListRelationFilter = {
@@ -26193,11 +30467,14 @@ export namespace Prisma {
     gt?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     gte?: Decimal | DecimalJsLike | number | string | DecimalFieldRefInput<$PrismaModel>
     not?: NestedDecimalNullableFilter<$PrismaModel> | Decimal | DecimalJsLike | number | string | null
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
   }
 
   export type SellerProfileRelationFilter = {
     is?: SellerProfileWhereInput
     isNot?: SellerProfileWhereInput
+=======
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type ProductImageListRelationFilter = {
@@ -26488,7 +30765,20 @@ export namespace Prisma {
     district?: SortOrder
     totalAmount?: SortOrder
     status?: SortOrder
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: SortOrder
+=======
+    total?: SortOrder
+    deliveryName?: SortOrder
+    deliveryPhone?: SortOrder
+    deliveryAddress?: SortOrder
+    deliveryDistrict?: SortOrder
+    trackingCarrier?: SortOrder
+    trackingNumber?: SortOrder
+    trackingUrl?: SortOrder
+    estimatedDeliveryAt?: SortOrder
+    note?: SortOrder
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -26508,7 +30798,20 @@ export namespace Prisma {
     district?: SortOrder
     totalAmount?: SortOrder
     status?: SortOrder
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: SortOrder
+=======
+    total?: SortOrder
+    deliveryName?: SortOrder
+    deliveryPhone?: SortOrder
+    deliveryAddress?: SortOrder
+    deliveryDistrict?: SortOrder
+    trackingCarrier?: SortOrder
+    trackingNumber?: SortOrder
+    trackingUrl?: SortOrder
+    estimatedDeliveryAt?: SortOrder
+    note?: SortOrder
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -26524,7 +30827,20 @@ export namespace Prisma {
     district?: SortOrder
     totalAmount?: SortOrder
     status?: SortOrder
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: SortOrder
+=======
+    total?: SortOrder
+    deliveryName?: SortOrder
+    deliveryPhone?: SortOrder
+    deliveryAddress?: SortOrder
+    deliveryDistrict?: SortOrder
+    trackingCarrier?: SortOrder
+    trackingNumber?: SortOrder
+    trackingUrl?: SortOrder
+    estimatedDeliveryAt?: SortOrder
+    note?: SortOrder
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: SortOrder
     updatedAt?: SortOrder
   }
@@ -26684,6 +31000,112 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+  export type EnumComplaintStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.ComplaintStatus | EnumComplaintStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ComplaintStatus[] | ListEnumComplaintStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ComplaintStatus[] | ListEnumComplaintStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumComplaintStatusFilter<$PrismaModel> | $Enums.ComplaintStatus
+  }
+
+  export type OrderNullableRelationFilter = {
+    is?: OrderWhereInput | null
+    isNot?: OrderWhereInput | null
+  }
+
+  export type ComplaintStatusHistoryListRelationFilter = {
+    every?: ComplaintStatusHistoryWhereInput
+    some?: ComplaintStatusHistoryWhereInput
+    none?: ComplaintStatusHistoryWhereInput
+  }
+
+  export type ComplaintStatusHistoryOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type ComplaintCountOrderByAggregateInput = {
+    id?: SortOrder
+    reference?: SortOrder
+    customerId?: SortOrder
+    sellerId?: SortOrder
+    orderId?: SortOrder
+    reason?: SortOrder
+    message?: SortOrder
+    status?: SortOrder
+    adminNote?: SortOrder
+    resolvedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ComplaintMaxOrderByAggregateInput = {
+    id?: SortOrder
+    reference?: SortOrder
+    customerId?: SortOrder
+    sellerId?: SortOrder
+    orderId?: SortOrder
+    reason?: SortOrder
+    message?: SortOrder
+    status?: SortOrder
+    adminNote?: SortOrder
+    resolvedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type ComplaintMinOrderByAggregateInput = {
+    id?: SortOrder
+    reference?: SortOrder
+    customerId?: SortOrder
+    sellerId?: SortOrder
+    orderId?: SortOrder
+    reason?: SortOrder
+    message?: SortOrder
+    status?: SortOrder
+    adminNote?: SortOrder
+    resolvedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type EnumComplaintStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.ComplaintStatus | EnumComplaintStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.ComplaintStatus[] | ListEnumComplaintStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ComplaintStatus[] | ListEnumComplaintStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumComplaintStatusWithAggregatesFilter<$PrismaModel> | $Enums.ComplaintStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumComplaintStatusFilter<$PrismaModel>
+    _max?: NestedEnumComplaintStatusFilter<$PrismaModel>
+  }
+
+  export type ComplaintRelationFilter = {
+    is?: ComplaintWhereInput
+    isNot?: ComplaintWhereInput
+  }
+
+  export type ComplaintStatusHistoryCountOrderByAggregateInput = {
+    id?: SortOrder
+    complaintId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ComplaintStatusHistoryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    complaintId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ComplaintStatusHistoryMinOrderByAggregateInput = {
+    id?: SortOrder
+    complaintId?: SortOrder
+    status?: SortOrder
+    createdAt?: SortOrder
+  }
+
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   export type SellerProfileCreateNestedOneWithoutUserInput = {
     create?: XOR<SellerProfileCreateWithoutUserInput, SellerProfileUncheckedCreateWithoutUserInput>
     connectOrCreate?: SellerProfileCreateOrConnectWithoutUserInput
@@ -27040,6 +31462,12 @@ export namespace Prisma {
     connect?: UserWhereUniqueInput
   }
 
+  export type SellerIdentityDocumentsCreateNestedOneWithoutSellerInput = {
+    create?: XOR<SellerIdentityDocumentsCreateWithoutSellerInput, SellerIdentityDocumentsUncheckedCreateWithoutSellerInput>
+    connectOrCreate?: SellerIdentityDocumentsCreateOrConnectWithoutSellerInput
+    connect?: SellerIdentityDocumentsWhereUniqueInput
+  }
+
   export type ProductCreateNestedManyWithoutSellerInput = {
     create?: XOR<ProductCreateWithoutSellerInput, ProductUncheckedCreateWithoutSellerInput> | ProductCreateWithoutSellerInput[] | ProductUncheckedCreateWithoutSellerInput[]
     connectOrCreate?: ProductCreateOrConnectWithoutSellerInput | ProductCreateOrConnectWithoutSellerInput[]
@@ -27068,11 +31496,18 @@ export namespace Prisma {
     connect?: ComplaintWhereUniqueInput | ComplaintWhereUniqueInput[]
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
   export type SellerReviewCreateNestedManyWithoutSellerInput = {
     create?: XOR<SellerReviewCreateWithoutSellerInput, SellerReviewUncheckedCreateWithoutSellerInput> | SellerReviewCreateWithoutSellerInput[] | SellerReviewUncheckedCreateWithoutSellerInput[]
     connectOrCreate?: SellerReviewCreateOrConnectWithoutSellerInput | SellerReviewCreateOrConnectWithoutSellerInput[]
     createMany?: SellerReviewCreateManySellerInputEnvelope
     connect?: SellerReviewWhereUniqueInput | SellerReviewWhereUniqueInput[]
+=======
+  export type SellerIdentityDocumentsUncheckedCreateNestedOneWithoutSellerInput = {
+    create?: XOR<SellerIdentityDocumentsCreateWithoutSellerInput, SellerIdentityDocumentsUncheckedCreateWithoutSellerInput>
+    connectOrCreate?: SellerIdentityDocumentsCreateOrConnectWithoutSellerInput
+    connect?: SellerIdentityDocumentsWhereUniqueInput
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type ProductUncheckedCreateNestedManyWithoutSellerInput = {
@@ -27114,12 +31549,26 @@ export namespace Prisma {
     set?: $Enums.ApplicationStatus
   }
 
+  export type EnumIdentityReviewStatusFieldUpdateOperationsInput = {
+    set?: $Enums.IdentityReviewStatus
+  }
+
   export type UserUpdateOneRequiredWithoutSellerProfileNestedInput = {
     create?: XOR<UserCreateWithoutSellerProfileInput, UserUncheckedCreateWithoutSellerProfileInput>
     connectOrCreate?: UserCreateOrConnectWithoutSellerProfileInput
     upsert?: UserUpsertWithoutSellerProfileInput
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutSellerProfileInput, UserUpdateWithoutSellerProfileInput>, UserUncheckedUpdateWithoutSellerProfileInput>
+  }
+
+  export type SellerIdentityDocumentsUpdateOneWithoutSellerNestedInput = {
+    create?: XOR<SellerIdentityDocumentsCreateWithoutSellerInput, SellerIdentityDocumentsUncheckedCreateWithoutSellerInput>
+    connectOrCreate?: SellerIdentityDocumentsCreateOrConnectWithoutSellerInput
+    upsert?: SellerIdentityDocumentsUpsertWithoutSellerInput
+    disconnect?: SellerIdentityDocumentsWhereInput | boolean
+    delete?: SellerIdentityDocumentsWhereInput | boolean
+    connect?: SellerIdentityDocumentsWhereUniqueInput
+    update?: XOR<XOR<SellerIdentityDocumentsUpdateToOneWithWhereWithoutSellerInput, SellerIdentityDocumentsUpdateWithoutSellerInput>, SellerIdentityDocumentsUncheckedUpdateWithoutSellerInput>
   }
 
   export type ProductUpdateManyWithoutSellerNestedInput = {
@@ -27178,6 +31627,7 @@ export namespace Prisma {
     deleteMany?: ComplaintScalarWhereInput | ComplaintScalarWhereInput[]
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
   export type SellerReviewUpdateManyWithoutSellerNestedInput = {
     create?: XOR<SellerReviewCreateWithoutSellerInput, SellerReviewUncheckedCreateWithoutSellerInput> | SellerReviewCreateWithoutSellerInput[] | SellerReviewUncheckedCreateWithoutSellerInput[]
     connectOrCreate?: SellerReviewCreateOrConnectWithoutSellerInput | SellerReviewCreateOrConnectWithoutSellerInput[]
@@ -27190,6 +31640,16 @@ export namespace Prisma {
     update?: SellerReviewUpdateWithWhereUniqueWithoutSellerInput | SellerReviewUpdateWithWhereUniqueWithoutSellerInput[]
     updateMany?: SellerReviewUpdateManyWithWhereWithoutSellerInput | SellerReviewUpdateManyWithWhereWithoutSellerInput[]
     deleteMany?: SellerReviewScalarWhereInput | SellerReviewScalarWhereInput[]
+=======
+  export type SellerIdentityDocumentsUncheckedUpdateOneWithoutSellerNestedInput = {
+    create?: XOR<SellerIdentityDocumentsCreateWithoutSellerInput, SellerIdentityDocumentsUncheckedCreateWithoutSellerInput>
+    connectOrCreate?: SellerIdentityDocumentsCreateOrConnectWithoutSellerInput
+    upsert?: SellerIdentityDocumentsUpsertWithoutSellerInput
+    disconnect?: SellerIdentityDocumentsWhereInput | boolean
+    delete?: SellerIdentityDocumentsWhereInput | boolean
+    connect?: SellerIdentityDocumentsWhereUniqueInput
+    update?: XOR<XOR<SellerIdentityDocumentsUpdateToOneWithWhereWithoutSellerInput, SellerIdentityDocumentsUpdateWithoutSellerInput>, SellerIdentityDocumentsUncheckedUpdateWithoutSellerInput>
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type ProductUncheckedUpdateManyWithoutSellerNestedInput = {
@@ -27248,6 +31708,7 @@ export namespace Prisma {
     deleteMany?: ComplaintScalarWhereInput | ComplaintScalarWhereInput[]
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
   export type SellerReviewUncheckedUpdateManyWithoutSellerNestedInput = {
     create?: XOR<SellerReviewCreateWithoutSellerInput, SellerReviewUncheckedCreateWithoutSellerInput> | SellerReviewCreateWithoutSellerInput[] | SellerReviewUncheckedCreateWithoutSellerInput[]
     connectOrCreate?: SellerReviewCreateOrConnectWithoutSellerInput | SellerReviewCreateOrConnectWithoutSellerInput[]
@@ -27260,6 +31721,24 @@ export namespace Prisma {
     update?: SellerReviewUpdateWithWhereUniqueWithoutSellerInput | SellerReviewUpdateWithWhereUniqueWithoutSellerInput[]
     updateMany?: SellerReviewUpdateManyWithWhereWithoutSellerInput | SellerReviewUpdateManyWithWhereWithoutSellerInput[]
     deleteMany?: SellerReviewScalarWhereInput | SellerReviewScalarWhereInput[]
+=======
+  export type SellerProfileCreateNestedOneWithoutIdentityDocumentsInput = {
+    create?: XOR<SellerProfileCreateWithoutIdentityDocumentsInput, SellerProfileUncheckedCreateWithoutIdentityDocumentsInput>
+    connectOrCreate?: SellerProfileCreateOrConnectWithoutIdentityDocumentsInput
+    connect?: SellerProfileWhereUniqueInput
+  }
+
+  export type NullableBytesFieldUpdateOperationsInput = {
+    set?: Buffer | null
+  }
+
+  export type SellerProfileUpdateOneRequiredWithoutIdentityDocumentsNestedInput = {
+    create?: XOR<SellerProfileCreateWithoutIdentityDocumentsInput, SellerProfileUncheckedCreateWithoutIdentityDocumentsInput>
+    connectOrCreate?: SellerProfileCreateOrConnectWithoutIdentityDocumentsInput
+    upsert?: SellerProfileUpsertWithoutIdentityDocumentsInput
+    connect?: SellerProfileWhereUniqueInput
+    update?: XOR<XOR<SellerProfileUpdateToOneWithWhereWithoutIdentityDocumentsInput, SellerProfileUpdateWithoutIdentityDocumentsInput>, SellerProfileUncheckedUpdateWithoutIdentityDocumentsInput>
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type UserCreateNestedOneWithoutCustomerProfileInput = {
@@ -28035,6 +32514,29 @@ export namespace Prisma {
     connect?: SellerProfileWhereUniqueInput
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+  export type OrderCreateNestedOneWithoutComplaintsInput = {
+    create?: XOR<OrderCreateWithoutComplaintsInput, OrderUncheckedCreateWithoutComplaintsInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutComplaintsInput
+    connect?: OrderWhereUniqueInput
+  }
+
+  export type ComplaintStatusHistoryCreateNestedManyWithoutComplaintInput = {
+    create?: XOR<ComplaintStatusHistoryCreateWithoutComplaintInput, ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput> | ComplaintStatusHistoryCreateWithoutComplaintInput[] | ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput[]
+    connectOrCreate?: ComplaintStatusHistoryCreateOrConnectWithoutComplaintInput | ComplaintStatusHistoryCreateOrConnectWithoutComplaintInput[]
+    createMany?: ComplaintStatusHistoryCreateManyComplaintInputEnvelope
+    connect?: ComplaintStatusHistoryWhereUniqueInput | ComplaintStatusHistoryWhereUniqueInput[]
+  }
+
+  export type ComplaintStatusHistoryUncheckedCreateNestedManyWithoutComplaintInput = {
+    create?: XOR<ComplaintStatusHistoryCreateWithoutComplaintInput, ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput> | ComplaintStatusHistoryCreateWithoutComplaintInput[] | ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput[]
+    connectOrCreate?: ComplaintStatusHistoryCreateOrConnectWithoutComplaintInput | ComplaintStatusHistoryCreateOrConnectWithoutComplaintInput[]
+    createMany?: ComplaintStatusHistoryCreateManyComplaintInputEnvelope
+    connect?: ComplaintStatusHistoryWhereUniqueInput | ComplaintStatusHistoryWhereUniqueInput[]
+  }
+
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   export type EnumComplaintStatusFieldUpdateOperationsInput = {
     set?: $Enums.ComplaintStatus
   }
@@ -28063,6 +32565,61 @@ export namespace Prisma {
     update?: XOR<XOR<SellerProfileUpdateToOneWithWhereWithoutComplaintsInput, SellerProfileUpdateWithoutComplaintsInput>, SellerProfileUncheckedUpdateWithoutComplaintsInput>
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+  export type OrderUpdateOneWithoutComplaintsNestedInput = {
+    create?: XOR<OrderCreateWithoutComplaintsInput, OrderUncheckedCreateWithoutComplaintsInput>
+    connectOrCreate?: OrderCreateOrConnectWithoutComplaintsInput
+    upsert?: OrderUpsertWithoutComplaintsInput
+    disconnect?: OrderWhereInput | boolean
+    delete?: OrderWhereInput | boolean
+    connect?: OrderWhereUniqueInput
+    update?: XOR<XOR<OrderUpdateToOneWithWhereWithoutComplaintsInput, OrderUpdateWithoutComplaintsInput>, OrderUncheckedUpdateWithoutComplaintsInput>
+  }
+
+  export type ComplaintStatusHistoryUpdateManyWithoutComplaintNestedInput = {
+    create?: XOR<ComplaintStatusHistoryCreateWithoutComplaintInput, ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput> | ComplaintStatusHistoryCreateWithoutComplaintInput[] | ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput[]
+    connectOrCreate?: ComplaintStatusHistoryCreateOrConnectWithoutComplaintInput | ComplaintStatusHistoryCreateOrConnectWithoutComplaintInput[]
+    upsert?: ComplaintStatusHistoryUpsertWithWhereUniqueWithoutComplaintInput | ComplaintStatusHistoryUpsertWithWhereUniqueWithoutComplaintInput[]
+    createMany?: ComplaintStatusHistoryCreateManyComplaintInputEnvelope
+    set?: ComplaintStatusHistoryWhereUniqueInput | ComplaintStatusHistoryWhereUniqueInput[]
+    disconnect?: ComplaintStatusHistoryWhereUniqueInput | ComplaintStatusHistoryWhereUniqueInput[]
+    delete?: ComplaintStatusHistoryWhereUniqueInput | ComplaintStatusHistoryWhereUniqueInput[]
+    connect?: ComplaintStatusHistoryWhereUniqueInput | ComplaintStatusHistoryWhereUniqueInput[]
+    update?: ComplaintStatusHistoryUpdateWithWhereUniqueWithoutComplaintInput | ComplaintStatusHistoryUpdateWithWhereUniqueWithoutComplaintInput[]
+    updateMany?: ComplaintStatusHistoryUpdateManyWithWhereWithoutComplaintInput | ComplaintStatusHistoryUpdateManyWithWhereWithoutComplaintInput[]
+    deleteMany?: ComplaintStatusHistoryScalarWhereInput | ComplaintStatusHistoryScalarWhereInput[]
+  }
+
+  export type ComplaintStatusHistoryUncheckedUpdateManyWithoutComplaintNestedInput = {
+    create?: XOR<ComplaintStatusHistoryCreateWithoutComplaintInput, ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput> | ComplaintStatusHistoryCreateWithoutComplaintInput[] | ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput[]
+    connectOrCreate?: ComplaintStatusHistoryCreateOrConnectWithoutComplaintInput | ComplaintStatusHistoryCreateOrConnectWithoutComplaintInput[]
+    upsert?: ComplaintStatusHistoryUpsertWithWhereUniqueWithoutComplaintInput | ComplaintStatusHistoryUpsertWithWhereUniqueWithoutComplaintInput[]
+    createMany?: ComplaintStatusHistoryCreateManyComplaintInputEnvelope
+    set?: ComplaintStatusHistoryWhereUniqueInput | ComplaintStatusHistoryWhereUniqueInput[]
+    disconnect?: ComplaintStatusHistoryWhereUniqueInput | ComplaintStatusHistoryWhereUniqueInput[]
+    delete?: ComplaintStatusHistoryWhereUniqueInput | ComplaintStatusHistoryWhereUniqueInput[]
+    connect?: ComplaintStatusHistoryWhereUniqueInput | ComplaintStatusHistoryWhereUniqueInput[]
+    update?: ComplaintStatusHistoryUpdateWithWhereUniqueWithoutComplaintInput | ComplaintStatusHistoryUpdateWithWhereUniqueWithoutComplaintInput[]
+    updateMany?: ComplaintStatusHistoryUpdateManyWithWhereWithoutComplaintInput | ComplaintStatusHistoryUpdateManyWithWhereWithoutComplaintInput[]
+    deleteMany?: ComplaintStatusHistoryScalarWhereInput | ComplaintStatusHistoryScalarWhereInput[]
+  }
+
+  export type ComplaintCreateNestedOneWithoutStatusHistoryInput = {
+    create?: XOR<ComplaintCreateWithoutStatusHistoryInput, ComplaintUncheckedCreateWithoutStatusHistoryInput>
+    connectOrCreate?: ComplaintCreateOrConnectWithoutStatusHistoryInput
+    connect?: ComplaintWhereUniqueInput
+  }
+
+  export type ComplaintUpdateOneRequiredWithoutStatusHistoryNestedInput = {
+    create?: XOR<ComplaintCreateWithoutStatusHistoryInput, ComplaintUncheckedCreateWithoutStatusHistoryInput>
+    connectOrCreate?: ComplaintCreateOrConnectWithoutStatusHistoryInput
+    upsert?: ComplaintUpsertWithoutStatusHistoryInput
+    connect?: ComplaintWhereUniqueInput
+    update?: XOR<XOR<ComplaintUpdateToOneWithWhereWithoutStatusHistoryInput, ComplaintUpdateWithoutStatusHistoryInput>, ComplaintUncheckedUpdateWithoutStatusHistoryInput>
+  }
+
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -28300,6 +32857,33 @@ export namespace Prisma {
     not?: NestedEnumApplicationStatusFilter<$PrismaModel> | $Enums.ApplicationStatus
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+  export type NestedEnumIdentityReviewStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.IdentityReviewStatus | EnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.IdentityReviewStatus[] | ListEnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.IdentityReviewStatus[] | ListEnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumIdentityReviewStatusFilter<$PrismaModel> | $Enums.IdentityReviewStatus
+  }
+
+  export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   export type NestedEnumApplicationStatusWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.ApplicationStatus | EnumApplicationStatusFieldRefInput<$PrismaModel>
     in?: $Enums.ApplicationStatus[] | ListEnumApplicationStatusFieldRefInput<$PrismaModel>
@@ -28308,6 +32892,33 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumApplicationStatusFilter<$PrismaModel>
     _max?: NestedEnumApplicationStatusFilter<$PrismaModel>
+  }
+
+  export type NestedEnumIdentityReviewStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.IdentityReviewStatus | EnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.IdentityReviewStatus[] | ListEnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.IdentityReviewStatus[] | ListEnumIdentityReviewStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumIdentityReviewStatusWithAggregatesFilter<$PrismaModel> | $Enums.IdentityReviewStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumIdentityReviewStatusFilter<$PrismaModel>
+    _max?: NestedEnumIdentityReviewStatusFilter<$PrismaModel>
+  }
+
+  export type NestedBytesNullableFilter<$PrismaModel = never> = {
+    equals?: Buffer | BytesFieldRefInput<$PrismaModel> | null
+    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel> | null
+    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel> | null
+    not?: NestedBytesNullableFilter<$PrismaModel> | Buffer | null
+  }
+
+  export type NestedBytesNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Buffer | BytesFieldRefInput<$PrismaModel> | null
+    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel> | null
+    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel> | null
+    not?: NestedBytesNullableWithAggregatesFilter<$PrismaModel> | Buffer | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBytesNullableFilter<$PrismaModel>
+    _max?: NestedBytesNullableFilter<$PrismaModel>
   }
 
   export type NestedDecimalNullableFilter<$PrismaModel = never> = {
@@ -28362,6 +32973,16 @@ export namespace Prisma {
     _sum?: NestedDecimalNullableFilter<$PrismaModel>
     _min?: NestedDecimalNullableFilter<$PrismaModel>
     _max?: NestedDecimalNullableFilter<$PrismaModel>
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+  }
+
+  export type NestedEnumOrderStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.OrderStatus | EnumOrderStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.OrderStatus[] | ListEnumOrderStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.OrderStatus[] | ListEnumOrderStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumOrderStatusFilter<$PrismaModel> | $Enums.OrderStatus
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type NestedDecimalFilter<$PrismaModel = never> = {
@@ -28439,8 +33060,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -28448,6 +33074,7 @@ export namespace Prisma {
     removalNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    identityDocuments?: SellerIdentityDocumentsCreateNestedOneWithoutSellerInput
     products?: ProductCreateNestedManyWithoutSellerInput
     analytics?: ClickAnalyticsCreateNestedManyWithoutSellerInput
     orders?: OrderCreateNestedManyWithoutSellerInput
@@ -28469,8 +33096,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -28478,6 +33110,7 @@ export namespace Prisma {
     removalNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedCreateNestedOneWithoutSellerInput
     products?: ProductUncheckedCreateNestedManyWithoutSellerInput
     analytics?: ClickAnalyticsUncheckedCreateNestedManyWithoutSellerInput
     orders?: OrderUncheckedCreateNestedManyWithoutSellerInput
@@ -28637,8 +33270,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28646,6 +33284,7 @@ export namespace Prisma {
     removalNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    identityDocuments?: SellerIdentityDocumentsUpdateOneWithoutSellerNestedInput
     products?: ProductUpdateManyWithoutSellerNestedInput
     analytics?: ClickAnalyticsUpdateManyWithoutSellerNestedInput
     orders?: OrderUpdateManyWithoutSellerNestedInput
@@ -28667,8 +33306,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -28676,6 +33320,7 @@ export namespace Prisma {
     removalNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedUpdateOneWithoutSellerNestedInput
     products?: ProductUncheckedUpdateManyWithoutSellerNestedInput
     analytics?: ClickAnalyticsUncheckedUpdateManyWithoutSellerNestedInput
     orders?: OrderUncheckedUpdateManyWithoutSellerNestedInput
@@ -29326,6 +33971,31 @@ export namespace Prisma {
     create: XOR<UserCreateWithoutSellerProfileInput, UserUncheckedCreateWithoutSellerProfileInput>
   }
 
+  export type SellerIdentityDocumentsCreateWithoutSellerInput = {
+    frontImage?: Buffer | null
+    frontType?: string | null
+    backImage?: Buffer | null
+    backType?: string | null
+    selfie?: Buffer | null
+    selfieType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SellerIdentityDocumentsUncheckedCreateWithoutSellerInput = {
+    frontImage?: Buffer | null
+    frontType?: string | null
+    backImage?: Buffer | null
+    backType?: string | null
+    selfie?: Buffer | null
+    selfieType?: string | null
+    createdAt?: Date | string
+  }
+
+  export type SellerIdentityDocumentsCreateOrConnectWithoutSellerInput = {
+    where: SellerIdentityDocumentsWhereUniqueInput
+    create: XOR<SellerIdentityDocumentsCreateWithoutSellerInput, SellerIdentityDocumentsUncheckedCreateWithoutSellerInput>
+  }
+
   export type ProductCreateWithoutSellerInput = {
     id?: string
     title: string
@@ -29411,7 +34081,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerProfileCreateNestedOneWithoutOrdersInput
@@ -29429,7 +34112,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -29458,6 +34154,11 @@ export namespace Prisma {
     updatedAt?: Date | string
     order: OrderCreateNestedOneWithoutComplaintsInput
     customer: CustomerProfileCreateNestedOneWithoutComplaintsInput
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+    order?: OrderCreateNestedOneWithoutComplaintsInput
+    statusHistory?: ComplaintStatusHistoryCreateNestedManyWithoutComplaintInput
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type ComplaintUncheckedCreateWithoutSellerInput = {
@@ -29472,6 +34173,7 @@ export namespace Prisma {
     resolvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    statusHistory?: ComplaintStatusHistoryUncheckedCreateNestedManyWithoutComplaintInput
   }
 
   export type ComplaintCreateOrConnectWithoutSellerInput = {
@@ -29557,6 +34259,37 @@ export namespace Prisma {
     profilePhoto?: ProfilePhotoUncheckedUpdateOneWithoutUserNestedInput
     learningProgress?: LearningProgressUncheckedUpdateOneWithoutUserNestedInput
     learningCertificates?: LearningCertificateUncheckedUpdateManyWithoutUserNestedInput
+  }
+
+  export type SellerIdentityDocumentsUpsertWithoutSellerInput = {
+    update: XOR<SellerIdentityDocumentsUpdateWithoutSellerInput, SellerIdentityDocumentsUncheckedUpdateWithoutSellerInput>
+    create: XOR<SellerIdentityDocumentsCreateWithoutSellerInput, SellerIdentityDocumentsUncheckedCreateWithoutSellerInput>
+    where?: SellerIdentityDocumentsWhereInput
+  }
+
+  export type SellerIdentityDocumentsUpdateToOneWithWhereWithoutSellerInput = {
+    where?: SellerIdentityDocumentsWhereInput
+    data: XOR<SellerIdentityDocumentsUpdateWithoutSellerInput, SellerIdentityDocumentsUncheckedUpdateWithoutSellerInput>
+  }
+
+  export type SellerIdentityDocumentsUpdateWithoutSellerInput = {
+    frontImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    frontType?: NullableStringFieldUpdateOperationsInput | string | null
+    backImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    backType?: NullableStringFieldUpdateOperationsInput | string | null
+    selfie?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    selfieType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type SellerIdentityDocumentsUncheckedUpdateWithoutSellerInput = {
+    frontImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    frontType?: NullableStringFieldUpdateOperationsInput | string | null
+    backImage?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    backType?: NullableStringFieldUpdateOperationsInput | string | null
+    selfie?: NullableBytesFieldUpdateOperationsInput | Buffer | null
+    selfieType?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ProductUpsertWithWhereUniqueWithoutSellerInput = {
@@ -29652,7 +34385,20 @@ export namespace Prisma {
     district?: StringFilter<"Order"> | string
     totalAmount?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFilter<"Order"> | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: StringNullableFilter<"Order"> | string | null
+=======
+    total?: DecimalFilter<"Order"> | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFilter<"Order"> | string
+    deliveryPhone?: StringFilter<"Order"> | string
+    deliveryAddress?: StringFilter<"Order"> | string
+    deliveryDistrict?: StringFilter<"Order"> | string
+    trackingCarrier?: StringNullableFilter<"Order"> | string | null
+    trackingNumber?: StringNullableFilter<"Order"> | string | null
+    trackingUrl?: StringNullableFilter<"Order"> | string | null
+    estimatedDeliveryAt?: DateTimeNullableFilter<"Order"> | Date | string | null
+    note?: StringNullableFilter<"Order"> | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFilter<"Order"> | Date | string
     updatedAt?: DateTimeFilter<"Order"> | Date | string
   }
@@ -29691,6 +34437,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Complaint"> | Date | string
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
   export type SellerReviewUpsertWithWhereUniqueWithoutSellerInput = {
     where: SellerReviewWhereUniqueInput
     update: XOR<SellerReviewUpdateWithoutSellerInput, SellerReviewUncheckedUpdateWithoutSellerInput>
@@ -29718,6 +34465,138 @@ export namespace Prisma {
     comment?: StringFilter<"SellerReview"> | string
     createdAt?: DateTimeFilter<"SellerReview"> | Date | string
     updatedAt?: DateTimeFilter<"SellerReview"> | Date | string
+=======
+  export type SellerProfileCreateWithoutIdentityDocumentsInput = {
+    id?: string
+    businessName: string
+    description?: string | null
+    district: string
+    firstName?: string | null
+    dateOfBirth?: Date | string | null
+    lastName?: string | null
+    nicNumber: string
+    nicHash?: string | null
+    nicEncrypted?: string | null
+    nicLast5?: string | null
+    status?: $Enums.ApplicationStatus
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+    whatsappNo?: string | null
+    facebookUrl?: string | null
+    messengerUrl?: string | null
+    removedAt?: Date | string | null
+    removalNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutSellerProfileInput
+    products?: ProductCreateNestedManyWithoutSellerInput
+    analytics?: ClickAnalyticsCreateNestedManyWithoutSellerInput
+    orders?: OrderCreateNestedManyWithoutSellerInput
+    complaints?: ComplaintCreateNestedManyWithoutSellerInput
+  }
+
+  export type SellerProfileUncheckedCreateWithoutIdentityDocumentsInput = {
+    id?: string
+    userId: string
+    businessName: string
+    description?: string | null
+    district: string
+    firstName?: string | null
+    dateOfBirth?: Date | string | null
+    lastName?: string | null
+    nicNumber: string
+    nicHash?: string | null
+    nicEncrypted?: string | null
+    nicLast5?: string | null
+    status?: $Enums.ApplicationStatus
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+    whatsappNo?: string | null
+    facebookUrl?: string | null
+    messengerUrl?: string | null
+    removedAt?: Date | string | null
+    removalNote?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    products?: ProductUncheckedCreateNestedManyWithoutSellerInput
+    analytics?: ClickAnalyticsUncheckedCreateNestedManyWithoutSellerInput
+    orders?: OrderUncheckedCreateNestedManyWithoutSellerInput
+    complaints?: ComplaintUncheckedCreateNestedManyWithoutSellerInput
+  }
+
+  export type SellerProfileCreateOrConnectWithoutIdentityDocumentsInput = {
+    where: SellerProfileWhereUniqueInput
+    create: XOR<SellerProfileCreateWithoutIdentityDocumentsInput, SellerProfileUncheckedCreateWithoutIdentityDocumentsInput>
+  }
+
+  export type SellerProfileUpsertWithoutIdentityDocumentsInput = {
+    update: XOR<SellerProfileUpdateWithoutIdentityDocumentsInput, SellerProfileUncheckedUpdateWithoutIdentityDocumentsInput>
+    create: XOR<SellerProfileCreateWithoutIdentityDocumentsInput, SellerProfileUncheckedCreateWithoutIdentityDocumentsInput>
+    where?: SellerProfileWhereInput
+  }
+
+  export type SellerProfileUpdateToOneWithWhereWithoutIdentityDocumentsInput = {
+    where?: SellerProfileWhereInput
+    data: XOR<SellerProfileUpdateWithoutIdentityDocumentsInput, SellerProfileUncheckedUpdateWithoutIdentityDocumentsInput>
+  }
+
+  export type SellerProfileUpdateWithoutIdentityDocumentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    businessName?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    district?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    nicNumber?: StringFieldUpdateOperationsInput | string
+    nicHash?: NullableStringFieldUpdateOperationsInput | string | null
+    nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
+    facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSellerProfileNestedInput
+    products?: ProductUpdateManyWithoutSellerNestedInput
+    analytics?: ClickAnalyticsUpdateManyWithoutSellerNestedInput
+    orders?: OrderUpdateManyWithoutSellerNestedInput
+    complaints?: ComplaintUpdateManyWithoutSellerNestedInput
+  }
+
+  export type SellerProfileUncheckedUpdateWithoutIdentityDocumentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    businessName?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    district?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    nicNumber?: StringFieldUpdateOperationsInput | string
+    nicHash?: NullableStringFieldUpdateOperationsInput | string | null
+    nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
+    facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    products?: ProductUncheckedUpdateManyWithoutSellerNestedInput
+    analytics?: ClickAnalyticsUncheckedUpdateManyWithoutSellerNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutSellerNestedInput
+    complaints?: ComplaintUncheckedUpdateManyWithoutSellerNestedInput
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type UserCreateWithoutCustomerProfileInput = {
@@ -29770,7 +34649,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
     seller: SellerProfileCreateNestedOneWithoutOrdersInput
@@ -29788,7 +34680,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
     items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
@@ -29817,6 +34722,11 @@ export namespace Prisma {
     updatedAt?: Date | string
     order: OrderCreateNestedOneWithoutComplaintsInput
     seller: SellerProfileCreateNestedOneWithoutComplaintsInput
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+    order?: OrderCreateNestedOneWithoutComplaintsInput
+    statusHistory?: ComplaintStatusHistoryCreateNestedManyWithoutComplaintInput
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type ComplaintUncheckedCreateWithoutCustomerInput = {
@@ -29831,6 +34741,7 @@ export namespace Prisma {
     resolvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    statusHistory?: ComplaintStatusHistoryUncheckedCreateNestedManyWithoutComplaintInput
   }
 
   export type ComplaintCreateOrConnectWithoutCustomerInput = {
@@ -30185,8 +35096,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -30195,6 +35111,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutSellerProfileInput
+    identityDocuments?: SellerIdentityDocumentsCreateNestedOneWithoutSellerInput
     analytics?: ClickAnalyticsCreateNestedManyWithoutSellerInput
     orders?: OrderCreateNestedManyWithoutSellerInput
     complaints?: ComplaintCreateNestedManyWithoutSellerInput
@@ -30216,8 +35133,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -30225,6 +35147,7 @@ export namespace Prisma {
     removalNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedCreateNestedOneWithoutSellerInput
     analytics?: ClickAnalyticsUncheckedCreateNestedManyWithoutSellerInput
     orders?: OrderUncheckedCreateNestedManyWithoutSellerInput
     complaints?: ComplaintUncheckedCreateNestedManyWithoutSellerInput
@@ -30385,8 +35308,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -30395,6 +35323,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSellerProfileNestedInput
+    identityDocuments?: SellerIdentityDocumentsUpdateOneWithoutSellerNestedInput
     analytics?: ClickAnalyticsUpdateManyWithoutSellerNestedInput
     orders?: OrderUpdateManyWithoutSellerNestedInput
     complaints?: ComplaintUpdateManyWithoutSellerNestedInput
@@ -30416,8 +35345,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -30425,6 +35359,7 @@ export namespace Prisma {
     removalNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedUpdateOneWithoutSellerNestedInput
     analytics?: ClickAnalyticsUncheckedUpdateManyWithoutSellerNestedInput
     orders?: OrderUncheckedUpdateManyWithoutSellerNestedInput
     complaints?: ComplaintUncheckedUpdateManyWithoutSellerNestedInput
@@ -30908,8 +35843,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -30918,6 +35858,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutSellerProfileInput
+    identityDocuments?: SellerIdentityDocumentsCreateNestedOneWithoutSellerInput
     products?: ProductCreateNestedManyWithoutSellerInput
     analytics?: ClickAnalyticsCreateNestedManyWithoutSellerInput
     orders?: OrderCreateNestedManyWithoutSellerInput
@@ -30939,8 +35880,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -30948,6 +35894,7 @@ export namespace Prisma {
     removalNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedCreateNestedOneWithoutSellerInput
     products?: ProductUncheckedCreateNestedManyWithoutSellerInput
     analytics?: ClickAnalyticsUncheckedCreateNestedManyWithoutSellerInput
     orders?: OrderUncheckedCreateNestedManyWithoutSellerInput
@@ -31220,6 +36167,73 @@ export namespace Prisma {
   export type SellerProfileCreateOrConnectWithoutAnalyticsInput = {
     where: SellerProfileWhereUniqueInput
     create: XOR<SellerProfileCreateWithoutAnalyticsInput, SellerProfileUncheckedCreateWithoutAnalyticsInput>
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+    where?: SellerProfileWhereInput
+  }
+
+  export type SellerProfileUpdateToOneWithWhereWithoutAnalyticsInput = {
+    where?: SellerProfileWhereInput
+    data: XOR<SellerProfileUpdateWithoutAnalyticsInput, SellerProfileUncheckedUpdateWithoutAnalyticsInput>
+  }
+
+  export type SellerProfileUpdateWithoutAnalyticsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    businessName?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    district?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    nicNumber?: StringFieldUpdateOperationsInput | string
+    nicHash?: NullableStringFieldUpdateOperationsInput | string | null
+    nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
+    facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutSellerProfileNestedInput
+    identityDocuments?: SellerIdentityDocumentsUpdateOneWithoutSellerNestedInput
+    products?: ProductUpdateManyWithoutSellerNestedInput
+    orders?: OrderUpdateManyWithoutSellerNestedInput
+    complaints?: ComplaintUpdateManyWithoutSellerNestedInput
+  }
+
+  export type SellerProfileUncheckedUpdateWithoutAnalyticsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    businessName?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    district?: StringFieldUpdateOperationsInput | string
+    firstName?: NullableStringFieldUpdateOperationsInput | string | null
+    dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    lastName?: NullableStringFieldUpdateOperationsInput | string | null
+    nicNumber?: StringFieldUpdateOperationsInput | string
+    nicHash?: NullableStringFieldUpdateOperationsInput | string | null
+    nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
+    nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
+    facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    removedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    removalNote?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedUpdateOneWithoutSellerNestedInput
+    products?: ProductUncheckedUpdateManyWithoutSellerNestedInput
+    orders?: OrderUncheckedUpdateManyWithoutSellerNestedInput
+    complaints?: ComplaintUncheckedUpdateManyWithoutSellerNestedInput
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type ProductUpsertWithoutAnalyticsInput = {
@@ -31397,8 +36411,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -31407,6 +36426,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutSellerProfileInput
+    identityDocuments?: SellerIdentityDocumentsCreateNestedOneWithoutSellerInput
     products?: ProductCreateNestedManyWithoutSellerInput
     analytics?: ClickAnalyticsCreateNestedManyWithoutSellerInput
     complaints?: ComplaintCreateNestedManyWithoutSellerInput
@@ -31428,8 +36448,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -31437,6 +36462,7 @@ export namespace Prisma {
     removalNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedCreateNestedOneWithoutSellerInput
     products?: ProductUncheckedCreateNestedManyWithoutSellerInput
     analytics?: ClickAnalyticsUncheckedCreateNestedManyWithoutSellerInput
     complaints?: ComplaintUncheckedCreateNestedManyWithoutSellerInput
@@ -31488,6 +36514,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     customer: CustomerProfileCreateNestedOneWithoutComplaintsInput
     seller: SellerProfileCreateNestedOneWithoutComplaintsInput
+    statusHistory?: ComplaintStatusHistoryCreateNestedManyWithoutComplaintInput
   }
 
   export type ComplaintUncheckedCreateWithoutOrderInput = {
@@ -31502,6 +36529,7 @@ export namespace Prisma {
     resolvedAt?: Date | string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    statusHistory?: ComplaintStatusHistoryUncheckedCreateNestedManyWithoutComplaintInput
   }
 
   export type ComplaintCreateOrConnectWithoutOrderInput = {
@@ -31582,8 +36610,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31592,6 +36625,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSellerProfileNestedInput
+    identityDocuments?: SellerIdentityDocumentsUpdateOneWithoutSellerNestedInput
     products?: ProductUpdateManyWithoutSellerNestedInput
     analytics?: ClickAnalyticsUpdateManyWithoutSellerNestedInput
     complaints?: ComplaintUpdateManyWithoutSellerNestedInput
@@ -31613,8 +36647,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -31622,6 +36661,7 @@ export namespace Prisma {
     removalNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedUpdateOneWithoutSellerNestedInput
     products?: ProductUncheckedUpdateManyWithoutSellerNestedInput
     analytics?: ClickAnalyticsUncheckedUpdateManyWithoutSellerNestedInput
     complaints?: ComplaintUncheckedUpdateManyWithoutSellerNestedInput
@@ -31669,7 +36709,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
     customer: CustomerProfileCreateNestedOneWithoutOrdersInput
@@ -31688,7 +36741,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
     complaints?: ComplaintUncheckedCreateNestedManyWithoutOrderInput
@@ -31766,7 +36832,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerProfileUpdateOneRequiredWithoutOrdersNestedInput
@@ -31785,7 +36864,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     complaints?: ComplaintUncheckedUpdateManyWithoutOrderNestedInput
@@ -31934,8 +37026,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -31944,6 +37041,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     user: UserCreateNestedOneWithoutSellerProfileInput
+    identityDocuments?: SellerIdentityDocumentsCreateNestedOneWithoutSellerInput
     products?: ProductCreateNestedManyWithoutSellerInput
     analytics?: ClickAnalyticsCreateNestedManyWithoutSellerInput
     orders?: OrderCreateNestedManyWithoutSellerInput
@@ -31965,8 +37063,13 @@ export namespace Prisma {
     nicEncrypted?: string | null
     nicLast5?: string | null
     status?: $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: string | null
     nicBack?: string | null
+=======
+    identityReviewStatus?: $Enums.IdentityReviewStatus
+    identityReviewedAt?: Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: string | null
     facebookUrl?: string | null
     messengerUrl?: string | null
@@ -31974,6 +37077,7 @@ export namespace Prisma {
     removalNote?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedCreateNestedOneWithoutSellerInput
     products?: ProductUncheckedCreateNestedManyWithoutSellerInput
     analytics?: ClickAnalyticsUncheckedCreateNestedManyWithoutSellerInput
     orders?: OrderUncheckedCreateNestedManyWithoutSellerInput
@@ -31985,8 +37089,55 @@ export namespace Prisma {
     create: XOR<SellerProfileCreateWithoutComplaintsInput, SellerProfileUncheckedCreateWithoutComplaintsInput>
   }
 
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
   export type OrderUpsertWithoutComplaintsInput = {
     update: XOR<OrderUpdateWithoutComplaintsInput, OrderUncheckedUpdateWithoutComplaintsInput>
+=======
+  export type OrderCreateWithoutComplaintsInput = {
+    id?: string
+    reference: string
+    status?: $Enums.OrderStatus
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerProfileCreateNestedOneWithoutOrdersInput
+    seller: SellerProfileCreateNestedOneWithoutOrdersInput
+    items?: OrderItemCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderUncheckedCreateWithoutComplaintsInput = {
+    id?: string
+    reference: string
+    customerId: string
+    sellerId: string
+    status?: $Enums.OrderStatus
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    items?: OrderItemUncheckedCreateNestedManyWithoutOrderInput
+  }
+
+  export type OrderCreateOrConnectWithoutComplaintsInput = {
+    where: OrderWhereUniqueInput
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     create: XOR<OrderCreateWithoutComplaintsInput, OrderUncheckedCreateWithoutComplaintsInput>
     where?: OrderWhereInput
   }
@@ -32028,6 +37179,28 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+  }
+
+  export type ComplaintStatusHistoryCreateWithoutComplaintInput = {
+    id?: string
+    status: $Enums.ComplaintStatus
+    createdAt?: Date | string
+  }
+
+  export type ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput = {
+    id?: string
+    status: $Enums.ComplaintStatus
+    createdAt?: Date | string
+  }
+
+  export type ComplaintStatusHistoryCreateOrConnectWithoutComplaintInput = {
+    where: ComplaintStatusHistoryWhereUniqueInput
+    create: XOR<ComplaintStatusHistoryCreateWithoutComplaintInput, ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput>
+  }
+
+  export type ComplaintStatusHistoryCreateManyComplaintInputEnvelope = {
+    data: ComplaintStatusHistoryCreateManyComplaintInput | ComplaintStatusHistoryCreateManyComplaintInput[]
+    skipDuplicates?: boolean
   }
 
   export type CustomerProfileUpsertWithoutComplaintsInput = {
@@ -32098,8 +37271,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -32108,6 +37286,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutSellerProfileNestedInput
+    identityDocuments?: SellerIdentityDocumentsUpdateOneWithoutSellerNestedInput
     products?: ProductUpdateManyWithoutSellerNestedInput
     analytics?: ClickAnalyticsUpdateManyWithoutSellerNestedInput
     orders?: OrderUpdateManyWithoutSellerNestedInput
@@ -32129,8 +37308,13 @@ export namespace Prisma {
     nicEncrypted?: NullableStringFieldUpdateOperationsInput | string | null
     nicLast5?: NullableStringFieldUpdateOperationsInput | string | null
     status?: EnumApplicationStatusFieldUpdateOperationsInput | $Enums.ApplicationStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     nicFront?: NullableStringFieldUpdateOperationsInput | string | null
     nicBack?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    identityReviewStatus?: EnumIdentityReviewStatusFieldUpdateOperationsInput | $Enums.IdentityReviewStatus
+    identityReviewedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     whatsappNo?: NullableStringFieldUpdateOperationsInput | string | null
     facebookUrl?: NullableStringFieldUpdateOperationsInput | string | null
     messengerUrl?: NullableStringFieldUpdateOperationsInput | string | null
@@ -32138,10 +37322,169 @@ export namespace Prisma {
     removalNote?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    identityDocuments?: SellerIdentityDocumentsUncheckedUpdateOneWithoutSellerNestedInput
     products?: ProductUncheckedUpdateManyWithoutSellerNestedInput
     analytics?: ClickAnalyticsUncheckedUpdateManyWithoutSellerNestedInput
     orders?: OrderUncheckedUpdateManyWithoutSellerNestedInput
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     reviews?: SellerReviewUncheckedUpdateManyWithoutSellerNestedInput
+=======
+  }
+
+  export type OrderUpsertWithoutComplaintsInput = {
+    update: XOR<OrderUpdateWithoutComplaintsInput, OrderUncheckedUpdateWithoutComplaintsInput>
+    create: XOR<OrderCreateWithoutComplaintsInput, OrderUncheckedCreateWithoutComplaintsInput>
+    where?: OrderWhereInput
+  }
+
+  export type OrderUpdateToOneWithWhereWithoutComplaintsInput = {
+    where?: OrderWhereInput
+    data: XOR<OrderUpdateWithoutComplaintsInput, OrderUncheckedUpdateWithoutComplaintsInput>
+  }
+
+  export type OrderUpdateWithoutComplaintsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reference?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerProfileUpdateOneRequiredWithoutOrdersNestedInput
+    seller?: SellerProfileUpdateOneRequiredWithoutOrdersNestedInput
+    items?: OrderItemUpdateManyWithoutOrderNestedInput
+  }
+
+  export type OrderUncheckedUpdateWithoutComplaintsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reference?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sellerId?: StringFieldUpdateOperationsInput | string
+    status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
+  }
+
+  export type ComplaintStatusHistoryUpsertWithWhereUniqueWithoutComplaintInput = {
+    where: ComplaintStatusHistoryWhereUniqueInput
+    update: XOR<ComplaintStatusHistoryUpdateWithoutComplaintInput, ComplaintStatusHistoryUncheckedUpdateWithoutComplaintInput>
+    create: XOR<ComplaintStatusHistoryCreateWithoutComplaintInput, ComplaintStatusHistoryUncheckedCreateWithoutComplaintInput>
+  }
+
+  export type ComplaintStatusHistoryUpdateWithWhereUniqueWithoutComplaintInput = {
+    where: ComplaintStatusHistoryWhereUniqueInput
+    data: XOR<ComplaintStatusHistoryUpdateWithoutComplaintInput, ComplaintStatusHistoryUncheckedUpdateWithoutComplaintInput>
+  }
+
+  export type ComplaintStatusHistoryUpdateManyWithWhereWithoutComplaintInput = {
+    where: ComplaintStatusHistoryScalarWhereInput
+    data: XOR<ComplaintStatusHistoryUpdateManyMutationInput, ComplaintStatusHistoryUncheckedUpdateManyWithoutComplaintInput>
+  }
+
+  export type ComplaintStatusHistoryScalarWhereInput = {
+    AND?: ComplaintStatusHistoryScalarWhereInput | ComplaintStatusHistoryScalarWhereInput[]
+    OR?: ComplaintStatusHistoryScalarWhereInput[]
+    NOT?: ComplaintStatusHistoryScalarWhereInput | ComplaintStatusHistoryScalarWhereInput[]
+    id?: StringFilter<"ComplaintStatusHistory"> | string
+    complaintId?: StringFilter<"ComplaintStatusHistory"> | string
+    status?: EnumComplaintStatusFilter<"ComplaintStatusHistory"> | $Enums.ComplaintStatus
+    createdAt?: DateTimeFilter<"ComplaintStatusHistory"> | Date | string
+  }
+
+  export type ComplaintCreateWithoutStatusHistoryInput = {
+    id?: string
+    reference: string
+    reason: string
+    message: string
+    status?: $Enums.ComplaintStatus
+    adminNote?: string | null
+    resolvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    customer: CustomerProfileCreateNestedOneWithoutComplaintsInput
+    seller: SellerProfileCreateNestedOneWithoutComplaintsInput
+    order?: OrderCreateNestedOneWithoutComplaintsInput
+  }
+
+  export type ComplaintUncheckedCreateWithoutStatusHistoryInput = {
+    id?: string
+    reference: string
+    customerId: string
+    sellerId: string
+    orderId?: string | null
+    reason: string
+    message: string
+    status?: $Enums.ComplaintStatus
+    adminNote?: string | null
+    resolvedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ComplaintCreateOrConnectWithoutStatusHistoryInput = {
+    where: ComplaintWhereUniqueInput
+    create: XOR<ComplaintCreateWithoutStatusHistoryInput, ComplaintUncheckedCreateWithoutStatusHistoryInput>
+  }
+
+  export type ComplaintUpsertWithoutStatusHistoryInput = {
+    update: XOR<ComplaintUpdateWithoutStatusHistoryInput, ComplaintUncheckedUpdateWithoutStatusHistoryInput>
+    create: XOR<ComplaintCreateWithoutStatusHistoryInput, ComplaintUncheckedCreateWithoutStatusHistoryInput>
+    where?: ComplaintWhereInput
+  }
+
+  export type ComplaintUpdateToOneWithWhereWithoutStatusHistoryInput = {
+    where?: ComplaintWhereInput
+    data: XOR<ComplaintUpdateWithoutStatusHistoryInput, ComplaintUncheckedUpdateWithoutStatusHistoryInput>
+  }
+
+  export type ComplaintUpdateWithoutStatusHistoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reference?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    adminNote?: NullableStringFieldUpdateOperationsInput | string | null
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: CustomerProfileUpdateOneRequiredWithoutComplaintsNestedInput
+    seller?: SellerProfileUpdateOneRequiredWithoutComplaintsNestedInput
+    order?: OrderUpdateOneWithoutComplaintsNestedInput
+  }
+
+  export type ComplaintUncheckedUpdateWithoutStatusHistoryInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    reference?: StringFieldUpdateOperationsInput | string
+    customerId?: StringFieldUpdateOperationsInput | string
+    sellerId?: StringFieldUpdateOperationsInput | string
+    orderId?: NullableStringFieldUpdateOperationsInput | string | null
+    reason?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    adminNote?: NullableStringFieldUpdateOperationsInput | string | null
+    resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type LearningCertificateCreateManyUserInput = {
@@ -32257,7 +37600,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -32373,7 +37729,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerProfileUpdateOneRequiredWithoutOrdersNestedInput
@@ -32391,7 +37760,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -32408,7 +37790,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -32425,6 +37820,11 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     order?: OrderUpdateOneRequiredWithoutComplaintsNestedInput
     customer?: CustomerProfileUpdateOneRequiredWithoutComplaintsNestedInput
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+    order?: OrderUpdateOneWithoutComplaintsNestedInput
+    statusHistory?: ComplaintStatusHistoryUpdateManyWithoutComplaintNestedInput
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type ComplaintUncheckedUpdateWithoutSellerInput = {
@@ -32439,6 +37839,7 @@ export namespace Prisma {
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    statusHistory?: ComplaintStatusHistoryUncheckedUpdateManyWithoutComplaintNestedInput
   }
 
   export type ComplaintUncheckedUpdateManyWithoutSellerInput = {
@@ -32492,7 +37893,20 @@ export namespace Prisma {
     district: string
     totalAmount: Decimal | DecimalJsLike | number | string
     status?: $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: string | null
+=======
+    total: Decimal | DecimalJsLike | number | string
+    deliveryName: string
+    deliveryPhone: string
+    deliveryAddress: string
+    deliveryDistrict: string
+    trackingCarrier?: string | null
+    trackingNumber?: string | null
+    trackingUrl?: string | null
+    estimatedDeliveryAt?: Date | string | null
+    note?: string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -32544,7 +37958,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     seller?: SellerProfileUpdateOneRequiredWithoutOrdersNestedInput
@@ -32562,7 +37989,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     items?: OrderItemUncheckedUpdateManyWithoutOrderNestedInput
@@ -32579,7 +38019,20 @@ export namespace Prisma {
     district?: StringFieldUpdateOperationsInput | string
     totalAmount?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
     status?: EnumOrderStatusFieldUpdateOperationsInput | $Enums.OrderStatus
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
     notes?: NullableStringFieldUpdateOperationsInput | string | null
+=======
+    total?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    deliveryName?: StringFieldUpdateOperationsInput | string
+    deliveryPhone?: StringFieldUpdateOperationsInput | string
+    deliveryAddress?: StringFieldUpdateOperationsInput | string
+    deliveryDistrict?: StringFieldUpdateOperationsInput | string
+    trackingCarrier?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingNumber?: NullableStringFieldUpdateOperationsInput | string | null
+    trackingUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    estimatedDeliveryAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -32596,6 +38049,11 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     order?: OrderUpdateOneRequiredWithoutComplaintsNestedInput
     seller?: SellerProfileUpdateOneRequiredWithoutComplaintsNestedInput
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
+=======
+    order?: OrderUpdateOneWithoutComplaintsNestedInput
+    statusHistory?: ComplaintStatusHistoryUpdateManyWithoutComplaintNestedInput
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
   }
 
   export type ComplaintUncheckedUpdateWithoutCustomerInput = {
@@ -32610,6 +38068,7 @@ export namespace Prisma {
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    statusHistory?: ComplaintStatusHistoryUncheckedUpdateManyWithoutComplaintNestedInput
   }
 
   export type ComplaintUncheckedUpdateManyWithoutCustomerInput = {
@@ -32908,6 +38367,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: CustomerProfileUpdateOneRequiredWithoutComplaintsNestedInput
     seller?: SellerProfileUpdateOneRequiredWithoutComplaintsNestedInput
+    statusHistory?: ComplaintStatusHistoryUpdateManyWithoutComplaintNestedInput
   }
 
   export type ComplaintUncheckedUpdateWithoutOrderInput = {
@@ -32922,6 +38382,7 @@ export namespace Prisma {
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    statusHistory?: ComplaintStatusHistoryUncheckedUpdateManyWithoutComplaintNestedInput
   }
 
   export type ComplaintUncheckedUpdateManyWithoutOrderInput = {
@@ -32936,6 +38397,30 @@ export namespace Prisma {
     resolvedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComplaintStatusHistoryCreateManyComplaintInput = {
+    id?: string
+    status: $Enums.ComplaintStatus
+    createdAt?: Date | string
+  }
+
+  export type ComplaintStatusHistoryUpdateWithoutComplaintInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComplaintStatusHistoryUncheckedUpdateWithoutComplaintInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ComplaintStatusHistoryUncheckedUpdateManyWithoutComplaintInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: EnumComplaintStatusFieldUpdateOperationsInput | $Enums.ComplaintStatus
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 
@@ -32968,6 +38453,10 @@ export namespace Prisma {
      */
     export type OrderCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OrderCountOutputTypeDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use ComplaintCountOutputTypeDefaultArgs instead
+     */
+    export type ComplaintCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ComplaintCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use UserDefaultArgs instead
      */
     export type UserArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = UserDefaultArgs<ExtArgs>
@@ -32999,6 +38488,10 @@ export namespace Prisma {
      * @deprecated Use SellerProfileDefaultArgs instead
      */
     export type SellerProfileArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SellerProfileDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use SellerIdentityDocumentsDefaultArgs instead
+     */
+    export type SellerIdentityDocumentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SellerIdentityDocumentsDefaultArgs<ExtArgs>
     /**
      * @deprecated Use CustomerProfileDefaultArgs instead
      */
@@ -33040,9 +38533,15 @@ export namespace Prisma {
      */
     export type ComplaintArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ComplaintDefaultArgs<ExtArgs>
     /**
+<<<<<<< Updated upstream:backend/src/generated/client/index.d.ts
      * @deprecated Use SiteSettingDefaultArgs instead
      */
     export type SiteSettingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SiteSettingDefaultArgs<ExtArgs>
+=======
+     * @deprecated Use ComplaintStatusHistoryDefaultArgs instead
+     */
+    export type ComplaintStatusHistoryArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ComplaintStatusHistoryDefaultArgs<ExtArgs>
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/index.d.ts
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

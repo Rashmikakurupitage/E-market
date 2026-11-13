@@ -13,7 +13,7 @@ import { Field, inputClass, primaryButtonClass } from '../../src/components/form
 import PasswordInput from '../../src/components/PasswordInput';
 import { PageArt } from '../../src/components/Art';
 
-function PasswordLogin({ redirectTo, footer }) {
+function PasswordLogin({ redirectTo, footer, notice }) {
   const router = useRouter();
   const { t } = useLanguage();
   const l = t.loginPage;
@@ -56,6 +56,12 @@ function PasswordLogin({ redirectTo, footer }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {notice && (
+        <div role="status" className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" />
+          <span>{notice}</span>
+        </div>
+      )}
       {error && (
         <div role="alert" className="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" />
@@ -119,6 +125,7 @@ function Login() {
   const l = t.loginPage;
   const c = t.customer;
   const type = useAccountType();
+  const nicRegistered = useSearchParams().get('nicRegistered') === '1';
   const session = useSession();
   const hydrated = useHydrated();
   const role = session?.user?.role;
@@ -152,6 +159,7 @@ function Login() {
           <PasswordLogin
             key={type}
             redirectTo={next || (type === 'customer' ? '/account' : '/dashboard')}
+            notice={type === 'seller' && nicRegistered ? l.nicAlreadyRegistered : ''}
             footer={
               <p className="text-center text-sm text-slate-500">
                 {l.noAccount}{' '}

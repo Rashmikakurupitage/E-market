@@ -3,8 +3,13 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
+<<<<<<< Updated upstream
   CalendarDays, CircleAlert, CircleCheck, Clock, Flag, LoaderCircle, MapPin, MessageSquareText, Package, PackageCheck, Phone,
   RotateCw, ShoppingBag, ShoppingCart, Star, Store, Truck, UserRound, XCircle,
+=======
+  CalendarDays, CircleAlert, CircleCheck, Clock, ExternalLink, Flag, LoaderCircle, MapPin, MessageSquareText, Package, PackageCheck, Phone,
+  RotateCw, ShoppingBag, ShoppingCart, Store, Truck, UserRound, XCircle,
+>>>>>>> Stashed changes
 } from 'lucide-react';
 import API from '../lib/api';
 import { useLanguage, fill } from '../lib/i18n';
@@ -113,6 +118,94 @@ function ItemList({ items, isDelivered, onReviewProduct }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+function ShipmentDetails({ order, labels, lang }) {
+  const details = [
+    order.trackingCarrier && [labels.carrier, order.trackingCarrier],
+    order.trackingNumber && [labels.trackingNumber, order.trackingNumber],
+    order.estimatedDeliveryAt && [labels.estimatedDelivery, formatDate(order.estimatedDeliveryAt, lang)],
+  ].filter(Boolean);
+
+  if (!details.length && !order.trackingUrl) return null;
+
+  return (
+    <div className="mt-4 rounded-2xl bg-white p-4 ring-1 ring-ink/5">
+      <p className="flex items-center gap-2 text-sm font-bold text-ink">
+        <Truck className="h-4 w-4 text-magenta" />
+        {labels.tracking}
+      </p>
+      <dl className="mt-2 grid gap-2 text-sm sm:grid-cols-2">
+        {details.map(([label, value]) => (
+          <div key={label}>
+            <dt className="text-xs font-semibold text-ink/50">{label}</dt>
+            <dd className="mt-0.5 break-words font-medium text-ink">{value}</dd>
+          </div>
+        ))}
+      </dl>
+        <p className="mt-2 text-xs leading-relaxed text-ink/55">{labels.trackingNote}</p>
+        {order.trackingUrl && (
+        <a
+          href={order.trackingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-magenta px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-ink"
+        >
+          <ExternalLink className="h-3.5 w-3.5" />
+          {labels.openTracking}
+        </a>
+      )}
+    </div>
+  );
+}
+
+function ShipmentForm({ order, labels, busy, onSave, onCancel }) {
+  const [form, setForm] = useState({
+    trackingCarrier: order.trackingCarrier || '',
+    trackingNumber: order.trackingNumber || '',
+    trackingUrl: order.trackingUrl || '',
+    estimatedDeliveryAt: order.estimatedDeliveryAt ? new Date(order.estimatedDeliveryAt).toISOString().slice(0, 10) : '',
+  });
+  const set = (event) => setForm((current) => ({ ...current, [event.target.name]: event.target.value }));
+
+  return (
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave(form);
+      }}
+      className="mt-4 space-y-3 rounded-2xl bg-white p-4 ring-1 ring-ink/10"
+    >
+      <p className="text-sm font-bold text-ink">{labels.shipmentDetails}</p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="text-xs font-semibold text-ink/70">
+          {labels.carrier}
+          <input name="trackingCarrier" maxLength={100} value={form.trackingCarrier} onChange={set} className="mt-1 w-full rounded-xl border border-ink/15 px-3 py-2 text-sm font-normal text-ink outline-none focus:border-magenta" />
+        </label>
+        <label className="text-xs font-semibold text-ink/70">
+          {labels.trackingNumber}
+          <input name="trackingNumber" maxLength={100} value={form.trackingNumber} onChange={set} className="mt-1 w-full rounded-xl border border-ink/15 px-3 py-2 text-sm font-normal text-ink outline-none focus:border-magenta" />
+        </label>
+        <label className="text-xs font-semibold text-ink/70 sm:col-span-2">
+          {labels.trackingLink}
+          <input name="trackingUrl" type="url" maxLength={2048} value={form.trackingUrl} onChange={set} placeholder="https://" className="mt-1 w-full rounded-xl border border-ink/15 px-3 py-2 text-sm font-normal text-ink outline-none focus:border-magenta" />
+        </label>
+        <label className="text-xs font-semibold text-ink/70">
+          {labels.estimatedDelivery}
+          <input name="estimatedDeliveryAt" type="date" value={form.estimatedDeliveryAt} onChange={set} className="mt-1 w-full rounded-xl border border-ink/15 px-3 py-2 text-sm font-normal text-ink outline-none focus:border-magenta" />
+        </label>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <button type="submit" disabled={busy} className="inline-flex items-center gap-1.5 rounded-full bg-ink px-4 py-2 text-xs font-semibold text-white hover:bg-magenta disabled:opacity-60">
+          {busy && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
+          {labels.saveTracking}
+        </button>
+        <button type="button" onClick={onCancel} disabled={busy} className="rounded-full border border-ink/15 px-4 py-2 text-xs font-semibold text-ink/70 hover:bg-cream disabled:opacity-60">
+          {labels.cancelEdit}
+        </button>
+      </div>
+    </form>
   );
 }
 
@@ -272,6 +365,7 @@ export function CustomerOrders({ onAuthError }) {
                 </p>
 
                 <Progress status={order.status} />
+<<<<<<< Updated upstream
                 <ItemList
                   items={order.items}
                   isDelivered={order.status === 'DELIVERED'}
@@ -284,6 +378,10 @@ export function CustomerOrders({ onAuthError }) {
                     })
                   }
                 />
+=======
+                <ShipmentDetails order={order} labels={o} lang={lang} />
+                <ItemList items={order.items} />
+>>>>>>> Stashed changes
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-4">
                   <p className="text-sm text-ink/60">
@@ -381,17 +479,20 @@ export function SellerOrders({ onAuthError }) {
   const o = t.orders;
   const { orders, status, retry, replace } = useOrders('/orders/seller', onAuthError);
   const [busy, setBusy] = useState(null); // "orderId:STATUS" while saving
-  const [failed, setFailed] = useState(null); // order id whose update failed
+  const [failed, setFailed] = useState(null); // order id and error code whose update failed
+  const [editingShipmentId, setEditingShipmentId] = useState(null);
 
-  const changeStatus = async (order, next) => {
+  const changeStatus = async (order, next, shipment = null) => {
     setBusy(`${order.id}:${next}`);
     setFailed(null);
     try {
-      const res = await API.patch(`/orders/${order.id}/status`, { status: next });
+      const res = await API.patch(`/orders/${order.id}/status`, { status: next, ...shipment });
       replace(res.data);
+      return true;
     } catch (err) {
       if (isAuthError(err)) onAuthError?.();
-      else setFailed(order.id);
+      else setFailed({ orderId: order.id, code: err.response?.data?.code });
+      return false;
     } finally {
       setBusy(null);
     }
@@ -490,6 +591,18 @@ export function SellerOrders({ onAuthError }) {
                   </div>
 
                   <Progress status={order.status} />
+                  <ShipmentDetails order={order} labels={o} lang={lang} />
+                  {editingShipmentId === order.id && (
+                    <ShipmentForm
+                      order={order}
+                      labels={o}
+                      busy={busy === `${order.id}:SHIPPED`}
+                      onSave={async (shipment) => {
+                        if (await changeStatus(order, 'SHIPPED', shipment)) setEditingShipmentId(null);
+                      }}
+                      onCancel={() => setEditingShipmentId(null)}
+                    />
+                  )}
                   <ItemList items={order.items} />
 
                   <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-ink/10 pt-4">
@@ -505,7 +618,7 @@ export function SellerOrders({ onAuthError }) {
                             key={next}
                             type="button"
                             disabled={!!busy}
-                            onClick={() => changeStatus(order, next)}
+                            onClick={() => next === 'SHIPPED' ? setEditingShipmentId(order.id) : changeStatus(order, next)}
                             className={`inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition-colors disabled:opacity-60 ${
                               cancel
                                 ? 'border border-ink/15 text-ink/70 hover:border-red-300 hover:bg-red-50 hover:text-red-700'
@@ -517,12 +630,21 @@ export function SellerOrders({ onAuthError }) {
                           </button>
                         );
                       })}
+                      {order.status === 'SHIPPED' && editingShipmentId !== order.id && (
+                        <button
+                          type="button"
+                          onClick={() => setEditingShipmentId(order.id)}
+                          className="inline-flex items-center gap-1.5 rounded-full border border-ink/15 px-4 py-2 text-xs font-semibold text-ink/70 hover:border-magenta hover:bg-magenta/10 hover:text-magenta"
+                        >
+                          {o.editTracking}
+                        </button>
+                      )}
                     </div>
                   </div>
-                  {failed === order.id && (
+                  {failed?.orderId === order.id && (
                     <p role="alert" className="mt-3 flex items-center gap-2 text-xs font-medium text-red-700">
                       <CircleAlert className="h-4 w-4" />
-                      {o.updateError}
+                      {failed.code === 'INVALID_TRACKING_URL' ? o.invalidTrackingUrl : o.updateError}
                     </p>
                   )}
                 </Reveal>

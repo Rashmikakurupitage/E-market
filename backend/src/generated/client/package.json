@@ -1,5 +1,9 @@
 {
+<<<<<<< Updated upstream:backend/src/generated/client/package.json
   "name": "prisma-client-5ce2648ed893acf6d211ff093b82e36dc3214b591dd1d18f2259081daa7d43fa",
+=======
+  "name": "prisma-client-76a78cdc0728e389ae82808f8919d607b9a82e00831f29eb408738f8aadafc2c",
+>>>>>>> Stashed changes:backend/node_modules/.prisma/client/package.json
   "main": "index.js",
   "types": "index.d.ts",
   "browser": "index-browser.js",

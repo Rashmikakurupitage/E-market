@@ -365,6 +365,24 @@ export const translations = {
       businessTypeInvalid: 'ඔබේ ප්‍රධාන ව්‍යාපාර වර්ගය තෝරන්න.',
       sectionBusiness: 'ව්‍යාපාරික තොරතුරු',
       sectionContact: 'සම්බන්ධතා තොරතුරු',
+      identitySection: 'හැඳුනුම්පත් සමාලෝචනය',
+      nicFront: 'NIC ඉදිරිපස ඡායාරූපය',
+      nicBack: 'NIC පිටුපස ඡායාරූපය',
+      liveSelfie: 'සජීවී කැමරා සෙල්ෆිය',
+      identityReviewInfo: 'පැහැදිලි NIC ඉදිරිපස සහ පිටුපස ඡායාරූප සහ කැමරාවෙන් ගත් සෙල්ෆියක් ඉදිරිපත් කරන්න. පරිපාලකයෙකු ඒවා අතින් සමාලෝචනය කරයි; ස්වයංක්‍රීය මුහුණු හඳුනාගැනීමක් හෝ සජීවීභාව පරීක්ෂාවක් සිදු නොවේ. රූප සංකේතනය කර සමාලෝචන තීරණයෙන් පසු මකා දමනු ලැබේ.',
+      identityConsent: 'මෙම රූප සංකේතනය කර සමාලෝචනය සඳහා පරිපාලකයින්ට පමණක් පෙන්වා, තීරණයෙන් පසු මකා දැමීමට මම එකඟ වෙමි.',
+      identityConsentRequired: 'ඉදිරියට යාමට හැඳුනුම්පත් රූප සමාලෝචනය සඳහා එකඟ වන්න.',
+      identityImagesRequired: 'NIC ඉදිරිපස, පිටුපස සහ සජීවී සෙල්ෆිය ලබා දෙන්න.',
+      identityImageTooLarge: 'රූපය ඉතා විශාලය. පැහැදිලි, කුඩා රූපයක් භාවිත කර නැවත උත්සාහ කරන්න.',
+      identityImageInvalid: 'මෙම රූපය කියවිය නොහැක. JPEG, PNG හෝ WebP රූපයක් තෝරන්න.',
+      startCamera: 'කැමරාව විවෘත කරන්න',
+      captureSelfie: 'සෙල්ෆිය ගන්න',
+      retakeSelfie: 'නැවත සෙල්ෆිය ගන්න',
+      cancelCamera: 'අවලංගු කරන්න',
+      cameraStarting: 'කැමරාව විවෘත වෙමින්...',
+      cameraUnavailable: 'මෙම උපාංගයේ කැමරාව ලබා ගත නොහැක.',
+      cameraPermission: 'කැමරා අවසරය ලබා දී නැත. අවසර ලබා දී නැවත උත්සාහ කරන්න.',
+      cameraNotReady: 'සෙල්ෆිය ගැනීමට පෙර කැමරාව සූදානම් වන තෙක් රැඳී සිටින්න.',
       fullName: 'සම්පූර්ණ නම',
       firstName: 'මුල් නම',
       lastName: 'අවසන් නම',
@@ -525,12 +543,21 @@ export const translations = {
     },
     loginPage: {
       title: 'ව්‍යවසායිකා පිවිසුම',
+<<<<<<< Updated upstream
       subtitle: 'ඔබේ දුරකථන අංකය සහ මුරපදය භාවිතයෙන් පිවිසෙන්න. දැනටමත් ලියාපදිංචි Email ගිණුම්ද භාවිත කළ හැක.',
       welcome: 'නැවතත් සාදරයෙන් පිළිගනිමු',
       steps: [
         'ඔබේ දුරකථන අංකය සහ මුරපදය ඇතුළත් කරන්න',
         'පිවිසීමට ඔබන්න',
         'ඔබේ ගිණුම විවෘත කරන්න',
+=======
+      subtitle: 'ලියාපදිංචි වූ email සහ මුරපදය භාවිතයෙන් පිවිසෙන්න. මුරපදය අමතක නම් පහත සබැඳිය භාවිතයෙන් එය නැවත සකසන්න.',
+      welcome: 'නැවතත් සාදරයෙන් පිළිගනිමු',
+      steps: [
+        'ලියාපදිංචි වූ email ලිපිනය ඇතුළත් කරන්න',
+        'ඔබගේ මුරපදය ඇතුළත් කරන්න හෝ එය නැවත සකසන්න',
+        'ඔබේ පාලක පුවරුව විවෘත කරන්න',
+>>>>>>> Stashed changes
       ],
       phoneOrEmail: 'දුරකථන අංකය හෝ Email',
       phoneOrEmailPlaceholder: 'දුරකථන අංකය (පැරණි ගිණුම් සඳහා Email)',
@@ -555,6 +582,7 @@ export const translations = {
       changeDetails: 'වෙනත් email හෝ NIC අංකයක් භාවිත කරන්න',
       noAccount: 'තවමත් ලියාපදිංචි වී නැද්ද?',
       registerLink: 'ව්‍යවසායිකාවක් ලෙස ලියාපදිංචි වන්න',
+      nicAlreadyRegistered: 'මෙම NIC අංකය දැනටමත් ලියාපදිංචි වී ඇත. එම ගිණුමට අදාළ email සහ මුරපදය භාවිතයෙන් පිවිසෙන්න. මුරපදය අමතක නම් “මුරපදය අමතකද?” තෝරන්න.',
       errors: {
         INVALID_CREDENTIALS: 'දුරකථන අංකය/Email හෝ මුරපදය වැරදියි.',
         EMAIL_NOT_VERIFIED: 'ඔබේ email එක තවම තහවුරු කර නැත.',
@@ -583,7 +611,7 @@ export const translations = {
       benefits: [
         'නිෂ්පාදන නිපදවන කාන්තාවන්ගෙන්ම සෘජුවම මිලදී ගන්න',
         'අතරමැදියන් නොමැතිව WhatsApp හරහා ව්‍යවසායිකාවන් හා කතා කරන්න',
-        'මතක තබාගත යුතු මුරපදයක් නැත',
+        'අනාගත ඇණවුම් සඳහා ඔබේ තොරතුරු සුරකින්න',
         'දේශීය කාන්තා ව්‍යවසායිකාවන්ට සහාය වන්න',
       ],
       submit: 'පාරිභෝගිකයෙකු ලෙස ලියාපදිංචි වන්න',
@@ -591,8 +619,8 @@ export const translations = {
       goToAccount: 'මගේ ගිණුමට යන්න',
       loginTitle: 'පාරිභෝගික පිවිසුම',
       loginSteps: [
-        'ඔබේ email සහ NIC අංකය ඇතුළත් කරන්න',
-        'ඔබේ email වෙත ලැබෙන කේතය ඇතුළත් කරන්න',
+        'ලියාපදිංචි වූ email ලිපිනය ඇතුළත් කරන්න',
+        'ඔබගේ මුරපදය ඇතුළත් කරන්න',
         'මිලදී ගැනීම අරඹන්න',
       ],
       registerLink: 'පාරිභෝගිකයෙකු ලෙස ලියාපදිංචි වන්න',
@@ -648,14 +676,23 @@ export const translations = {
         { cat: 'buying', q: '"{priceOnRequest}" යන්නෙන් අදහස් වන්නේ කුමක්ද?', a: 'ව්‍යවසායිකාව එම නිෂ්පාදනයට මිලක් ඇතුළත් කර නැත. WhatsApp හරහා මිල විමසන්න.' },
         { cat: 'buying', q: 'මගේ ඇණවුමේ ගැටලුවක් ඇත්නම් කුමක් කළ යුතුද?', a: 'පළමුව WhatsApp හරහා ව්‍යවසායිකාව සම්බන්ධ කරගන්න. එකට විසඳාගත නොහැකි නම්, මෙම පිටුවේ පහළින් ඇති දුරකථන අංකය හෝ email ලිපිනය හරහා අමාත්‍යාංශය අමතන්න.' },
         { cat: 'selling', q: 'මෙහි අලෙවි කළ හැක්කේ කාටද?', a: 'අත්කම්, රෙදිපිළි, කෘෂි නිෂ්පාදන, ආහාර සහ කුළුබඩු හෝ රූපලාවණ්‍ය නිෂ්පාදන වැනි ක්ෂුද්‍ර හෝ කුඩා ව්‍යාපාර පවත්වාගෙන යන ශ්‍රී ලාංකීය කාන්තා ව්‍යවසායිකාවන්ට. ලියාපදිංචි වීමට වලංගු NIC අංකයක් අවශ්‍ය වේ.' },
-        { cat: 'selling', q: 'ව්‍යවසායිකාවක් ලෙස ලියාපදිංචි වන්නේ කෙසේද?', a: '"{register}" ඔබා, "{seller}" තෝරා, ඔබේ පෞද්ගලික, ව්‍යාපාරික සහ සම්බන්ධතා තොරතුරු ඇතුළත් කරන්න. ඔබේ ගිණුම වහාම සූදානම් වන අතර නිෂ්පාදන එක් කිරීම ඇරඹිය හැක.' },
+        { cat: 'selling', q: 'ව්‍යවසායිකාවක් ලෙස ලියාපදිංචි වන්නේ කෙසේද?', a: '"{register}" ඔබා, "{seller}" තෝරා, ඔබේ තොරතුරු ඇතුළත් කර NIC කාඩ්පතේ දෙපස ඡායාරූප සහ කැමරාවෙන් ගත් selfie එකක් යොදන්න. අමාත්‍යාංශය ඡායාරූප අතින් පරීක්ෂා කර ගිණුම අනුමත කළ පසු නිෂ්පාදන එක් කළ හැක.' },
         { cat: 'selling', q: 'මෙහි අලෙවි කිරීමට මුදල් ගෙවිය යුතුද?', a: 'නැත. ලියාපදිංචි වීම, නිෂ්පාදන ඇතුළත් කිරීම සහ ඊ-ඉගෙනුම් පාඨමාලා නොමිලේ ලබාදේ.' },
+<<<<<<< Updated upstream
         { cat: 'selling', q: 'මගේ නිෂ්පාදන වෙබ් අඩවියේ පෙන්වන්නේ කවදාද?', a: 'Email ලබා දුන්නේ නම්, ගිණුම සක්‍රිය කිරීමට එයට එවන ඉලක්කම් 6ක කේතය තහවුරු කරන්න. Email නොමැතිව ලියාපදිංචි වුවහොත් ගිණුම වහාම සක්‍රිය වේ. ඔබේ පාලක පුවරුවේ තත්ත්වය "{approved}" ලෙස දිස්වේ.' },
         { cat: 'selling', q: 'නිෂ්පාදන එක් කරන්නේ හෝ ඉවත් කරන්නේ කෙසේද?', a: 'Log වී ඔබේ පාලක පුවරුව විවෘත කරන්න. නව නිෂ්පාදනයක් එක් කිරීමට "{addProduct}" ද, නිෂ්පාදනයක් වෙබ් අඩවියෙන් ඉවත් කිරීමට එය අසල ඇති "{remove}" ද ඔබන්න.' },
         { cat: 'selling', q: 'පාරිභෝගිකයන් මාව සම්බන්ධ කරගන්නේ කෙසේද?', a: 'පාරිභෝගිකයෙකු ඔබේ නිෂ්පාදනයක "{order}" එබූ විට, ලියාපදිංචියේදී ඔබ දුන් WhatsApp අංකය සමඟ සංවාදයක් විවෘත වේ. මෙලෙස කොපමණ පාරිභෝගිකයන් සම්බන්ධ වූයේදැයි (මුළු කාලය සහ පසුගිය දින 7) ඔබේ පාලක පුවරුවේ පෙන්වයි.' },
         { cat: 'selling', q: 'මගේ ව්‍යාපාරය දියුණු කිරීමට ඉගෙන ගත හැක්කේ කොතැනින්ද?', a: 'WhatsApp Business හරහා අලෙවිය, නිෂ්පාදනවලට නිවැරදි මිලක් තීරණය කිරීම සහ නිෂ්පාදන ඡායාරූපකරණය වැනි මාතෘකා පිළිබඳ නොමිලේ පාඨමාලා සඳහා "{elearn}" පිටුවට පිවිසෙන්න.' },
         { cat: 'account', q: 'Log වන්නේ කෙසේද?', a: '"{login}" ඔබා, "{seller}" හෝ "{customer}" තෝරා, ඔබේ දුරකථන අංකය සහ මුරපදය ඇතුළත් කරන්න. පැරණි ගිණුම් සඳහා email සහ මුරපදය භාවිත කළ හැක.' },
         { cat: 'account', q: 'මුරපදය අමතක වුවහොත් කුමක් කළ යුතුද?', a: 'ගිණුමට Email එකක් එක් කර තහවුරු කර ඇත්නම්, "මුරපදය අමතකද?" තෝරා email එකට යවන කේතය භාවිත කරන්න. Email නොමැති ගිණුම් සඳහා මාර්ගගතව මුරපදය නැවත සැකසිය නොහැක.' },
+=======
+        { cat: 'selling', q: 'මගේ නිෂ්පාදන වෙබ් අඩවියේ පෙන්වන්නේ කවදාද?', a: 'අමාත්‍යාංශය ඔබේ අනන්‍යතා ඡායාරූප අතින් පරීක්ෂා කර ව්‍යවසායිකා ගිණුම අනුමත කළ පසු. ඔබේ පාලක පුවරුවේ තත්ත්වය පෙන්වයි: "{pending}", "{approved}" හෝ "{rejected}". අනුමැතිය එනතුරු නිෂ්පාදන එක් කළ හැක.' },
+        { cat: 'selling', q: 'නිෂ්පාදන එක් කරන්නේ හෝ ඉවත් කරන්නේ කෙසේද?', a: 'Log වී ඔබේ පාලක පුවරුව විවෘත කරන්න. නව නිෂ්පාදනයක් එක් කිරීමට "{addProduct}" ද, නිෂ්පාදනයක් වෙබ් අඩවියෙන් ඉවත් කිරීමට එය අසල ඇති "{remove}" ද ඔබන්න.' },
+        { cat: 'selling', q: 'පාරිභෝගිකයන් මාව සම්බන්ධ කරගන්නේ කෙසේද?', a: 'පාරිභෝගිකයෙකු ඔබේ නිෂ්පාදනයක "{order}" එබූ විට, ලියාපදිංචියේදී ඔබ දුන් WhatsApp අංකය සමඟ සංවාදයක් විවෘත වේ. මෙලෙස කොපමණ පාරිභෝගිකයන් සම්බන්ධ වූයේදැයි (මුළු කාලය සහ පසුගිය දින 7) ඔබේ පාලක පුවරුවේ පෙන්වයි.' },
+        { cat: 'selling', q: 'මගේ ව්‍යාපාරය දියුණු කිරීමට ඉගෙන ගත හැක්කේ කොතැනින්ද?', a: 'WhatsApp Business හරහා අලෙවිය, නිෂ්පාදනවලට නිවැරදි මිලක් තීරණය කිරීම සහ නිෂ්පාදන ඡායාරූපකරණය වැනි මාතෘකා පිළිබඳ නොමිලේ පාඨමාලා සඳහා "{elearn}" පිටුවට පිවිසෙන්න.' },
+        { cat: 'account', q: 'Log වන්නේ කෙසේද?', a: '"{login}" ඔබා, "{seller}" හෝ "{customer}" තෝරා, ලියාපදිංචි කළ email සහ මුරපදය ඇතුළත් කරන්න. මුරපදය අමතක නම් "Forgot password?" තෝරා, email වෙත ලැබෙන කේතය භාවිතයෙන් නව මුරපදයක් සකසන්න.' },
+        { cat: 'account', q: 'මුරපදය අමතක නම් කුමක් කළ යුතුද?', a: 'Login පිටුවේ "Forgot password?" තෝරන්න. Email වෙත ලැබෙන කේතය භාවිතයෙන් නව මුරපදයක් සකසන්න.' },
+>>>>>>> Stashed changes
         { cat: 'account', q: 'මගේ පෞද්ගලික තොරතුරු ආරක්ෂිතද?', a: 'ඔබේ NIC අංකය භාවිත කරන්නේ ඔබව හඳුනාගැනීමට සහ log වීමට පමණි; එය කිසිවිටෙක වෙබ් අඩවියේ නොපෙන්වයි. ඇණවුම් කිරීමට හැකි වන පරිදි ව්‍යවසායිකාවගේ WhatsApp අංකය පාරිභෝගිකයන්ට පෙන්වයි.' },
         { cat: 'account', q: 'මගේ email හෝ දුරකථන අංකය වෙනස් කරන්නේ කෙසේද?', a: 'Log වී "{dashboard}" (ව්‍යවසායිකාවන්) හෝ "{myAccount}" (පාරිභෝගිකයන්) විවෘත කරන්න. "{contactTitle}" යටතේ ඔබේ email හෝ දුරකථන අංකය අසල ඇති "{change}" ඔබන්න. නව email එක ක්‍රියාත්මක වන්නේ අප එයට එවන කේතය ඇතුළත් කළ පසුව පමණි.' },
       ],
@@ -822,17 +859,15 @@ export const translations = {
             'ඔබේ සම්පූර්ණ නම, email, NIC අංකය සහ දුරකථන අංකය ඇතුළත් කරන්න.',
             '{customerSubmit} ඔබන්න. ඔබ වහාම log වී {myAccount} වෙත යොමු කෙරේ.',
           ],
-          tip: 'මුරපදයක් අවශ්‍ය නැත. ඊළඟ වතාවේ ඔබේ email සහ NIC අංකයෙන් log වන්න.',
+          tip: 'ඔබේ ගිණුමට ඇතුළු වීමට ලියාපදිංචි කළ email සහ මුරපදය භාවිත කරන්න. මුරපදය අමතක නම් "Forgot password?" තෝරන්න.',
         },
         {
-          title: 'Email සහ NIC අංකයෙන් log වීම',
+          title: 'Email සහ මුරපදයෙන් log වීම',
           steps: [
             '{login} ඔබා {customer} තෝරන්න (ව්‍යවසායිකාවන් {seller} තෝරයි).',
-            'ලියාපදිංචි වූ email සහ NIC අංකය ඇතුළත් කර {sendCode} ඔබන්න.',
-            'ඔබේ email විවෘත කර ඉලක්කම් 6ක කේතය සොයන්න. එය මිනිත්තු 10ක් වලංගු වේ.',
-            'කේතය ඇතුළත් කර {verify} ඔබන්න.',
+            'ලියාපදිංචි වූ email සහ මුරපදය ඇතුළත් කර log වන්න.',
+            'මුරපදය අමතක නම් "Forgot password?" ඔබා, email වෙත ලැබෙන කේතය භාවිතයෙන් නව මුරපදයක් සකසන්න.',
           ],
-          tip: 'කේතය ලැබුණේ නැද්ද? spam ෆෝල්ඩරය බලන්න. තත්පර 60කට පසු {resend} ඔබන්න.',
         },
         {
           title: 'ඔබේ ගිණුම සහ ඉවත් වීම',
@@ -852,7 +887,7 @@ export const translations = {
             '{personal}: ඔබේ සම්පූර්ණ නම, email සහ NIC අංකය ඇතුළත් කරන්න.',
             '{business}: ව්‍යාපාරික නාමය ඇතුළත් කර, දිස්ත්‍රික්කය තෝරා, කැමති නම් ඔබ නිපදවන හෝ වගා කරන දේ ගැන ලියන්න.',
             '{contact}: දුරකථන අංකය ඇතුළත් කරන්න. පාරිභෝගිකයන් WhatsApp සඳහාද එම අංකයම භාවිත කළ යුතු නම් {sameAsPhone} සලකුණු කරන්න, නැතහොත් වෙනත් WhatsApp අංකයක් ඇතුළත් කරන්න.',
-            '{sellerSubmit} ඔබන්න. ඔබේ ගිණුම සෑදී පාලක පුවරුව විවෘත වේ.',
+            '{sellerSubmit} ඔබන්නට පෙර NIC කාඩ්පතේ ඉදිරිපස සහ පිටුපස ඡායාරූප උඩුගත කර, කැමරාවෙන් selfie එකක් ගෙන අවසරය දෙන්න. පසුව බොත්තම ඔබන්න. ඔබේ ගිණුම සෑදී පාලක පුවරුව විවෘත වේ; අමාත්‍යාංශය මෙම ඡායාරූප අතින් පරීක්ෂා කරයි.',
           ],
           tip: 'පාරිභෝගිකයන් ඔබව සම්බන්ධ කරගන්නේ ඔබේ WhatsApp අංකයෙන් බැවින් එය නිවැරදි දැයි තහවුරු කරගන්න.',
         },
@@ -863,14 +898,17 @@ export const translations = {
             'කේතය තහවුරු කළ වහාම ඔබේ ගිණුම සෘජුවම {approved} තත්ත්වයට පත්වී ක්‍රියාත්මක වේ.',
             'ඔබ එක් කරන සියලුම නිෂ්පාදන එවෙලේම වෙබ් අඩවියේ ප්‍රදර්ශනය වේ.',
           ],
+<<<<<<< Updated upstream
           tip: 'Email verification OTP සම්පූර්ණ කළ වහාම ඔබේ ගිණුම පූර්ණ අනුමැතිය ලබයි.',
+=======
+          tip: 'අමාත්‍යාංශයේ අතින් කරන හැඳුනුම්පත් පරීක්ෂාව අවසන් වූ පසු පමණක් ගිණුම් අනුමැතිය ලබාදේ. රැඳී සිටින අතරතුරද නිෂ්පාදන එක් කළ හැක.',
+>>>>>>> Stashed changes
         },
         {
           title: 'Log වීම',
           steps: [
             '{login} ඔබා {seller} තෝරන්න.',
-            'ඔබේ email සහ NIC අංකය ඇතුළත් කර {sendCode} ඔබන්න.',
-            'Email එකට ලැබෙන ඉලක්කම් 6ක කේතය ඇතුළත් කර {verify} ඔබන්න. ඔබේ පාලක පුවරුව විවෘත වේ.',
+            'ලියාපදිංචි කළ email සහ මුරපදය ඇතුළත් කර log වන්න. මුරපදය අමතක නම් "Forgot password?" තෝරා email වෙත ලැබෙන කේතයෙන් එය නැවත සකසන්න. ඔබේ පාලක පුවරුව විවෘත වේ.',
           ],
         },
         {
@@ -1325,6 +1363,18 @@ export const translations = {
       newCount: 'නව {count}',
       loadError: 'ඇණවුම් ලබාගත නොහැකි විය.',
       updateError: 'ඇණවුම යාවත්කාලීන කළ නොහැකි විය. නැවත උත්සාහ කරන්න.',
+      tracking: 'බෙදාහැරීමේ තොරතුරු',
+      carrier: 'කුරියර් සේවාව',
+      trackingNumber: 'ලුහුබැඳීමේ අංකය',
+      trackingLink: 'ලුහුබැඳීමේ සබැඳිය',
+      estimatedDelivery: 'අපේක්ෂිත භාරදීම',
+      openTracking: 'කුරියර් ලුහුබැඳීමේ පිටුව විවෘත කරන්න',
+      trackingNote: 'මෙම තොරතුරු විකුණුම්කරු ඇතුළත් කරයි. සජීවී බෙදාහැරීම් යාවත්කාලීන කුරියර් සේවාවෙන් ලබාගත හැකි විය හැක.',
+      shipmentDetails: 'යැවීමේ තොරතුරු එක් කරන්න',
+      saveTracking: 'යැවීම තහවුරු කර සුරකින්න',
+      cancelEdit: 'අවලංගු කරන්න',
+      editTracking: 'ලුහුබැඳීමේ තොරතුරු සංස්කරණය කරන්න',
+      invalidTrackingUrl: 'ලුහුබැඳීමේ සබැඳිය වලංගු නොවේ. http:// හෝ https:// සබැඳියක් ඇතුළත් කරන්න.',
       retry: 'නැවත උත්සාහ කරන්න',
     },
     profilePhoto: {
@@ -1722,6 +1772,13 @@ export const translations = {
       forOrder: 'ඇණවුම {reference}',
       response: 'අමාත්‍යාංශයේ පිළිතුර',
       waiting: 'අමාත්‍යාංශය සමාලෝචනය කරන තෙක් රැඳී සිටී.',
+      timelineTitle: 'පැමිණිලි යාවත්කාලීන',
+      timeline: {
+        OPEN: 'පැමිණිල්ල ලැබුණි',
+        IN_REVIEW: 'අමාත්‍යාංශය සමාලෝචනය ආරම්භ කළා',
+        RESOLVED: 'පැමිණිල්ල විසඳා ඇත',
+        DISMISSED: 'පැමිණිල්ල වසා ඇත',
+      },
       loadError: 'ඔබේ පැමිණිලි ලබාගත නොහැකි විය.',
       retry: 'නැවත උත්සාහ කරන්න',
       admin: {
@@ -1823,6 +1880,7 @@ export const translations = {
         error: 'නිෂ්පාදනය එක් කිරීමේදී දෝෂයක් සිදු විය. නැවත උත්සාහ කරන්න.',
       },
       pendingNote: 'ඔබේ ගිණුම අමාත්‍යාංශයේ අනුමැතිය බලාපොරොත්තුවෙන් පවතී. අනුමත වූ වහාම ඔබේ නිෂ්පාදන වෙබ් අඩවියේ පෙන්වනු ඇත.',
+      identityPendingNote: 'ඔබේ NIC රූප සහ සෙල්ෆිය හැඳුනුම්පත් සමාලෝචනය සඳහා බලාපොරොත්තුවෙන් ඇත. තීරණයෙන් පසු ඒවා මකා දමනු ලැබේ.',
       rejectedNote: 'ඔබේ ව්‍යවසායිකා ගිණුම අනුමත කර නැති බැවින්, ඔබේ නිෂ්පාදන වෙබ් අඩවියේ පෙන්වන්නේ නැත. සහාය සඳහා අමාත්‍යාංශය අමතන්න.',
     },
     sellerWorkspace: {
@@ -1994,6 +2052,24 @@ export const translations = {
         NIC_TAKEN: 'මෙම NIC අංකය දැනටමත් පරිපාලක ගිණුමකට භාවිත කර ඇත.',
       },
       sellerFilters: { PENDING: 'බලාපොරොත්තුවෙන්', APPROVED: 'අනුමත', REJECTED: 'ප්‍රතික්ෂේපිත', ALL: 'සියල්ල' },
+      identityReviewPending: 'හැඳුනුම්පත් සමාලෝචනය බලාපොරොත්තුවෙන්',
+      identityReviewApproved: 'හැඳුනුම්පත සමාලෝචනය අනුමතයි',
+      identityReviewRejected: 'හැඳුනුම්පත සමාලෝචනය ප්‍රතික්ෂේපයි',
+      identityReviewNotRequired: 'පැරණි ගිණුම — අමතර රූප අවශ්‍ය නැත',
+      viewIdentityDocuments: 'හැඳුනුම්පත් රූප සමාලෝචනය කරන්න',
+      hideIdentityDocuments: 'හැඳුනුම්පත් රූප සඟවන්න',
+      identityFrontLabel: 'NIC ඉදිරිපස',
+      identityBackLabel: 'NIC පිටුපස',
+      identitySelfieLabel: 'සෙල්ෆිය',
+      approveIdentity: 'හැඳුනුම්පත අනුමත කරන්න',
+      rejectIdentity: 'හැඳුනුම්පත ප්‍රතික්ෂේප කරන්න',
+      identityReviewLoading: 'හැඳුනුම්පත් රූප පූරණය වෙමින්...',
+      identityImagesDeleted: 'සමාලෝචන තීරණයෙන් පසු මෙම රූප මකා දමනු ලැබේ.',
+      identityReviewLoadError: 'හැඳුනුම්පත් රූප පූරණය කළ නොහැකි විය.',
+      identityReviewActionError: 'හැඳුනුම්පත් සමාලෝචනය සුරැකිය නොහැකි විය.',
+      identityReviewApprovedMessage: 'හැඳුනුම්පත අනුමතයි. දැන් ව්‍යවසායිකා ගිණුම සමාලෝචනය කරන්න.',
+      identityReviewRejectedMessage: 'හැඳුනුම්පත ප්‍රතික්ෂේප කළ අතර ගිණුම් අයදුම්පත ප්‍රතික්ෂේප කරන ලදී.',
+      identityMustBeReviewed: 'ව්‍යවසායිකාව අනුමත කිරීමට පෙර හැඳුනුම්පත් රූප සමාලෝචනය කරන්න.',
       productFilters: { all: 'සියල්ල', onSite: 'වෙබ් අඩවියේ', waiting: 'ව්‍යවසායිකාව අනුමත නැත', hidden: 'පරිපාලක විසින් සඟවා ඇත' },
       searchSellers: 'නම, email, NIC, දුරකථන අංකය හෝ දිස්ත්‍රික්කය අනුව සොයන්න...',
       searchCustomers: 'නම, email හෝ දුරකථන අංකය අනුව සොයන්න...',
@@ -2383,6 +2459,24 @@ export const translations = {
       businessTypeInvalid: 'Choose your main business type.',
       sectionBusiness: 'Business details',
       sectionContact: 'Contact details',
+      identitySection: 'Identity review',
+      nicFront: 'NIC front image',
+      nicBack: 'NIC back image',
+      liveSelfie: 'Live camera selfie',
+      identityReviewInfo: 'Submit clear images of the front and back of your NIC and a selfie captured with your camera. An administrator reviews them manually; no automated face recognition or liveness check is performed. Images are encrypted and deleted after an administrator makes a review decision.',
+      identityConsent: 'I consent to these images being encrypted, viewed only by administrators for review, and deleted after a decision is made.',
+      identityConsentRequired: 'Consent to the identity image review is required to continue.',
+      identityImagesRequired: 'Provide the front and back of your NIC and a live selfie.',
+      identityImageTooLarge: 'This image is too large. Use a clear, smaller image and try again.',
+      identityImageInvalid: 'This image could not be read. Choose a JPEG, PNG or WebP image.',
+      startCamera: 'Open camera',
+      captureSelfie: 'Capture selfie',
+      retakeSelfie: 'Retake selfie',
+      cancelCamera: 'Cancel',
+      cameraStarting: 'Opening camera...',
+      cameraUnavailable: 'A camera is not available on this device.',
+      cameraPermission: 'Camera permission was denied. Allow camera access and try again.',
+      cameraNotReady: 'Wait for the camera to be ready before taking the selfie.',
       fullName: 'Full name',
       firstName: 'First name',
       lastName: 'Last name',
@@ -2543,12 +2637,21 @@ export const translations = {
     },
     loginPage: {
       title: 'Seller Login',
+<<<<<<< Updated upstream
       subtitle: 'Log in with your phone number and password. Existing accounts can also use their email address.',
       welcome: 'Welcome back',
       steps: [
         'Enter your phone number and password',
         'Select Log in',
         'Open your account',
+=======
+      subtitle: 'Log in with the email and password you used to register. If you forgot your password, use the reset link below.',
+      welcome: 'Welcome back',
+      steps: [
+        'Enter the email address you registered with',
+        'Enter your password or reset it',
+        'Open your dashboard',
+>>>>>>> Stashed changes
       ],
       phoneOrEmail: 'Phone number or email',
       phoneOrEmailPlaceholder: 'Phone number (or email for existing accounts)',
@@ -2573,6 +2676,7 @@ export const translations = {
       changeDetails: 'Use a different email or NIC',
       noAccount: 'Not registered yet?',
       registerLink: 'Register as a seller',
+      nicAlreadyRegistered: 'This NIC is already registered. Log in with the email and password for that seller account. If you forgot the password, use the “Forgot password?” link.',
       errors: {
         INVALID_CREDENTIALS: 'The phone number/email or password is incorrect.',
         EMAIL_NOT_VERIFIED: 'Your email has not been verified yet.',
@@ -2601,7 +2705,11 @@ export const translations = {
       benefits: [
         'Buy directly from the women who make the products',
         'Talk to sellers on WhatsApp, with no middlemen',
+<<<<<<< Updated upstream
         'Easy sign-in with your phone number and password',
+=======
+        'Save your details for future orders',
+>>>>>>> Stashed changes
         'Support local women entrepreneurs',
       ],
       submit: 'Register as a customer',
@@ -2609,8 +2717,13 @@ export const translations = {
       goToAccount: 'Go to my account',
       loginTitle: 'Customer Login',
       loginSteps: [
+<<<<<<< Updated upstream
         'Enter your phone number and password',
         'Select Log in',
+=======
+        'Enter the email address you registered with',
+        'Enter your password',
+>>>>>>> Stashed changes
         'Start shopping',
       ],
       registerLink: 'Register as a customer',
@@ -2666,14 +2779,22 @@ export const translations = {
         { cat: 'buying', q: 'What does "{priceOnRequest}" mean?', a: "The seller hasn't listed a price for that product. Ask the seller for the price on WhatsApp." },
         { cat: 'buying', q: 'What if there is a problem with my order?', a: "First contact the seller on WhatsApp. If you can't solve it together, contact the Ministry using the phone number or email at the bottom of this page." },
         { cat: 'selling', q: 'Who can sell on the platform?', a: 'Sri Lankan women entrepreneurs running a micro or small business, such as handicrafts, textiles, agri-products, food and spices, or beauty products. You need a valid NIC number to register.' },
-        { cat: 'selling', q: 'How do I register as a seller?', a: 'Click "{register}", choose "{seller}" and fill in your personal, business and contact details. Your account is ready straight away and you can start adding products.' },
+        { cat: 'selling', q: 'How do I register as a seller?', a: 'Click "{register}", choose "{seller}", enter your details, and upload images of the front and back of your NIC plus a camera-captured selfie. The Ministry manually reviews the images before approving your account; you can add products while you wait.' },
         { cat: 'selling', q: 'Does it cost anything to sell here?', a: 'No. Registering, listing your products and the e-learning courses are all free.' },
+<<<<<<< Updated upstream
         { cat: 'selling', q: 'When will my products appear on the website?', a: 'If you provide an email, verify it with the 6-digit code to activate your account. If you register without an email, your account is activated immediately. Your dashboard will show "{approved}".' },
         { cat: 'selling', q: 'How do I add or remove products?', a: 'Log in and open your dashboard. Use "{addProduct}" to add a new product, and "{remove}" next to a product to take it off the website.' },
         { cat: 'selling', q: 'How will customers contact me?', a: 'When a customer taps "{order}" on one of your products, a chat opens with the WhatsApp number you gave when registering. Your dashboard shows how many customers did this, in total and in the last 7 days.' },
         { cat: 'selling', q: 'Where can I learn to grow my business?', a: 'Visit the "{elearn}" for free courses on topics such as selling with WhatsApp Business, pricing your products and product photography.' },
         { cat: 'account', q: 'How do I log in?', a: 'Click "{login}", choose "{seller}" or "{customer}", and enter your phone number and password. Existing accounts can continue to sign in with their email and password.' },
         { cat: 'account', q: 'What if I forget my password?', a: 'If you added and verified an email, choose "Forgot password?" and use the code sent to it. Online password reset is not available for accounts without an email.' },
+=======
+        { cat: 'selling', q: 'When will my products appear on the website?', a: 'After the Ministry manually reviews your identity images and approves your seller account. Your dashboard shows your status: "{pending}", "{approved}" or "{rejected}". You can add products while you wait.' },
+        { cat: 'selling', q: 'How do I add or remove products?', a: 'Log in and open your dashboard. Use "{addProduct}" to add a new product, and "{remove}" next to a product to take it off the website.' },
+        { cat: 'selling', q: 'How will customers contact me?', a: 'When a customer taps "{order}" on one of your products, a chat opens with the WhatsApp number you gave when registering. Your dashboard shows how many customers did this, in total and in the last 7 days.' },
+        { cat: 'selling', q: 'Where can I learn to grow my business?', a: 'Visit the "{elearn}" for free courses on topics such as selling with WhatsApp Business, pricing your products and product photography.' },
+        { cat: 'account', q: 'How do I log in?', a: 'Click "{login}", choose "{seller}" or "{customer}", and enter the email and password you registered with. If you forgot your password, click "Forgot password?" and follow the email-code steps to choose a new one.' },
+>>>>>>> Stashed changes
         { cat: 'account', q: 'Is my personal information safe?', a: "Your NIC number is only used to confirm who you are and to log you in; it is never shown on the website. A seller's WhatsApp number is shown to customers so they can place orders." },
         { cat: 'account', q: 'How do I change my email or phone number?', a: 'Log in and open "{dashboard}" (sellers) or "{myAccount}" (customers). Under "{contactTitle}", click "{change}" next to your email or phone number. A new email only takes effect after you type in the code we send to it.' },
       ],
@@ -2840,6 +2961,7 @@ export const translations = {
             'Fill in your name and phone number. Email is optional; choose a password.',
             'Click {customerSubmit}. You are logged in straight away and taken to {myAccount}.',
           ],
+<<<<<<< Updated upstream
           tip: 'Log in with your phone number and password. Adding an email helps with password recovery.',
         },
         {
@@ -2848,8 +2970,17 @@ export const translations = {
             'Click {login} and choose {customer} (sellers choose {seller}).',
             'Enter your phone number and password.',
             'Existing accounts can still use their email address and password.',
+=======
+          tip: 'Log in with the email and password you registered with. If you forgot the password, click "Forgot password?" to reset it.',
+        },
+        {
+          title: 'Log in with your email and password',
+          steps: [
+            'Click {login} and choose {customer} (sellers choose {seller}).',
+            'Enter the email and password you registered with to log in.',
+            'If you forgot your password, click "Forgot password?" and use the code sent to your email to set a new one.',
+>>>>>>> Stashed changes
           ],
-          tip: 'No code? Check your spam folder. After 60 seconds you can click {resend}.',
         },
         {
           title: 'Your account and logging out',
@@ -2869,7 +3000,7 @@ export const translations = {
             '{personal}: enter your name and NIC number. Email is optional; choose a password.',
             '{business}: enter your business name, choose your district and, if you like, describe what you make or grow.',
             '{contact}: enter your phone number. Tick {sameAsPhone} if customers should use the same number on WhatsApp, or enter a different WhatsApp number.',
-            'Click {sellerSubmit}. Your account is created and your dashboard opens.',
+            'Before clicking {sellerSubmit}, upload images of the front and back of your NIC, capture a selfie with your camera, and give consent. Then submit the form. Your account is created and your dashboard opens; the Ministry manually reviews these images.',
           ],
           tip: 'Customers will contact you on your WhatsApp number, so make sure it is correct.',
         },
@@ -2880,14 +3011,22 @@ export const translations = {
             'Without an email, your account is activated immediately.',
             'Your products will be live and visible to customers on the website straight away.',
           ],
+<<<<<<< Updated upstream
           tip: 'Add an email if you want to use email-based password recovery.',
+=======
+          tip: 'The Ministry must complete its manual identity review before approving your account. You can add products while you wait.',
+>>>>>>> Stashed changes
         },
         {
           title: 'Log in',
           steps: [
             'Click {login} and choose {seller}.',
+<<<<<<< Updated upstream
             'Enter your phone number and password.',
             'Existing accounts can still use their email address and password.',
+=======
+            'Enter the email and password you registered with to log in. If you forgot your password, click "Forgot password?" and use the code sent to your email to reset it. Your dashboard opens.',
+>>>>>>> Stashed changes
           ],
         },
         {
@@ -3342,6 +3481,18 @@ export const translations = {
       newCount: '{count} new',
       loadError: "Couldn't load the orders.",
       updateError: "Couldn't update the order. Please try again.",
+      tracking: 'Delivery details',
+      carrier: 'Courier service',
+      trackingNumber: 'Tracking number',
+      trackingLink: 'Tracking link',
+      estimatedDelivery: 'Estimated delivery',
+      openTracking: 'Open courier tracking page',
+      trackingNote: 'The seller enters these details. Live delivery updates, if available, come from the courier service.',
+      shipmentDetails: 'Add shipment details',
+      saveTracking: 'Confirm shipment and save',
+      cancelEdit: 'Cancel',
+      editTracking: 'Edit tracking details',
+      invalidTrackingUrl: 'The tracking link is not valid. Enter a link starting with http:// or https://.',
       retry: 'Try again',
     },
     profilePhoto: {
@@ -3739,6 +3890,13 @@ export const translations = {
       forOrder: 'Order {reference}',
       response: 'Ministry\'s reply',
       waiting: 'Waiting for the Ministry to review it.',
+      timelineTitle: 'Complaint updates',
+      timeline: {
+        OPEN: 'Complaint received',
+        IN_REVIEW: 'Ministry started reviewing',
+        RESOLVED: 'Complaint resolved',
+        DISMISSED: 'Complaint closed',
+      },
       loadError: 'Couldn\'t load your complaints.',
       retry: 'Try again',
       admin: {
@@ -3840,6 +3998,7 @@ export const translations = {
         error: "Couldn't add the product. Please try again.",
       },
       pendingNote: 'Your account is waiting for approval by the Ministry. Your products will appear on the website as soon as you are approved.',
+      identityPendingNote: 'Your NIC images and selfie are waiting for identity review. They will be deleted after a decision is made.',
       rejectedNote: 'Your seller account was not approved, so your products are not shown on the website. Please contact the Ministry for help.',
     },
     sellerWorkspace: {
@@ -4011,6 +4170,24 @@ export const translations = {
         NIC_TAKEN: 'This NIC number is already assigned to an admin account.',
       },
       sellerFilters: { PENDING: 'Pending', APPROVED: 'Approved', REJECTED: 'Rejected', ALL: 'All' },
+      identityReviewPending: 'Identity review pending',
+      identityReviewApproved: 'Identity reviewed and approved',
+      identityReviewRejected: 'Identity review rejected',
+      identityReviewNotRequired: 'Legacy account — no images required',
+      viewIdentityDocuments: 'Review identity images',
+      hideIdentityDocuments: 'Hide identity images',
+      identityFrontLabel: 'NIC front',
+      identityBackLabel: 'NIC back',
+      identitySelfieLabel: 'Selfie',
+      approveIdentity: 'Approve identity',
+      rejectIdentity: 'Reject identity',
+      identityReviewLoading: 'Loading identity images...',
+      identityImagesDeleted: 'These images are deleted after an identity review decision.',
+      identityReviewLoadError: 'Could not load identity images.',
+      identityReviewActionError: 'Could not save the identity review.',
+      identityReviewApprovedMessage: 'Identity approved. Continue reviewing the seller application.',
+      identityReviewRejectedMessage: 'Identity was rejected and the seller application was rejected.',
+      identityMustBeReviewed: 'Review the identity images before approving this seller.',
       productFilters: { all: 'All', onSite: 'On the website', waiting: 'Seller not approved', hidden: 'Hidden by admin' },
       searchSellers: 'Search by name, email, NIC, phone or district...',
       searchCustomers: 'Search by name, email or phone...',
@@ -4400,6 +4577,24 @@ export const translations = {
       businessTypeInvalid: 'உங்கள் முக்கிய வணிக வகையைத் தேர்ந்தெடுக்கவும்.',
       sectionBusiness: 'வணிக விவரங்கள்',
       sectionContact: 'தொடர்பு விவரங்கள்',
+      identitySection: 'அடையாளச் சரிபார்ப்பு',
+      nicFront: 'NIC முன்பக்கப் படம்',
+      nicBack: 'NIC பின்பக்கப் படம்',
+      liveSelfie: 'நேரடி கேமரா செல்ஃபி',
+      identityReviewInfo: 'உங்கள் NIC முன் மற்றும் பின் பக்கங்களின் தெளிவான படங்களையும், கேமராவில் எடுத்த செல்ஃபியையும் சமர்ப்பிக்கவும். நிர்வாகி அவற்றை கைமுறையாக ஒப்பிடுவார்; தானியங்கி முக அடையாளமோ நேரலைச் சரிபார்ப்போ செய்யப்படாது. படங்கள் குறியாக்கம் செய்யப்பட்டு, நிர்வாகி முடிவு எடுத்த பிறகு நீக்கப்படும்.',
+      identityConsent: 'இந்தப் படங்கள் குறியாக்கம் செய்யப்பட்டு, மதிப்பாய்வுக்காக நிர்வாகிகளால் மட்டுமே பார்க்கப்பட்டு, முடிவுக்குப் பிறகு நீக்கப்படுவதற்கு நான் ஒப்புக்கொள்கிறேன்.',
+      identityConsentRequired: 'தொடர அடையாளப் பட மதிப்பாய்வுக்கு ஒப்புதல் அளிக்க வேண்டும்.',
+      identityImagesRequired: 'NIC முன்பக்கம், பின்பக்கம் மற்றும் நேரடி செல்ஃபியை வழங்கவும்.',
+      identityImageTooLarge: 'இந்தப் படம் மிகப் பெரியது. தெளிவான சிறிய படத்தைப் பயன்படுத்தி மீண்டும் முயற்சிக்கவும்.',
+      identityImageInvalid: 'இந்தப் படத்தைப் படிக்க முடியவில்லை. JPEG, PNG அல்லது WebP படத்தைத் தேர்ந்தெடுக்கவும்.',
+      startCamera: 'கேமராவைத் திற',
+      captureSelfie: 'செல்ஃபி எடு',
+      retakeSelfie: 'மீண்டும் செல்ஃபி எடு',
+      cancelCamera: 'ரத்து செய்',
+      cameraStarting: 'கேமரா திறக்கப்படுகிறது...',
+      cameraUnavailable: 'இந்தச் சாதனத்தில் கேமரா கிடைக்கவில்லை.',
+      cameraPermission: 'கேமரா அனுமதி மறுக்கப்பட்டது. அனுமதியை வழங்கி மீண்டும் முயற்சிக்கவும்.',
+      cameraNotReady: 'செல்ஃபி எடுப்பதற்கு முன் கேமரா தயாராகும் வரை காத்திருக்கவும்.',
       fullName: 'முழுப் பெயர்',
       firstName: 'முதல் பெயர்',
       lastName: 'கடைசிப் பெயர்',
@@ -4560,12 +4755,21 @@ export const translations = {
     },
     loginPage: {
       title: 'விற்பனையாளர் உள்நுழைவு',
+<<<<<<< Updated upstream
       subtitle: 'தொலைபேசி எண் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தி உள்நுழையுங்கள். ஏற்கனவே உள்ள கணக்குகளுக்கு மின்னஞ்சலையும் பயன்படுத்தலாம்.',
       welcome: 'மீண்டும் வருக',
       steps: [
         'தொலைபேசி எண் மற்றும் கடவுச்சொல்லை உள்ளிடவும்',
         'உள்நுழை என்பதைத் தேர்ந்தெடுக்கவும்',
         'உங்கள் கணக்கைத் திறக்கவும்',
+=======
+      subtitle: 'பதிவு செய்த மின்னஞ்சல் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தி உள்நுழையுங்கள். கடவுச்சொல்லை மறந்துவிட்டால், கீழே உள்ள மீட்டமைப்பு இணைப்பைப் பயன்படுத்துங்கள்.',
+      welcome: 'மீண்டும் வருக',
+      steps: [
+        'பதிவு செய்த மின்னஞ்சல் முகவரியை உள்ளிடவும்',
+        'கடவுச்சொல்லை உள்ளிடவும் அல்லது மீட்டமைக்கவும்',
+        'உங்கள் டாஷ்போர்டைத் திறக்கவும்',
+>>>>>>> Stashed changes
       ],
       phoneOrEmail: 'தொலைபேசி எண் அல்லது மின்னஞ்சல்',
       phoneOrEmailPlaceholder: 'தொலைபேசி எண் (பழைய கணக்குகளுக்கு மின்னஞ்சல்)',
@@ -4590,6 +4794,7 @@ export const translations = {
       changeDetails: 'வேறு மின்னஞ்சல் அல்லது NIC-ஐப் பயன்படுத்து',
       noAccount: 'இன்னும் பதிவு செய்யவில்லையா?',
       registerLink: 'விற்பனையாளராகப் பதிவு செய்க',
+      nicAlreadyRegistered: 'இந்த NIC ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது. அந்த விற்பனையாளர் கணக்கின் மின்னஞ்சல் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தி உள்நுழையுங்கள். கடவுச்சொல் நினைவில் இல்லையெனில் “கடவுச்சொல்லை மறந்துவிட்டீர்களா?” என்பதைத் தேர்ந்தெடுக்கவும்.',
       errors: {
         INVALID_CREDENTIALS: 'தொலைபேசி எண்/மின்னஞ்சல் அல்லது கடவுச்சொல் தவறானது.',
         EMAIL_NOT_VERIFIED: 'உங்கள் மின்னஞ்சல் இன்னும் உறுதிப்படுத்தப்படவில்லை.',
@@ -4618,7 +4823,11 @@ export const translations = {
       benefits: [
         'தயாரிப்புகளை உருவாக்கும் பெண்களிடமிருந்தே நேரடியாக வாங்குங்கள்',
         'இடைத்தரகர்கள் இன்றி WhatsApp-இல் விற்பனையாளர்களுடன் பேசுங்கள்',
+<<<<<<< Updated upstream
         'தொலைபேசி எண் மற்றும் கடவுச்சொல் மூலம் எளிதாக உள்நுழையுங்கள்',
+=======
+        'எதிர்கால ஆர்டர்களுக்காக உங்கள் விவரங்களைச் சேமிக்கவும்',
+>>>>>>> Stashed changes
         'உள்நாட்டுப் பெண் தொழில்முனைவோருக்கு ஆதரவளியுங்கள்',
       ],
       submit: 'வாடிக்கையாளராகப் பதிவு செய்க',
@@ -4626,8 +4835,13 @@ export const translations = {
       goToAccount: 'எனது கணக்கிற்குச் செல்',
       loginTitle: 'வாடிக்கையாளர் உள்நுழைவு',
       loginSteps: [
+<<<<<<< Updated upstream
         'தொலைபேசி எண் மற்றும் கடவுச்சொல்லை உள்ளிடவும்',
         'உள்நுழை என்பதைத் தேர்ந்தெடுக்கவும்',
+=======
+        'பதிவு செய்த மின்னஞ்சல் முகவரியை உள்ளிடவும்',
+        'கடவுச்சொல்லை உள்ளிடவும்',
+>>>>>>> Stashed changes
         'வாங்கத் தொடங்குங்கள்',
       ],
       registerLink: 'வாடிக்கையாளராகப் பதிவு செய்க',
@@ -4689,8 +4903,13 @@ export const translations = {
         { cat: 'selling', q: 'தயாரிப்புகளை எப்படிச் சேர்ப்பது அல்லது நீக்குவது?', a: 'உள்நுழைந்து உங்கள் டாஷ்போர்டைத் திறக்கவும். புதிய தயாரிப்பைச் சேர்க்க "{addProduct}" என்பதையும், ஒரு தயாரிப்பை இணையதளத்திலிருந்து நீக்க அதன் அருகிலுள்ள "{remove}" என்பதையும் பயன்படுத்துங்கள்.' },
         { cat: 'selling', q: 'வாடிக்கையாளர்கள் என்னை எப்படித் தொடர்புகொள்வார்கள்?', a: 'ஒரு வாடிக்கையாளர் உங்கள் தயாரிப்பில் "{order}" என்பதைத் தட்டும்போது, பதிவின்போது நீங்கள் கொடுத்த WhatsApp எண்ணுடன் உரையாடல் திறக்கும். இவ்வாறு எத்தனை வாடிக்கையாளர்கள் தொடர்புகொண்டனர் என்பதை (மொத்தம் மற்றும் கடந்த 7 நாட்கள்) உங்கள் டாஷ்போர்டு காட்டும்.' },
         { cat: 'selling', q: 'எனது வணிகத்தை வளர்க்க எங்கே கற்றுக்கொள்ளலாம்?', a: 'WhatsApp Business மூலம் விற்பனை, தயாரிப்புகளுக்குச் சரியான விலை நிர்ணயம் மற்றும் தயாரிப்புப் புகைப்படம் எடுத்தல் போன்ற தலைப்புகளில் இலவசப் படிப்புகளுக்கு "{elearn}" பக்கத்தைப் பார்வையிடுங்கள்.' },
+<<<<<<< Updated upstream
         { cat: 'account', q: 'எப்படி உள்நுழைவது?', a: '"{login}" என்பதைக் கிளிக் செய்து, "{seller}" அல்லது "{customer}" என்பதைத் தேர்ந்தெடுத்து, உங்கள் தொலைபேசி எண் மற்றும் கடவுச்சொல்லை உள்ளிடுங்கள். பழைய கணக்குகளுக்கு மின்னஞ்சல் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தலாம்.' },
         { cat: 'account', q: 'கடவுச்சொல்லை மறந்துவிட்டால் என்ன செய்வது?', a: 'மின்னஞ்சலைச் சேர்த்து உறுதிப்படுத்தியிருந்தால், "கடவுச்சொல் மறந்துவிட்டதா?" என்பதைத் தேர்ந்தெடுத்து மின்னஞ்சலுக்கு வரும் குறியீட்டைப் பயன்படுத்துங்கள். மின்னஞ்சல் இல்லாத கணக்குகளுக்கு இணையத்தில் கடவுச்சொல்லை மீட்டமைக்க முடியாது.' },
+=======
+        { cat: 'account', q: 'எப்படி உள்நுழைவது?', a: '"{login}" என்பதைக் கிளிக் செய்து, "{seller}" அல்லது "{customer}" என்பதைத் தேர்ந்தெடுத்து, பதிவு செய்த மின்னஞ்சல் மற்றும் கடவுச்சொல்லை உள்ளிடவும். கடவுச்சொல் நினைவில் இல்லையெனில், "கடவுச்சொல்லை மறந்துவிட்டீர்களா?" என்பதைத் தேர்ந்தெடுத்து, மின்னஞ்சல் குறியீட்டைப் பயன்படுத்தி புதிய கடவுச்சொல்லை அமைக்கவும்.' },
+        { cat: 'account', q: 'உள்நுழைவுக் குறியீடு வரவில்லை. என்ன செய்வது?', a: 'உங்கள் spam அல்லது junk கோப்புறையைச் சரிபார்க்கவும், பதிவு செய்த அதே மின்னஞ்சலைப் பயன்படுத்தியுள்ளீர்களா என உறுதிசெய்யவும். 60 வினாடிகளுக்குப் பிறகு புதிய குறியீட்டைக் கேட்கலாம். ஒவ்வொரு குறியீடும் 10 நிமிடங்களுக்குச் செல்லுபடியாகும்.' },
+>>>>>>> Stashed changes
         { cat: 'account', q: 'எனது தனிப்பட்ட தகவல்கள் பாதுகாப்பானவையா?', a: 'உங்கள் NIC எண் உங்களை அடையாளம் காணவும் உள்நுழையவும் மட்டுமே பயன்படுத்தப்படுகிறது; அது ஒருபோதும் இணையதளத்தில் காட்டப்படாது. வாடிக்கையாளர்கள் ஆர்டர் செய்வதற்காக விற்பனையாளரின் WhatsApp எண் காட்டப்படுகிறது.' },
         { cat: 'account', q: 'எனது மின்னஞ்சல் அல்லது தொலைபேசி எண்ணை எப்படி மாற்றுவது?', a: 'உள்நுழைந்து "{dashboard}" (விற்பனையாளர்கள்) அல்லது "{myAccount}" (வாடிக்கையாளர்கள்) பக்கத்தைத் திறக்கவும். "{contactTitle}" பகுதியில் உங்கள் மின்னஞ்சல் அல்லது தொலைபேசி எண்ணின் அருகிலுள்ள "{change}" என்பதைக் கிளிக் செய்யவும். நாங்கள் அனுப்பும் குறியீட்டை உள்ளிட்ட பின்னரே புதிய மின்னஞ்சல் செயல்படும்.' },
       ],
@@ -4857,6 +5076,7 @@ export const translations = {
             'உங்கள் பெயர் மற்றும் தொலைபேசி எண்ணை உள்ளிடுங்கள். மின்னஞ்சல் விருப்பமானது; கடவுச்சொல்லையும் தேர்ந்தெடுக்கவும்.',
             '{customerSubmit} என்பதைக் கிளிக் செய்யவும். நீங்கள் உடனடியாக உள்நுழைந்து {myAccount} பக்கத்திற்கு அழைத்துச் செல்லப்படுவீர்கள்.',
           ],
+<<<<<<< Updated upstream
           tip: 'தொலைபேசி எண் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தி உள்நுழையுங்கள். மின்னஞ்சல் வழங்குவது கடவுச்சொல்லை மீட்டெடுக்க உதவும்.',
         },
         {
@@ -4865,8 +5085,17 @@ export const translations = {
             '{login} என்பதைக் கிளிக் செய்து {customer} என்பதைத் தேர்ந்தெடுக்கவும் (விற்பனையாளர்கள் {seller} என்பதைத் தேர்ந்தெடுப்பர்).',
             'உங்கள் தொலைபேசி எண் மற்றும் கடவுச்சொல்லை உள்ளிடுங்கள்.',
             'பழைய கணக்குகளுக்கு மின்னஞ்சல் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தலாம்.',
+=======
+          tip: 'பதிவு செய்த மின்னஞ்சல் மற்றும் கடவுச்சொல் மூலம் உள்நுழையுங்கள். கடவுச்சொல் மறந்துவிட்டால் "Forgot password?" என்பதைத் தேர்ந்தெடுத்து மீட்டமைக்கவும்.',
+        },
+        {
+          title: 'மின்னஞ்சல் மற்றும் கடவுச்சொல் மூலம் உள்நுழைதல்',
+          steps: [
+            '{login} என்பதைக் கிளிக் செய்து {customer} என்பதைத் தேர்ந்தெடுக்கவும் (விற்பனையாளர்கள் {seller} என்பதைத் தேர்ந்தெடுப்பர்).',
+            'பதிவு செய்த மின்னஞ்சல் மற்றும் கடவுச்சொல்லை உள்ளிட்டு உள்நுழையவும்.',
+            'கடவுச்சொல் மறந்துவிட்டால், "Forgot password?" என்பதைத் தேர்ந்தெடுத்து மின்னஞ்சலுக்கு வரும் குறியீட்டைப் பயன்படுத்தி புதிய கடவுச்சொல்லை அமைக்கவும்.',
+>>>>>>> Stashed changes
           ],
-          tip: 'குறியீடு வரவில்லையா? spam கோப்புறையைச் சரிபார்க்கவும். 60 வினாடிகளுக்குப் பிறகு {resend} என்பதைக் கிளிக் செய்யலாம்.',
         },
         {
           title: 'உங்கள் கணக்கு மற்றும் வெளியேறுதல்',
@@ -4886,7 +5115,7 @@ export const translations = {
             '{personal}: உங்கள் பெயர் மற்றும் NIC எண்ணை உள்ளிடுங்கள். மின்னஞ்சல் விருப்பமானது; கடவுச்சொல்லையும் தேர்ந்தெடுக்கவும்.',
             '{business}: வணிகப் பெயரை உள்ளிட்டு, மாவட்டத்தைத் தேர்ந்தெடுத்து, விரும்பினால் நீங்கள் தயாரிப்பது அல்லது பயிரிடுவது பற்றி எழுதவும்.',
             '{contact}: தொலைபேசி எண்ணை உள்ளிடவும். வாடிக்கையாளர்கள் WhatsApp-க்கும் அதே எண்ணைப் பயன்படுத்த வேண்டுமெனில் {sameAsPhone} என்பதைத் தேர்வு செய்யவும், இல்லையெனில் வேறு WhatsApp எண்ணை உள்ளிடவும்.',
-            '{sellerSubmit} என்பதைக் கிளிக் செய்யவும். உங்கள் கணக்கு உருவாக்கப்பட்டு டாஷ்போர்டு திறக்கும்.',
+            '{sellerSubmit} என்பதைக் கிளிக் செய்வதற்கு முன் NIC அட்டையின் முன் மற்றும் பின் படங்களைப் பதிவேற்றி, கேமராவில் selfie எடுத்து ஒப்புதல் அளிக்கவும். பின்னர் படிவத்தைச் சமர்ப்பிக்கவும். உங்கள் கணக்கு உருவாக்கப்பட்டு டாஷ்போர்டு திறக்கும்; அமைச்சு இந்தப் படங்களை கைமுறையாக மதிப்பாய்வு செய்யும்.',
           ],
           tip: 'வாடிக்கையாளர்கள் உங்கள் WhatsApp எண்ணில் தொடர்புகொள்வார்கள், எனவே அது சரியானதா என உறுதிசெய்யவும்.',
         },
@@ -4897,14 +5126,22 @@ export const translations = {
             'மின்னஞ்சல் இல்லையெனில் உங்கள் கணக்கு உடனடியாகச் செயல்படுத்தப்படும்.',
             'நீங்கள் சேர்க்கும் அனைத்துத் தயாரிப்புகளும் உடனடியாக இணையதளத்தில் வாடிக்கையாளர்களுக்குக் காண்பிக்கப்படும்.',
           ],
+<<<<<<< Updated upstream
           tip: 'மின்னஞ்சல் மூலம் கடவுச்சொல்லை மீட்டெடுக்க விரும்பினால் மின்னஞ்சலைச் சேர்க்கவும்.'
+=======
+          tip: 'கணக்கை அங்கீகரிக்கும் முன் அமைச்சு அடையாளப் படங்களை கைமுறையாக மதிப்பாய்வு செய்யும். காத்திருக்கும்போதே தயாரிப்புகளைச் சேர்க்கலாம்.',
+>>>>>>> Stashed changes
         },
         {
           title: 'உள்நுழைதல்',
           steps: [
             '{login} என்பதைக் கிளிக் செய்து {seller} என்பதைத் தேர்ந்தெடுக்கவும்.',
+<<<<<<< Updated upstream
             'உங்கள் தொலைபேசி எண் மற்றும் கடவுச்சொல்லை உள்ளிடுங்கள்.',
             'பழைய கணக்குகளுக்கு மின்னஞ்சல் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தலாம்.',
+=======
+            'பதிவு செய்த மின்னஞ்சல் மற்றும் கடவுச்சொல்லை உள்ளிட்டு உள்நுழையவும். கடவுச்சொல் மறந்துவிட்டால், "Forgot password?" என்பதைத் தேர்ந்தெடுத்து மின்னஞ்சலுக்கு வரும் குறியீட்டைப் பயன்படுத்தி மீட்டமைக்கவும். உங்கள் டாஷ்போர்டு திறக்கும்.',
+>>>>>>> Stashed changes
           ],
         },
         {
@@ -5359,6 +5596,18 @@ export const translations = {
       newCount: '{count} புதியவை',
       loadError: 'ஆர்டர்களை ஏற்ற முடியவில்லை.',
       updateError: 'ஆர்டரைப் புதுப்பிக்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
+      tracking: 'விநியோக விவரங்கள்',
+      carrier: 'கூரியர் சேவை',
+      trackingNumber: 'கண்காணிப்பு எண்',
+      trackingLink: 'கண்காணிப்பு இணைப்பு',
+      estimatedDelivery: 'எதிர்பார்க்கப்படும் விநியோகம்',
+      openTracking: 'கூரியர் கண்காணிப்புப் பக்கத்தைத் திற',
+      trackingNote: 'இந்த விவரங்களை விற்பனையாளர் உள்ளிடுகிறார். நேரடி விநியோகப் புதுப்பிப்புகள் கிடைத்தால், அவை கூரியர் சேவையிலிருந்து வரும்.',
+      shipmentDetails: 'அனுப்புதல் விவரங்களைச் சேர்க்கவும்',
+      saveTracking: 'அனுப்பியதை உறுதிசெய்து சேமிக்கவும்',
+      cancelEdit: 'ரத்துசெய்',
+      editTracking: 'கண்காணிப்பு விவரங்களைத் திருத்து',
+      invalidTrackingUrl: 'கண்காணிப்பு இணைப்பு தவறானது. http:// அல்லது https:// என்று தொடங்கும் இணைப்பை உள்ளிடவும்.',
       retry: 'மீண்டும் முயற்சி',
     },
     profilePhoto: {
@@ -5756,6 +6005,13 @@ export const translations = {
       forOrder: 'ஆர்டர் {reference}',
       response: 'அமைச்சின் பதில்',
       waiting: 'அமைச்சு மதிப்பாய்வு செய்யக் காத்திருக்கிறது.',
+      timelineTitle: 'புகார் புதுப்பிப்புகள்',
+      timeline: {
+        OPEN: 'புகார் பெறப்பட்டது',
+        IN_REVIEW: 'அமைச்சு மதிப்பாய்வைத் தொடங்கியது',
+        RESOLVED: 'புகார் தீர்க்கப்பட்டது',
+        DISMISSED: 'புகார் மூடப்பட்டது',
+      },
       loadError: 'உங்கள் புகார்களை ஏற்ற முடியவில்லை.',
       retry: 'மீண்டும் முயற்சி',
       admin: {
@@ -5857,6 +6113,7 @@ export const translations = {
         error: 'தயாரிப்பைச் சேர்க்க முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',
       },
       pendingNote: 'உங்கள் கணக்கு அமைச்சின் ஒப்புதலுக்காகக் காத்திருக்கிறது. அங்கீகரிக்கப்பட்டவுடன் உங்கள் தயாரிப்புகள் இணையதளத்தில் தோன்றும்.',
+      identityPendingNote: 'உங்கள் NIC படங்களும் செல்ஃபியும் அடையாள மதிப்பாய்வுக்காகக் காத்திருக்கின்றன. முடிவு எடுக்கப்பட்ட பிறகு அவை நீக்கப்படும்.',
       rejectedNote: 'உங்கள் விற்பனையாளர் கணக்கு அங்கீகரிக்கப்படவில்லை, எனவே உங்கள் தயாரிப்புகள் இணையதளத்தில் காட்டப்படவில்லை. உதவிக்கு அமைச்சைத் தொடர்புகொள்ளவும்.',
     },
     sellerWorkspace: {
@@ -6028,6 +6285,24 @@ export const translations = {
         NIC_TAKEN: 'இந்த NIC எண் ஏற்கனவே நிர்வாகி கணக்கிற்கு ஒதுக்கப்பட்டுள்ளது.',
       },
       sellerFilters: { PENDING: 'நிலுவையில்', APPROVED: 'அங்கீகரிக்கப்பட்டவை', REJECTED: 'நிராகரிக்கப்பட்டவை', ALL: 'அனைத்தும்' },
+      identityReviewPending: 'அடையாள மதிப்பாய்வு நிலுவையில்',
+      identityReviewApproved: 'அடையாளம் மதிப்பாய்வு செய்து அங்கீகரிக்கப்பட்டது',
+      identityReviewRejected: 'அடையாள மதிப்பாய்வு நிராகரிக்கப்பட்டது',
+      identityReviewNotRequired: 'பழைய கணக்கு — படங்கள் தேவையில்லை',
+      viewIdentityDocuments: 'அடையாளப் படங்களை மதிப்பாய்வு செய்',
+      hideIdentityDocuments: 'அடையாளப் படங்களை மறை',
+      identityFrontLabel: 'NIC முன்பக்கம்',
+      identityBackLabel: 'NIC பின்பக்கம்',
+      identitySelfieLabel: 'செல்ஃபி',
+      approveIdentity: 'அடையாளத்தை அங்கீகரி',
+      rejectIdentity: 'அடையாளத்தை நிராகரி',
+      identityReviewLoading: 'அடையாளப் படங்கள் ஏற்றப்படுகின்றன...',
+      identityImagesDeleted: 'அடையாள மதிப்பாய்வு முடிவுக்குப் பிறகு இந்தப் படங்கள் நீக்கப்படும்.',
+      identityReviewLoadError: 'அடையாளப் படங்களை ஏற்ற முடியவில்லை.',
+      identityReviewActionError: 'அடையாள மதிப்பாய்வைச் சேமிக்க முடியவில்லை.',
+      identityReviewApprovedMessage: 'அடையாளம் அங்கீகரிக்கப்பட்டது. விற்பனையாளர் விண்ணப்பத்தைத் தொடர்ந்து மதிப்பாய்வு செய்யவும்.',
+      identityReviewRejectedMessage: 'அடையாளம் நிராகரிக்கப்பட்டது; விற்பனையாளர் விண்ணப்பமும் நிராகரிக்கப்பட்டது.',
+      identityMustBeReviewed: 'இந்த விற்பனையாளரை அங்கீகரிப்பதற்கு முன் அடையாளப் படங்களை மதிப்பாய்வு செய்யவும்.',
       productFilters: { all: 'அனைத்தும்', onSite: 'இணையதளத்தில்', waiting: 'விற்பனையாளர் அங்கீகரிக்கப்படவில்லை', hidden: 'நிர்வாகியால் மறைக்கப்பட்டது' },
       searchSellers: 'பெயர், மின்னஞ்சல், NIC, தொலைபேசி அல்லது மாவட்டம் மூலம் தேடுங்கள்...',
       searchCustomers: 'பெயர், மின்னஞ்சல் அல்லது தொலைபேசி மூலம் தேடுங்கள்...',
