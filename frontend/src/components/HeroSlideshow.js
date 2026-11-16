@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import Image from 'next/image';
-import { ChevronLeft, ChevronRight, Pause } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 // Slideshow component with individual per-slide timings, progress bar, pause on hover, and slide controls
 export default function HeroSlideshow({
@@ -109,13 +109,6 @@ export default function HeroSlideshow({
         </div>
       )}
 
-      {/* Slideshow Pause badge on hover */}
-      {rotate && count > 1 && isPaused && (
-        <div className="absolute top-3 left-3 z-30 flex items-center gap-1.5 rounded-full bg-black/60 backdrop-blur-md px-2.5 py-1 text-[11px] font-semibold text-white shadow animate-fade-in">
-          <Pause className="h-3 w-3 text-saffron" />
-          <span>Paused</span>
-        </div>
-      )}
 
       {/* Prev / Next navigation arrows (visible on hover or desktop) */}
       {rotate && count > 1 && showArrows && (
