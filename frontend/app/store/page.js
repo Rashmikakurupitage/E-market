@@ -439,6 +439,43 @@ export default function StorePage() {
   );
   const sellerCount = useMemo(() => new Set(products.map((p) => p.sellerId || getSeller(p).businessName)).size, [products]);
 
+  const searchSuggestions = useMemo(() => {
+    const suggestionMap = new Map();
+    products.forEach((product) => {
+      const seller = getSeller(product);
+      [
+        product.title,
+        product.category,
+        seller.businessName,
+        seller.district,
+        ...(Array.isArray(product.tags) ? product.tags : []),
+      ].forEach((value) => {
+        if (!value || typeof value !== 'string') return;
+        const key = value.trim().toLowerCase();
+        if (!key) return;
+        suggestionMap.set(key, (suggestionMap.get(key) || 0) + 1);
+      });
+    });
+    return [...suggestionMap.entries()]
+      .filter(([key]) => key.length > 2)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 6)
+      .map(([key]) => key);
+  }, [products]);
+
+  const activeFilters = useMemo(() => {
+    const entries = [];
+    if (query.trim()) entries.push({ key: 'query', label: `Search: “${query.trim()}”`, onRemove: () => setQuery('') });
+    if (category !== 'all') entries.push({ key: 'category', label: `Category: ${t.categories[category] || category}`, onRemove: () => setCategory('all') });
+    if (district !== 'all') entries.push({ key: 'district', label: `District: ${district}`, onRemove: () => setDistrict('all') });
+    if (minPrice || maxPrice) {
+      const priceLabel = [minPrice ? `LKR ${minPrice}` : 'Any', maxPrice ? `to LKR ${maxPrice}` : 'and up']
+        .join(' ');
+      entries.push({ key: 'price', label: `Price: ${priceLabel}`, onRemove: () => { setMinPrice(''); setMaxPrice(''); } });
+    }
+    return entries;
+  }, [category, district, maxPrice, minPrice, query, t.categories]);
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     const min = minPrice === '' ? null : Number(minPrice);
@@ -469,6 +506,8 @@ export default function StorePage() {
     setMinPrice('');
     setMaxPrice('');
   };
+
+  const activeFilterCount = activeFilters.length;
 
   const stats = [
     { value: products.length, label: s.statProducts },
@@ -615,9 +654,16 @@ export default function StorePage() {
           {/* Products */}
           <section aria-live="polite" className="min-w-0">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-semibold text-ink/60">
-                {status === 'loading' ? '…' : fill(s.showing, { count: visible.length })}
-              </p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <p className="text-sm font-semibold text-ink/60">
+                  {status === 'loading' ? '…' : fill(s.showing, { count: visible.length })}
+                </p>
+                {activeFilterCount > 0 && (
+                  <span className="inline-flex items-center rounded-full bg-magenta/10 px-2.5 py-1 text-[11px] font-bold text-magenta ring-1 ring-magenta/15">
+                    {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
+                  </span>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => setShowFilters((open) => !open)}
@@ -628,6 +674,38 @@ export default function StorePage() {
                 {s.filters}
               </button>
             </div>
+
+            {activeFilterCount > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {activeFilters.map((filter) => (
+                  <button
+                    key={filter.key}
+                    type="button"
+                    onClick={filter.onRemove}
+                    className="inline-flex items-center gap-2 rounded-full border border-ink/10 bg-white px-3 py-1.5 text-xs font-semibold text-ink/80 shadow-sm transition-colors hover:border-magenta hover:text-magenta"
+                  >
+                    <span>{filter.label}</span>
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {!query && searchSuggestions.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                <span className="mr-1 text-xs font-semibold uppercase tracking-wider text-ink/40">Popular:</span>
+                {searchSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion}
+                    type="button"
+                    onClick={() => setQuery(suggestion)}
+                    className="rounded-full border border-ink/10 bg-white px-3 py-1.5 text-xs font-semibold text-ink/70 transition-colors hover:border-magenta hover:text-magenta"
+                  >
+                    {suggestion}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {status === 'examples' && (
               <p className="mt-4 flex items-start gap-2.5 rounded-[20px] bg-turmeric/20 px-4 py-3 text-sm text-ink ring-1 ring-turmeric/40">
