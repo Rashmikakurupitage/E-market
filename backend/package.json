@@ -13,6 +13,9 @@
       "src",
       ".env"
     ],
+    "ignore": [
+      "src/generated/**"
+    ],
     "ext": "js,json,env",
     "delay": 500
   },

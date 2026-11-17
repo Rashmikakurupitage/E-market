@@ -387,11 +387,20 @@ export const translations = {
       firstName: 'මුල් නම',
       lastName: 'අවසන් නම',
       email: 'විද්‍යුත් තැපෑල',
+<<<<<<< HEAD
       emailOptionalLabel: 'විද්‍යුත් තැපෑල (විකල්ප)',
       emailOptionalHint: 'Email විකල්පයකි. ලබා දුන්නොත් මුරපදය නැවත ලබාගැනීමට භාවිත කිරීමට එය තහවුරු කරන්න. Email නැතිනම් දුරකථන අංකය සහ මුරපදය භාවිතයෙන් පිවිසෙන්න; මාර්ගගතව මුරපදය නැවත සැකසිය නොහැක.',
       loginInfo: 'ලියාපදිංචි වීමට ඔබේ දුරකථන අංකය භාවිත කරන්න. Email ලිපිනයක් ලබා දීම විකල්පයකි; එය ගිණුම නැවත ලබාගැනීමට උපකාරී වේ.',
+=======
+      emailOrPhone: 'විද්‍යුත් තැපෑල හෝ දුරකථන අංකය',
+      loginInfo: 'ඊළඟ වතාවේ ඔබේ email හෝ දුරකථන අංකය සහ මුරපදය සමඟ log වන්න. ඔබගේ ගිණුම සෑදීමෙන් පසුව ඕනෑම වේලාවක පිවිසිය හැක.',
+      optional: 'විකල්ප',
+      emailOptionalHint: 'විකල්පයි — ඔබට email නොමැති නම් හිස්ව තබා දුරකථන අංකයෙන් පිවිසිය හැක.',
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       showPassword: 'මුරපදය පෙන්වන්න',
       verifyNow: 'දැන් තහවුරු කරන්න',
+      emailOptionalNote: 'විද්‍යුත් තැපෑල තහවුරු කිරීම විකල්ප වේ (අත්‍යවශ්‍ය නොවේ). ඔබට දැන්ම ගිණුම භාවිත කළ හැක.',
+      verifyEmailOptional: 'Email එක තහවුරු කරන්න (විකල්ප)',
       passwordRule: 'අවම වශයෙන් අක්ෂර 8ක්, ඉංග්‍රීසි කැපිටල් අකුරක් සහ ඉලක්කමක් හෝ සංකේතයක් අවශ්‍යයි.',
       hidePassword: 'මුරපදය සඟවන්න',
       haveAccount: 'දැනටමත් ලියාපදිංචි වී සිටිනවාද?',
@@ -550,11 +559,18 @@ export const translations = {
         'පිවිසීමට ඔබන්න',
         'ඔබේ ගිණුම විවෘත කරන්න',
       ],
+<<<<<<< HEAD
       phoneOrEmail: 'දුරකථන අංකය හෝ Email',
       phoneOrEmailPlaceholder: 'දුරකථන අංකය (පැරණි ගිණුම් සඳහා Email)',
       password: 'මුරපදය',
+=======
+      email: 'විද්‍යුත් තැපෑල',
+      emailOrPhone: 'විද්‍යුත් තැපෑල හෝ දුරකථන අංකය',
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       showPassword: 'මුරපදය පෙන්වන්න',
       verifyNow: 'දැන් තහවුරු කරන්න',
+      emailOptionalNote: 'විද්‍යුත් තැපෑල තහවුරු කිරීම විකල්ප වේ (අත්‍යවශ්‍ය නොවේ). ඔබට දැන්ම ගිණුම භාවිත කළ හැක.',
+      verifyEmailOptional: 'Email එක තහවුරු කරන්න (විකල්ප)',
       passwordRule: 'අවම වශයෙන් අක්ෂර 8ක්, ඉංග්‍රීසි කැපිටල් අකුරක් සහ ඉලක්කමක් හෝ සංකේතයක් අවශ්‍යයි.',
       hidePassword: 'මුරපදය සඟවන්න',
       nic: 'ජාතික හැඳුනුම්පත් අංකය (NIC)',
@@ -575,7 +591,11 @@ export const translations = {
       registerLink: 'ව්‍යවසායිකාවක් ලෙස ලියාපදිංචි වන්න',
       nicAlreadyRegistered: 'මෙම NIC අංකය දැනටමත් ලියාපදිංචි වී ඇත. එම ගිණුමට අදාළ email සහ මුරපදය භාවිතයෙන් පිවිසෙන්න. මුරපදය අමතක නම් “මුරපදය අමතකද?” තෝරන්න.',
       errors: {
+<<<<<<< HEAD
         INVALID_CREDENTIALS: 'දුරකථන අංකය/Email හෝ මුරපදය වැරදියි.',
+=======
+        INVALID_CREDENTIALS: 'විද්‍යුත් තැපෑල, දුරකථන අංකය හෝ මුරපදය වැරදියි.',
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
         EMAIL_NOT_VERIFIED: 'ඔබේ email එක තවම තහවුරු කර නැත.',
         ACCOUNT_REMOVED: 'මෙම ව්‍යවසායිකා ගිණුම ඉවත් කර ඇත. තොරතුරු සඳහා අමාත්‍යාංශය අමතන්න.',
         MISSING_DETAILS: 'Email සහ NIC අංකය ඇතුළත් කරන්න.',
@@ -1404,6 +1424,8 @@ export const translations = {
 
     verify: {
       title: 'ඔබේ email එක තහවුරු කරන්න',
+      optionalBadge: 'විකල්ප (අත්‍යවශ්‍ය නොවේ)',
+      skipButton: 'දැනට මඟහැර ඉදිරියට යන්න',
       subtitle: 'ඔබේ ගිණුම ආරම්භ කිරීමට email එකට යවන කේතය ඇතුළත් කරන්න.',
       stepsTitle: 'පියවර',
       steps: ['ලියාපදිංචි වීමේ තොරතුරු පුරවන්න', 'ඔබේ email එකට ලැබෙන ඉලක්කම් 6ක කේතය ඇතුළත් කරන්න', 'ඔබේ ගිණුම සෘජුවම අනුමත වී ක්‍රියාත්මක වේ'],
@@ -1906,6 +1928,7 @@ export const translations = {
       loginTitle: 'පරිපාලක පිවිසුම',
       loginSubtitle: 'අමාත්‍යාංශ කාර්ය මණ්ඩලය සඳහා පමණි.',
       email: 'විද්‍යුත් තැපෑල',
+      emailOrPhone: 'විද්‍යුත් තැපෑල හෝ දුරකථන අංකය',
       loginNicHint: 'ලියාපදිංචි වීමේදී භාවිත කළ NIC අංකය',
       loginErrors: {
         ADMIN_NOT_FOUND: 'මෙම email සහ NIC අංකයට ගැළපෙන පරිපාලක ගිණුමක් නොමැත.',
@@ -2459,9 +2482,17 @@ export const translations = {
       firstName: 'First name',
       lastName: 'Last name',
       email: 'Email',
+<<<<<<< HEAD
       emailOptionalLabel: 'Email (optional)',
       emailOptionalHint: 'Email is optional. If provided, verify it to use email-based password recovery. Without email, sign in with your phone number and password; online password reset is unavailable.',
       loginInfo: 'Use your phone number to register and log in with your password. Email is optional; adding one can help you recover your account.',
+=======
+      loginInfo: 'Next time, log in with your email or phone number and password. You can sign in anytime after creating your account.',
+      optional: 'Optional',
+      emailOptionalHint: 'Optional — leave blank if you prefer to sign in with your phone number.',
+      emailOptionalNote: 'Email verification is optional — your account works immediately without verifying.',
+      verifyEmailOptional: 'Verify email now (Optional)',
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       showPassword: 'Show password',
       verifyNow: 'Verify now',
       passwordRule: 'At least 8 characters, one capital letter, and one number or symbol.',
@@ -2617,6 +2648,7 @@ export const translations = {
       title: 'Seller Login',
       subtitle: 'Log in with your phone number and password. Existing accounts can also use their email address.',
       welcome: 'Welcome back',
+      emailOrPhone: 'Email or Phone number',
       steps: [
         'Enter your phone number and password',
         'Select Log in',
@@ -2647,7 +2679,11 @@ export const translations = {
       registerLink: 'Register as a seller',
       nicAlreadyRegistered: 'This NIC is already registered. Log in with the email and password for that seller account. If you forgot the password, use the “Forgot password?” link.',
       errors: {
+<<<<<<< HEAD
         INVALID_CREDENTIALS: 'The phone number/email or password is incorrect.',
+=======
+        INVALID_CREDENTIALS: 'The email, phone number, or password is incorrect.',
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
         EMAIL_NOT_VERIFIED: 'Your email has not been verified yet.',
         ACCOUNT_REMOVED: 'This seller account has been removed. Please contact the Ministry for details.',
         MISSING_DETAILS: 'Enter your phone number and password.',
@@ -3477,6 +3513,8 @@ export const translations = {
 
     verify: {
       title: 'Verify your email',
+      optionalBadge: 'Optional',
+      skipButton: 'Skip for now & continue',
       subtitle: 'Enter the code we emailed you to activate your account.',
       stepsTitle: 'Steps',
       steps: ['Fill in the registration form', 'Type the 6-digit code sent to your email', 'Your account is approved and ready to use'],
@@ -4532,9 +4570,17 @@ export const translations = {
       firstName: 'முதல் பெயர்',
       lastName: 'கடைசிப் பெயர்',
       email: 'மின்னஞ்சல்',
+<<<<<<< HEAD
       emailOptionalLabel: 'மின்னஞ்சல் (விருப்பமானது)',
       emailOptionalHint: 'மின்னஞ்சல் விருப்பமானது. வழங்கினால், கடவுச்சொல்லை மீட்டெடுக்க அதைப் பயன்படுத்த அதை உறுதிப்படுத்த வேண்டும். மின்னஞ்சல் இல்லையெனில் தொலைபேசி எண் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தி உள்நுழையுங்கள்; இணையத்தில் கடவுச்சொல்லை மீட்டமைக்க முடியாது.',
       loginInfo: 'பதிவு செய்யவும் உள்நுழையவும் உங்கள் தொலைபேசி எண்ணைப் பயன்படுத்துங்கள். மின்னஞ்சல் விருப்பமானது; கணக்கை மீட்டெடுக்க உதவும்.',
+=======
+      loginInfo: 'அடுத்த முறை உங்கள் மின்னஞ்சல் அல்லது தொலைபேசி எண் மற்றும் கடவுச்சொல்லுடன் உள்நுழையுங்கள். கணக்கை உருவாக்கிய பின் எந்த நேரமும் உள்நுழையலாம்.',
+      optional: 'விருப்பம்',
+      emailOptionalHint: 'விருப்பமானது — மின்னஞ்சல் இல்லையென்றால் தொலைபேசி எண்ணால் உள்நுழையலாம்.',
+      emailOptionalNote: 'மின்னஞ்சல் உறுதிப்படுத்தல் விருப்பத்தேர்வானது (கட்டாயமில்லை). உங்கள் கணக்கு உடனே செயல்படும்.',
+      verifyEmailOptional: 'மின்னஞ்சலை உறுதிப்படுத்துங்கள் (விருப்பம்)',
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       showPassword: 'கடவுச்சொல்லைக் காட்டு',
       verifyNow: 'இப்போது உறுதிப்படுத்துங்கள்',
       passwordRule: 'குறைந்தது 8 எழுத்துகள், ஒரு பெரிய எழுத்து, மற்றும் ஒரு எண் அல்லது குறியீடு தேவை.',
@@ -4705,6 +4751,7 @@ export const translations = {
       nic: 'தேசிய அடையாள அட்டை எண் (NIC)',
       nicHint: 'பதிவின்போது பயன்படுத்திய NIC எண்',
       sendCode: 'உள்நுழைவுக் குறியீட்டை அனுப்பு',
+      emailOrPhone: 'மின்னஞ்சல் அல்லது தொலைபேசி எண்',
       sending: 'குறியீடு அனுப்பப்படுகிறது...',
       codeSentTo: '6 இலக்கக் குறியீட்டை இதற்கு அனுப்பினோம்:',
       codeLabel: '6 இலக்கக் குறியீட்டை உள்ளிடவும்',
@@ -4720,7 +4767,11 @@ export const translations = {
       registerLink: 'விற்பனையாளராகப் பதிவு செய்க',
       nicAlreadyRegistered: 'இந்த NIC ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது. அந்த விற்பனையாளர் கணக்கின் மின்னஞ்சல் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தி உள்நுழையுங்கள். கடவுச்சொல் நினைவில் இல்லையெனில் “கடவுச்சொல்லை மறந்துவிட்டீர்களா?” என்பதைத் தேர்ந்தெடுக்கவும்.',
       errors: {
+<<<<<<< HEAD
         INVALID_CREDENTIALS: 'தொலைபேசி எண்/மின்னஞ்சல் அல்லது கடவுச்சொல் தவறானது.',
+=======
+        INVALID_CREDENTIALS: 'மின்னஞ்சல், தொலைபேசி எண் அல்லது கடவுச்சொல் தவறானது.',
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
         EMAIL_NOT_VERIFIED: 'உங்கள் மின்னஞ்சல் இன்னும் உறுதிப்படுத்தப்படவில்லை.',
         ACCOUNT_REMOVED: 'இந்த விற்பனையாளர் கணக்கு நீக்கப்பட்டுள்ளது. விவரங்களுக்கு அமைச்சைத் தொடர்பு கொள்ளவும்.',
         MISSING_DETAILS: 'தொலைபேசி எண் மற்றும் கடவுச்சொல்லை உள்ளிடவும்.',
@@ -5550,6 +5601,8 @@ export const translations = {
 
     verify: {
       title: 'உங்கள் மின்னஞ்சலை உறுதிப்படுத்துங்கள்',
+      optionalBadge: 'விருப்பத்தேர்வு (கட்டாயமில்லை)',
+      skipButton: 'இப்போது தவிர்த்துத் தொடரவும்',
       subtitle: 'உங்கள் கணக்கைச் செயல்படுத்த மின்னஞ்சலுக்கு அனுப்பிய குறியீட்டை உள்ளிடவும்.',
       stepsTitle: 'படிகள்',
       steps: ['பதிவுப் படிவத்தை நிரப்புங்கள்', 'மின்னஞ்சலுக்கு வரும் 6 இலக்கக் குறியீட்டை உள்ளிடுங்கள்', 'உங்கள் கணக்கு உடனடியாக அங்கீகரிக்கப்பட்டுப் பயன்பாட்டுக்குத் தயாராகும்'],

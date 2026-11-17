@@ -14,7 +14,6 @@ import { CATEGORIES, SAMPLE_PRODUCTS, getSeller, withSampleProducts } from '../s
 import ProductCard from '../src/components/ProductCard';
 import { useWallpapers } from '../src/lib/siteImage';
 import HeroSlideshow from '../src/components/HeroSlideshow';
-import HeroWallpapersGrid from '../src/components/HeroWallpapersGrid';
 import HomeImpact from '../src/components/HomeImpact';
 import WhatsAppIcon from '../src/components/WhatsAppIcon';
 import Reveal from '../src/components/Reveal';
@@ -516,11 +515,7 @@ export default function Home() {
             </div>
 
             <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[48px_160px_48px_160px] shadow-2xl shadow-slate-900/10 ring-8 ring-white sm:rounded-[48px_200px_48px_200px]">
-              {wallpapers.displayMode === 'grid' ? (
-                <HeroWallpapersGrid slides={wallpapers.slides} />
-              ) : (
-                <HeroSlideshow {...wallpapers} />
-              )}
+              <HeroSlideshow {...wallpapers} />
             </div>
           </div>
         </div>
@@ -933,7 +928,7 @@ export default function Home() {
         <section className="mx-auto w-full max-w-7xl px-4 pb-8 sm:px-6">
           <Reveal
             animation="zoom-in"
-            className="relative isolate overflow-hidden rounded-3xl bg-linear-to-r from-magenta-dark via-magenta to-[#751642] px-6 py-10 text-white shadow-xl sm:px-12 sm:py-14"
+            className="relative isolate overflow-hidden rounded-3xl bg-linear-to-r from-magenta-dark via-magenta to-brand-800 px-6 py-10 text-white shadow-xl sm:px-12 sm:py-14"
           >
             <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10 opacity-15" />
             <Lotus color="white" className="pointer-events-none absolute -bottom-3 left-[48%] -z-10 hidden w-44 opacity-20 lg:block" />

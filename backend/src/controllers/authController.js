@@ -110,6 +110,7 @@ const toPublicUser = (user) => ({
   email: user.email,
   phone: user.phone,
   role: user.role,
+  emailVerified: Boolean(user.emailVerifiedAt),
   profile: withoutNic(user.sellerProfile || user.customerProfile || user.adminProfile),
   // Changes whenever the profile photo changes (null = no photo), so browsers reload it
   photoVersion: user.profilePhoto ? user.profilePhoto.updatedAt.getTime() : null
@@ -165,16 +166,28 @@ exports.register = async (req, res) => {
     const profileLastName = capitalizeName(rawLastName);
     const customerFullName = [profileFirstName, profileLastName].filter(Boolean).join(' ') || (rawProvidedFullName ? capitalizeName(rawProvidedFullName) : 'Customer');
 
+<<<<<<< HEAD
     if (!phone) {
       return res.status(400).json({ code: 'INVALID_PHONE', message: 'Enter a valid Sri Lankan phone number.' });
+=======
+    const normalizedEmail = email ? String(email).trim() : null;
+
+    if (!phone) {
+      return res.status(400).json({ message: 'Phone අංකය අවශ්‍ය වේ.' });
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
     }
 
     if (!SELF_SERVICE_ROLES.includes(role)) {
       return res.status(400).json({ message: 'අවලංගු ගිණුම් වර්ගයකි.' });
     }
 
+<<<<<<< HEAD
     if (email) {
       const emailProblem = await checkEmailAddress(email);
+=======
+    if (normalizedEmail) {
+      const emailProblem = await checkEmailAddress(normalizedEmail);
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       if (emailProblem) {
         return res.status(400).json({ ...emailProblem, message: 'The email address looks incorrect.' });
       }
@@ -258,6 +271,7 @@ exports.register = async (req, res) => {
     const sellerMessengerUrl = normalizeOptionalUrl(messengerUrl);
     const sellerFacebookUrl = normalizeOptionalUrl(facebookUrl);
 
+<<<<<<< HEAD
     // Email is optional; only require mail delivery when the registrant provides an address.
     if (email && !isEmailConfigured()) {
       return res.status(503).json({ code: 'SMTP_NOT_CONFIGURED', message: 'Email delivery is not configured on the server.' });
@@ -278,17 +292,35 @@ exports.register = async (req, res) => {
     if (existingUsers.some((existing) => existing.emailVerifiedAt || !existing.email)) {
       return res.status(400).json({ message: 'Email හෝ Phone අංකය දැනටමත් ලියාපදිංචි වී ඇත.' });
     }
+=======
+    // Email is optional; check duplicate phone (and email if provided)
+    const conflictConditions = [{ phone }];
+    if (normalizedEmail) {
+      conflictConditions.push({ email: { equals: normalizedEmail, mode: 'insensitive' } });
+    }
+    const existingUsers = await prisma.user.findMany({
+      where: { OR: conflictConditions },
+      select: { id: true }
+    });
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
     if (existingUsers.length > 0) {
-      await prisma.user.deleteMany({ where: { id: { in: existingUsers.map((existing) => existing.id) } } });
+      return res.status(400).json({ message: 'Email හෝ Phone අංකය දැනටමත් ලියාපදිංචි වී ඇත.' });
     }
 
     const nicData = role === 'SELLER' ? nicVault.protect(nicNumberInput) : null;
     if (nicData) {
+<<<<<<< HEAD
       const holder = await prisma.sellerProfile.findFirst({ where: { OR: [{ nicHash: nicData.nicHash }, { nicNumber: nicNumberInput }] }, select: { user: { select: { id: true, email: true, emailVerifiedAt: true } } } });
       if (holder && (holder.user.emailVerifiedAt || !holder.user.email)) {
+=======
+      const holder = await prisma.sellerProfile.findFirst({
+        where: { OR: [{ nicHash: nicData.nicHash }, { nicNumber: nicNumberInput }] },
+        select: { id: true }
+      });
+      if (holder) {
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
         return res.status(409).json({ code: 'NIC_TAKEN', message: 'This NIC number is already registered.' });
       }
-      if (holder) await prisma.user.delete({ where: { id: holder.user.id } }); // an unverified sign-up that used this NIC
     }
 
     const passwordHash = await bcrypt.hash(password, 10);
@@ -325,7 +357,7 @@ exports.register = async (req, res) => {
 
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         phone,
         passwordHash,
         role,
@@ -337,6 +369,7 @@ exports.register = async (req, res) => {
       include: { sellerProfile: true, customerProfile: true, profilePhoto: true }
     });
 
+<<<<<<< HEAD
     if (!email) {
       setSessionCookie(res, user);
       return res.status(201).json({
@@ -364,17 +397,44 @@ exports.register = async (req, res) => {
       // The mail server itself refused this recipient: the address does not exist
       if (mailError.rejected?.length || [550, 551, 553].includes(mailError.responseCode)) {
         return res.status(400).json({ code: 'EMAIL_INVALID', message: 'The email address looks incorrect.' });
+=======
+    // Email verification is optional: if an email was provided and SMTP is configured, send code best-effort
+    let emailSent = false;
+    let issued = null;
+    if (normalizedEmail && isEmailConfigured()) {
+      issued = otpStore.issue(verifyKey(user.id));
+      if (!issued.error) {
+        try {
+          const delivery = await sendLoginCode({
+            to: user.email,
+            businessName: user.sellerProfile ? [profileFirstName, profileLastName].filter(Boolean).join(' ') || user.sellerProfile.businessName : customerFullName,
+            code: issued.code,
+            minutes: issued.expiresInMinutes,
+            purpose: 'verify-email'
+          });
+          emailSent = delivery?.emailed !== false;
+        } catch (mailError) {
+          otpStore.discard(verifyKey(user.id));
+          console.warn('OPTIONAL_VERIFY_EMAIL_SEND_WARN:', mailError.message);
+        }
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       }
-      return res.status(502).json({ code: 'EMAIL_FAILED', message: 'The verification email could not be sent. Please try again later.' });
     }
 
+    setSessionCookie(res, user);
+
     res.status(201).json({
-      verificationRequired: true,
-      email: user.email,
-      sentTo: maskEmail(user.email),
-      expiresInMinutes: issued.expiresInMinutes,
-      resendAfterSeconds: issued.resendAfterSeconds,
-      ...(process.env.EMAIL_DEV_LOG_CODES === 'true' ? { devCode: issued.code } : {})
+      message: 'ලියාපදිංචි වීම සාර්ථකයි!',
+      verificationRequired: false,
+      emailVerificationOptional: true,
+      emailSent,
+      email: user.email || null,
+      sentTo: emailSent && user.email ? maskEmail(user.email) : null,
+      expiresInMinutes: issued?.expiresInMinutes || 10,
+      resendAfterSeconds: issued?.resendAfterSeconds || 60,
+      token: signToken(user),
+      user: toPublicUser(user),
+      ...(emailSent && process.env.EMAIL_DEV_LOG_CODES === 'true' && issued?.code ? { devCode: issued.code } : {})
     });
   } catch (error) {
     if (error.code === 'P2002') {
@@ -385,9 +445,30 @@ exports.register = async (req, res) => {
   }
 };
 
-// 2. User Login
+const phoneCandidates = (value) => {
+  const cleaned = String(value || '').replace(/[\s-]/g, '');
+  if (!cleaned) return [];
+  const candidates = new Set([cleaned]);
+  if (/^0\d{9}$/.test(cleaned)) {
+    const tail = cleaned.slice(1);
+    candidates.add('+94' + tail);
+    candidates.add('94' + tail);
+  } else if (/^\+94\d{9}$/.test(cleaned)) {
+    const tail = cleaned.slice(3);
+    candidates.add('0' + tail);
+    candidates.add('94' + tail);
+  } else if (/^94\d{9}$/.test(cleaned)) {
+    const tail = cleaned.slice(2);
+    candidates.add('0' + tail);
+    candidates.add('+94' + tail);
+  }
+  return Array.from(candidates);
+};
+
+// 2. User Login (supports Email or Phone Number + Password)
 exports.login = async (req, res) => {
   try {
+<<<<<<< HEAD
     const identifier = String(req.body.identifier || req.body.phone || req.body.email || '').trim();
     const password = req.body.password;
 
@@ -403,6 +484,22 @@ exports.login = async (req, res) => {
     }
     const user = await prisma.user.findFirst({
       where: { OR: accountFilters },
+=======
+    const identifier = String(req.body.email || req.body.identifier || req.body.phone || '').trim();
+    const { password } = req.body;
+
+    if (!identifier || !password) {
+      return res.status(400).json({ message: 'Email හෝ දුරකථන අංකය සහ Password ඇතුළත් කරන්න.' });
+    }
+
+    const variants = phoneCandidates(identifier);
+    const where = identifier.includes('@')
+      ? { email: { equals: identifier, mode: 'insensitive' } }
+      : { OR: [{ phone: { in: variants.length ? variants : [identifier] } }, { email: { equals: identifier, mode: 'insensitive' } }] };
+
+    const user = await prisma.user.findFirst({
+      where,
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       include: { sellerProfile: true, customerProfile: true, profilePhoto: { select: { updatedAt: true } } }
     });
 
@@ -416,10 +513,13 @@ exports.login = async (req, res) => {
       return res.status(400).json({ code: 'INVALID_CREDENTIALS', message: 'Phone/email or password is incorrect.' });
     }
 
+<<<<<<< HEAD
     if (user.email && !user.emailVerifiedAt) {
       return res.status(403).json({ code: 'EMAIL_NOT_VERIFIED', email: user.email, message: 'Please verify your email first.' });
     }
 
+=======
+>>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
     if (user.sellerProfile?.removedAt) {
       return res.status(403).json({ code: 'ACCOUNT_REMOVED', message: 'This seller account has been removed.' });
     }
@@ -444,6 +544,7 @@ exports.login = async (req, res) => {
 
 // Shows "su****@gmail.com" so the user knows where the code went
 const maskEmail = (email) => {
+  if (!email || !email.includes('@')) return null;
   const [name, domain] = email.split('@');
   return `${name.slice(0, 2)}${'*'.repeat(Math.max(name.length - 2, 2))}@${domain}`;
 };
@@ -467,19 +568,19 @@ const findByEmailAndNic = (role, profile) => (email, nicNumber) => {
 const LOGIN_TYPES = {
   seller: {
     find: findByEmailAndNic('SELLER', 'sellerProfile'),
-    displayName: (user) => user.sellerProfile.businessName,
+    displayName: (user) => user.sellerProfile?.businessName || user.email || 'Seller',
     notFound: { code: 'SELLER_NOT_FOUND', message: 'මෙම Email සහ NIC අංකයට ගැළපෙන ව්‍යවසායිකා ගිණුමක් නොමැත.' },
     sessionLength: '7d'
   },
   customer: {
     find: findByEmailAndNic('CUSTOMER', 'customerProfile'),
-    displayName: (user) => user.customerProfile.fullName,
+    displayName: (user) => user.customerProfile?.fullName || user.email || 'Customer',
     notFound: { code: 'CUSTOMER_NOT_FOUND', message: 'මෙම Email සහ NIC අංකයට ගැළපෙන පාරිභෝගික ගිණුමක් නොමැත.' },
     sessionLength: '7d'
   },
   admin: {
     find: findByEmailAndNic('SUPER_ADMIN', 'adminProfile'),
-    displayName: (user) => user.adminProfile.fullName,
+    displayName: (user) => user.adminProfile?.fullName || user.email || 'Admin',
     notFound: { code: 'ADMIN_NOT_FOUND', message: 'මෙම Email සහ NIC අංකයට ගැළපෙන පරිපාලක ගිණුමක් නොමැත.' },
     sessionLength: '8h' // admin sessions last one working day
   }
@@ -502,14 +603,6 @@ const requestLoginCode = (type) => async (req, res) => {
     const user = await type.find(email, nicNumber);
     if (!user) {
       return res.status(404).json(type.notFound);
-    }
-
-    if (!user.emailVerifiedAt) {
-      return res.status(403).json({
-        code: 'EMAIL_NOT_VERIFIED',
-        email: user.email,
-        message: 'Please verify your email first.'
-      });
     }
 
     if (!isEmailConfigured()) {
@@ -568,14 +661,6 @@ const verifyLoginCode = (type) => async (req, res) => {
     const user = await type.find(email, nicNumber);
     if (!user) {
       return res.status(404).json(type.notFound);
-    }
-
-    if (!user.emailVerifiedAt) {
-      return res.status(403).json({
-        code: 'EMAIL_NOT_VERIFIED',
-        email: user.email,
-        message: 'Please verify your email first.'
-      });
     }
 
     const result = otpStore.verify(user.id, code);
@@ -1015,7 +1100,7 @@ exports.requestEmailChangeCode = async (req, res) => {
     if (!user) {
       return res.status(401).json({ message: 'ගිණුම සොයාගත නොහැක. නැවත Log වන්න.' });
     }
-    if (newEmail.toLowerCase() === user.email.toLowerCase()) {
+    if (user.email && newEmail.toLowerCase() === user.email.toLowerCase()) {
       return res.status(400).json({ code: 'SAME_EMAIL', message: 'මෙය දැනටමත් ඔබේ email ලිපිනයයි.' });
     }
     const taken = await prisma.user.findFirst({

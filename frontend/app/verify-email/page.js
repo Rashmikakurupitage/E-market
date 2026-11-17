@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { CircleAlert, CircleCheck, LoaderCircle, MailCheck } from 'lucide-react';
 import API from '../../src/lib/api';
 import { fill, useLanguage } from '../../src/lib/i18n';
-import { homePathFor, safeNextPath, saveSession } from '../../src/lib/auth';
+import { homePathFor, safeNextPath, saveSession, useSession } from '../../src/lib/auth';
 import AuthPanel from '../../src/components/AuthPanel';
 import { Field, inputClass, primaryButtonClass } from '../../src/components/form';
 import { PageArt } from '../../src/components/Art';
@@ -17,6 +17,7 @@ function VerifyEmail() {
   const { t } = useLanguage();
   const v = t.verify;
   const router = useRouter();
+  const session = useSession();
   const params = useSearchParams();
   const email = (params.get('email') || '').trim();
   const as = params.get('as') === 'customer' ? 'customer' : 'seller';
@@ -77,7 +78,7 @@ function VerifyEmail() {
     setLoading(true);
     try {
       const res = await API.post('/auth/verify-email', { email, code: code.trim() });
-      saveSession(res.data.token, res.data.user);
+      saveSession(res.data.user);
       setDone(true);
       const target = res.data.user.role === 'CUSTOMER' ? next || homePathFor('CUSTOMER') : homePathFor(res.data.user.role);
       setTimeout(() => router.replace(target), 1800);
@@ -90,6 +91,9 @@ function VerifyEmail() {
   };
 
   const masked = email ? email.replace(/^(.{2})(.*)(@.*)$/, (m, a, b, c) => `${a}${'*'.repeat(Math.max(b.length, 2))}${c}`) : '';
+  const skipTarget = session?.user
+    ? (session.user.role === 'CUSTOMER' ? next || homePathFor('CUSTOMER') : homePathFor(session.user.role))
+    : (as === 'customer' ? `/login?as=customer${next ? `&next=${encodeURIComponent(next)}` : ''}` : '/login');
 
   return (
     <main className="relative isolate flex-1 px-3 py-6 sm:px-6 sm:py-14 w-full max-w-full overflow-x-hidden">
@@ -116,9 +120,12 @@ function VerifyEmail() {
           ) : (
             <form onSubmit={submit} noValidate className="space-y-5">
               <div>
-                <h2 className="flex items-center gap-2 text-2xl font-bold text-ink">
+                <h2 className="flex flex-wrap items-center gap-2 text-2xl font-bold text-ink">
                   <MailCheck className="h-6 w-6 text-magenta" />
-                  {v.formTitle}
+                  <span>{v.formTitle}</span>
+                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-600 ring-1 ring-slate-200">
+                    {v.optionalBadge || 'Optional'}
+                  </span>
                 </h2>
                 <p className="mt-1.5 text-sm text-ink/65">{fill(v.sentTo, { email: masked })}</p>
               </div>
@@ -154,6 +161,13 @@ function VerifyEmail() {
                 {loading ? <LoaderCircle className="h-4 w-4 animate-spin" /> : <MailCheck className="h-4 w-4" />}
                 {loading ? v.working : v.verify}
               </button>
+
+              <Link
+                href={skipTarget}
+                className="flex w-full items-center justify-center rounded-full border border-ink/15 bg-white py-3 text-sm font-semibold text-ink/75 transition-colors hover:border-ink/30 hover:text-ink"
+              >
+                {v.skipButton || 'Skip for now & continue'}
+              </Link>
 
               <button type="button" onClick={sendAgain} disabled={loading || wait > 0} className="w-full text-center text-sm font-semibold text-brand-700 hover:underline disabled:cursor-not-allowed disabled:opacity-60 disabled:no-underline">
                 {wait > 0 ? fill(v.resendIn, { seconds: wait }) : v.resend}
