@@ -23,9 +23,11 @@ export default function HomeImpact() {
     };
   }, []);
 
-  const sellersCount = stats?.sellers || 28;
-  const productsCount = stats?.products || 140;
-  const districtsCount = stats?.districts || 25;
+  if (!stats) return null;
+
+  const sellersCount = stats.sellers ?? 0;
+  const productsCount = stats.products ?? 0;
+  const districtsCount = stats.districts ?? 0;
 
   const numbers = [
     { icon: Users, value: sellersCount, label: h.sellers },

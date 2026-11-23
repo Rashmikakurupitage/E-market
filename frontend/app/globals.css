@@ -507,6 +507,13 @@ html {
   transform: none;
 }
 
+/* Search keeps its focus treatment on the surrounding brand-colored field, not the browser's blue inset. */
+.search-autocomplete-input:focus,
+.search-autocomplete-input:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
 /* Sideways animations and wide children must never cause a horizontal scrollbar */
 html,
 body {

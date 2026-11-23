@@ -10,10 +10,10 @@ import PriceTag, { DiscountBurst } from './DiscountBadge';
 import SellerStatusBadge from './SellerStatusBadge';
 import API from '../lib/api';
 import { fill, useLanguage } from '../lib/i18n';
-import { useHydrated, useSession } from '../lib/auth';
+import { useHydrated } from '../lib/auth';
 import { getSeller, messengerLink, toWhatsAppNumber, formatPhone, initials } from '../lib/catalog';
 import { profilePhotoUrl } from '../lib/profilePhoto';
-import CustomerGateModal from './CustomerGateModal';
+import { addRecentProduct } from '../lib/recentProducts';
 
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
 
@@ -28,20 +28,14 @@ export const trackWhatsAppClick = (product) => trackContactClick(product, 'WHATS
 export default function ProductCard({ product, onOpen }) {
   const { t } = useLanguage();
   const [imageFailed, setImageFailed] = useState(false);
-  const [showGate, setShowGate] = useState(false);
   const { canContact } = useCanContact();
   const router = useRouter();
-  const session = useSession();
   const hydrated = useHydrated();
 
-  // Opens this product in the Store or triggers onOpen callback. Visitors who are not registered
-  // see the CustomerGateModal prompt to register or log in.
+  // Product details are open to everyone; customer registration is only needed to contact a seller.
   const openInStore = () => {
     if (!hydrated) return;
-    if (!session) {
-      setShowGate(true);
-      return;
-    }
+    addRecentProduct(product.id);
     if (onOpen) {
       onOpen(product);
       return;
@@ -211,13 +205,6 @@ export default function ProductCard({ product, onOpen }) {
           </div>
         )}
       </article>
-      {showGate && (
-        <CustomerGateModal
-          isOpen={showGate}
-          onClose={() => setShowGate(false)}
-          product={product}
-        />
-      )}
     </>
   );
 }

@@ -595,11 +595,7 @@ function SellerRegisterForm({ onRegistered, onVerify, onNicTaken }) {
               className={inputClass(false)}
             />
           </Field>
-<<<<<<< HEAD
           <Field id="email" label={r.emailOptionalLabel || r.email} hint={r.emailOptionalHint} className="sm:col-span-2">
-=======
-          <Field id="email" label={`${r.email} (${r.optional || 'Optional'})`} hint={r.emailOptionalHint || 'Optional — leave blank if you prefer to sign in with your phone number.'} className="sm:col-span-2">
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
             <input id="email" name="email" type="email" autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
           </Field>
 
@@ -950,11 +946,7 @@ function CustomerRegisterForm({ onRegistered, onVerify }) {
             />
           </Field>
           <div className="sm:col-span-2">
-<<<<<<< HEAD
             <Field id="email" label={r.emailOptionalLabel || r.email} hint={r.emailOptionalHint}>
-=======
-            <Field id="email" label={`${r.email} (${r.optional || 'Optional'})`} hint={r.emailOptionalHint || 'Optional — leave blank if you prefer to sign in with your phone number.'}>
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
               <input id="email" name="email" type="email" autoComplete="email" value={formData.email} onChange={handleChange} className={inputClass(false)} placeholder="name@example.com" />
             </Field>
           </div>
@@ -1060,15 +1052,11 @@ function Register() {
               {type === 'customer' ? (
                 <CustomerRegisterForm onRegistered={(info) => setRegistered({ role: 'customer', ...info })} onVerify={goVerify} />
               ) : (
-<<<<<<< HEAD
                 <SellerRegisterForm
-                  onRegistered={() => setRegistered('seller')}
+                  onRegistered={(info) => setRegistered({ role: 'seller', ...info })}
                   onVerify={goVerify}
                   onNicTaken={() => router.push('/login?nicRegistered=1')}
                 />
-=======
-                <SellerRegisterForm onRegistered={(info) => setRegistered({ role: 'seller', ...info })} onVerify={goVerify} />
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
               )}
             </>
           )}

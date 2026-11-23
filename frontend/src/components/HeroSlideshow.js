@@ -90,8 +90,9 @@ export default function HeroSlideshow({
           unoptimized={slide.custom}
           sizes="(min-width: 1024px) 40vw, 90vw"
           aria-hidden={position !== current}
+          style={{ animationPlayState: isPaused ? 'paused' : 'running' }}
           className={`object-cover object-[50%_40%] transition-opacity duration-1000 ease-in-out ${
-            position === current ? 'opacity-100 scale-100' : 'opacity-0 scale-105 pointer-events-none'
+            position === current ? 'animate-ken-burns opacity-100' : 'opacity-0 scale-105 pointer-events-none'
           }`}
         />
       ))}

@@ -11,6 +11,7 @@ import { useLanguage, fill } from '../../src/lib/i18n';
 import { useSession, useHydrated } from '../../src/lib/auth';
 import { CATEGORIES, SAMPLE_PRODUCTS, getSeller, initials, messengerLink, whatsappOrderLink, withSampleProducts } from '../../src/lib/catalog';
 import ProductCard, { trackContactClick } from '../../src/components/ProductCard';
+import SearchAutocomplete from '../../src/components/SearchAutocomplete';
 import PriceTag from '../../src/components/DiscountBadge';
 import SellerStatusBadge from '../../src/components/SellerStatusBadge';
 import { useCanContact } from '../../src/components/ContactGate';
@@ -23,8 +24,8 @@ import { inputClass } from '../../src/components/form';
 import Portal from '../../src/components/Portal';
 import ProductReviews from '../../src/components/ProductReviews';
 import ReviewModal from '../../src/components/ReviewModal';
-import CustomerGateModal from '../../src/components/CustomerGateModal';
 import { profilePhotoUrl } from '../../src/lib/profilePhoto';
+import { addRecentProduct } from '../../src/lib/recentProducts';
 
 const FLAG_URL = 'https://upload.wikimedia.org/wikipedia/commons/1/11/Flag_of_Sri_Lanka.svg';
 
@@ -324,6 +325,19 @@ function QuickView({ product, onClose }) {
                 </a>
               )}
             </div>
+            {!canContact && !example && (
+              <div className="mt-4 rounded-2xl border border-brand-200/70 bg-brand-50/70 p-4 text-center">
+                <p className="text-sm font-semibold text-ink">{s.guestContactPrompt}</p>
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  <Link href="/register?as=customer" className="rounded-full bg-magenta px-4 py-2 text-xs font-bold text-white transition hover:bg-magenta-dark">
+                    {s.guestContactCta}
+                  </Link>
+                  <Link href="/login?as=customer" className="rounded-full border border-ink/15 bg-white px-4 py-2 text-xs font-semibold text-ink transition hover:border-magenta hover:text-magenta">
+                    {t.login}
+                  </Link>
+                </div>
+              </div>
+            )}
             {shareStatus && <p role="status" className="mt-2 text-center text-xs text-ink/65">{shareStatus}</p>}
             {!example && product.price !== null && product.price !== undefined && whatsapp && <p className="mt-3 text-center text-xs text-ink/50">{s.payNote}</p>}
           </div>
@@ -365,14 +379,9 @@ export default function StorePage() {
   const [sort, setSort] = useState('newest');
   const [showFilters, setShowFilters] = useState(false);
   const [selected, setSelected] = useState(null);
-  const [gateProduct, setGateProduct] = useState(null);
-
-  // Products open for registered users. Visitors see the CustomerGateModal prompt to register as a customer.
+  // Let visitors inspect products; registration is requested only when they want to contact a seller.
   const openProduct = (product) => {
-    if (!session) {
-      setGateProduct(product);
-      return;
-    }
+    addRecentProduct(product.id);
     setSelected(product);
   };
 
@@ -380,11 +389,6 @@ export default function StorePage() {
     setSelected(null);
     if (new URLSearchParams(window.location.search).has('product')) window.history.replaceState(null, '', window.location.pathname);
   }, []);
-
-  const closeGate = () => {
-    setGateProduct(null);
-    if (new URLSearchParams(window.location.search).has('product')) window.history.replaceState(null, '', window.location.pathname);
-  };
 
   useEffect(() => {
     let ignore = false;
@@ -429,8 +433,8 @@ export default function StorePage() {
     const found = products.find((item) => String(item.id) === id);
     if (!found) return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (session) setSelected(found);
-    else setGateProduct(found);
+    addRecentProduct(found.id);
+    setSelected(found);
   }, [hydrated, status, products, session]);
 
   const districts = useMemo(
@@ -490,7 +494,7 @@ export default function StorePage() {
         if (min !== null && (!hasPrice || price < min)) return false;
         if (max !== null && (!hasPrice || price > max)) return false;
         if (!q) return true;
-        return [product.title, product.description, product.category, seller.businessName, seller.district].some((v) =>
+        return [product.title, product.description, product.category, seller.businessName, seller.district, ...(Array.isArray(product.tags) ? product.tags : [])].some((v) =>
           String(v || '').toLowerCase().includes(q)
         );
       })
@@ -520,7 +524,7 @@ export default function StorePage() {
       <PageArt />
       <div className="mx-auto max-w-7xl">
         {/* Banner */}
-        <section className="relative isolate animate-zoom-in overflow-hidden rounded-[28px] sm:rounded-[40px] bg-ink px-4 py-8 text-white shadow-2xl shadow-ink/20 sm:px-10 sm:py-12">
+        <section className="relative z-20 isolate animate-zoom-in overflow-visible rounded-[28px] sm:rounded-[40px] bg-ink px-4 py-8 text-white shadow-2xl shadow-ink/20 sm:px-10 sm:py-12">
           <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 -z-10 h-72 w-72 rounded-full bg-magenta/50 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 left-1/4 -z-10 h-72 w-72 rounded-full bg-saffron/35 blur-3xl" />
           <DotGrid className="pointer-events-none absolute right-8 top-8 -z-10 hidden w-24 text-white/15 md:block" rows={4} cols={6} />
@@ -544,17 +548,18 @@ export default function StorePage() {
                   e.preventDefault();
                   document.getElementById('results')?.scrollIntoView({ behavior: 'smooth' });
                 }}
-                className="mt-6 sm:mt-7 flex max-w-xl flex-col xs:flex-row items-stretch xs:items-center gap-2 rounded-2xl xs:rounded-full bg-white/10 p-1.5 ring-1 ring-white/15 backdrop-blur transition-shadow focus-within:ring-2 focus-within:ring-turmeric/60"
+                className="relative z-40 mt-6 sm:mt-7 flex max-w-xl flex-col xs:flex-row items-stretch xs:items-center gap-2 rounded-2xl xs:rounded-full bg-white/10 p-1.5 ring-1 ring-white/15 backdrop-blur transition-shadow focus-within:ring-2 focus-within:ring-turmeric/60"
               >
-                <div className="flex flex-1 items-center gap-2 pl-2 sm:pl-3">
+                <div className="relative flex flex-1 items-center gap-2 pl-2 sm:pl-3">
                   <label htmlFor="store-search" className="sr-only">{t.searchBtn}</label>
                   <Search className="h-5 w-5 shrink-0 text-white/50" aria-hidden="true" />
-                  <input
+                  <SearchAutocomplete
                     id="store-search"
-                    type="search"
                     value={query}
-                    onChange={(e) => setQuery(e.target.value)}
+                    products={products}
+                    onChange={setQuery}
                     placeholder={t.searchPlaceholder}
+                    ariaLabel={t.searchPlaceholder}
                     className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm text-white placeholder:text-white/45 focus:outline-none sm:text-base"
                   />
                 </div>
@@ -787,13 +792,6 @@ export default function StorePage() {
       </div>
 
       {selected && <QuickView key={selected.id} product={selected} onClose={closeProduct} />}
-      {gateProduct && (
-        <CustomerGateModal
-          isOpen={Boolean(gateProduct)}
-          onClose={closeGate}
-          product={gateProduct}
-        />
-      )}
     </main>
   );
 }

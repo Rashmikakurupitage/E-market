@@ -387,16 +387,10 @@ export const translations = {
       firstName: 'මුල් නම',
       lastName: 'අවසන් නම',
       email: 'විද්‍යුත් තැපෑල',
-<<<<<<< HEAD
       emailOptionalLabel: 'විද්‍යුත් තැපෑල (විකල්ප)',
       emailOptionalHint: 'Email විකල්පයකි. ලබා දුන්නොත් මුරපදය නැවත ලබාගැනීමට භාවිත කිරීමට එය තහවුරු කරන්න. Email නැතිනම් දුරකථන අංකය සහ මුරපදය භාවිතයෙන් පිවිසෙන්න; මාර්ගගතව මුරපදය නැවත සැකසිය නොහැක.',
       loginInfo: 'ලියාපදිංචි වීමට ඔබේ දුරකථන අංකය භාවිත කරන්න. Email ලිපිනයක් ලබා දීම විකල්පයකි; එය ගිණුම නැවත ලබාගැනීමට උපකාරී වේ.',
-=======
-      emailOrPhone: 'විද්‍යුත් තැපෑල හෝ දුරකථන අංකය',
-      loginInfo: 'ඊළඟ වතාවේ ඔබේ email හෝ දුරකථන අංකය සහ මුරපදය සමඟ log වන්න. ඔබගේ ගිණුම සෑදීමෙන් පසුව ඕනෑම වේලාවක පිවිසිය හැක.',
       optional: 'විකල්ප',
-      emailOptionalHint: 'විකල්පයි — ඔබට email නොමැති නම් හිස්ව තබා දුරකථන අංකයෙන් පිවිසිය හැක.',
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       showPassword: 'මුරපදය පෙන්වන්න',
       verifyNow: 'දැන් තහවුරු කරන්න',
       emailOptionalNote: 'විද්‍යුත් තැපෑල තහවුරු කිරීම විකල්ප වේ (අත්‍යවශ්‍ය නොවේ). ඔබට දැන්ම ගිණුම භාවිත කළ හැක.',
@@ -559,14 +553,11 @@ export const translations = {
         'පිවිසීමට ඔබන්න',
         'ඔබේ ගිණුම විවෘත කරන්න',
       ],
-<<<<<<< HEAD
       phoneOrEmail: 'දුරකථන අංකය හෝ Email',
       phoneOrEmailPlaceholder: 'දුරකථන අංකය (පැරණි ගිණුම් සඳහා Email)',
       password: 'මුරපදය',
-=======
       email: 'විද්‍යුත් තැපෑල',
       emailOrPhone: 'විද්‍යුත් තැපෑල හෝ දුරකථන අංකය',
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       showPassword: 'මුරපදය පෙන්වන්න',
       verifyNow: 'දැන් තහවුරු කරන්න',
       emailOptionalNote: 'විද්‍යුත් තැපෑල තහවුරු කිරීම විකල්ප වේ (අත්‍යවශ්‍ය නොවේ). ඔබට දැන්ම ගිණුම භාවිත කළ හැක.',
@@ -591,11 +582,7 @@ export const translations = {
       registerLink: 'ව්‍යවසායිකාවක් ලෙස ලියාපදිංචි වන්න',
       nicAlreadyRegistered: 'මෙම NIC අංකය දැනටමත් ලියාපදිංචි වී ඇත. එම ගිණුමට අදාළ email සහ මුරපදය භාවිතයෙන් පිවිසෙන්න. මුරපදය අමතක නම් “මුරපදය අමතකද?” තෝරන්න.',
       errors: {
-<<<<<<< HEAD
-        INVALID_CREDENTIALS: 'දුරකථන අංකය/Email හෝ මුරපදය වැරදියි.',
-=======
         INVALID_CREDENTIALS: 'විද්‍යුත් තැපෑල, දුරකථන අංකය හෝ මුරපදය වැරදියි.',
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
         EMAIL_NOT_VERIFIED: 'ඔබේ email එක තවම තහවුරු කර නැත.',
         ACCOUNT_REMOVED: 'මෙම ව්‍යවසායිකා ගිණුම ඉවත් කර ඇත. තොරතුරු සඳහා අමාත්‍යාංශය අමතන්න.',
         MISSING_DETAILS: 'Email සහ NIC අංකය ඇතුළත් කරන්න.',
@@ -1021,6 +1008,13 @@ export const translations = {
       heroCtaShop: 'වෙළඳසැල බලන්න',
       heroCtaSell: 'ව්‍යවසායිකාවක් ලෙස එක්වන්න',
       searchAllCategories: 'සියලු කාණ්ඩ',
+      makerVideoPlay: 'වීඩියෝව වාදනය කරන්න',
+      makerVideoPause: 'වීඩියෝව නවත්වන්න',
+      makerVideoNext: 'ඊළඟ කාණ්ඩයේ වීඩියෝව',
+      makerVideoMuted: 'නිහඬ වීඩියෝව',
+      recentlyViewedEyebrow: 'ඔබ මෑතකදී නැරඹූ දේ',
+      recentlyViewedTitle: 'නැවත බලන්න කැමතිද?',
+      recentlyViewedSub: 'ඔබ බැලූ නිෂ්පාදන මෙතැනින් පහසුවෙන් නැවත සොයාගන්න.',
       dealsTitle: 'විශේෂ දීමනා සහ වට්ටම්',
       dealsSub: 'තහවුරු කළ කාන්තා ව්‍යවසායිකාවන්ගෙන් සීමිත කාලයක් සඳහා සෘජු වට්ටම්',
       dealsBadge: 'විශේෂ දීමනා',
@@ -1075,6 +1069,7 @@ export const translations = {
         { label: 'දිවයින පුරා බෙදාහැරීම', sub: 'ඔබේ නිවසටම ආරක්ෂිතව භාණ්ඩ ප්‍රවාහනය' },
         { label: 'දිස්ත්‍රික්ක 25ම ආවරණය', sub: 'ග්‍රාමීය ව්‍යවසායිකාවන් සෘජුවම වෙළඳපොළට' },
       ],
+      quickSearchLabel: 'ජනප්‍රිය සෙවීම්',
       quickTags: [
         { label: 'වේවැල් සහ බට භාණ්ඩ', query: 'වේවැල්' },
         { label: 'බතික් සාරි', query: 'බතික්' },
@@ -1176,6 +1171,8 @@ export const translations = {
       inCart: 'කරත්තයේ {qty}',
       details: 'විස්තර බලන්න',
       shareProduct: 'නිෂ්පාදනය බෙදාගන්න',
+      guestContactPrompt: 'ව්‍යවසායිකාව සම්බන්ධ කරගැනීමට පාරිභෝගික ගිණුමක් සාදන්න හෝ පිවිසෙන්න.',
+      guestContactCta: 'නොමිලේ ගිණුමක් සාදන්න',
       shareSuccess: 'බෙදාගැනීමේ විකල්පය විවෘත විය.',
       shareCopied: 'නිෂ්පාදන සබැඳිය පිටපත් කළා.',
       shareError: 'බෙදාගැනීමට නොහැකි විය. නැවත උත්සාහ කරන්න.',
@@ -2482,17 +2479,12 @@ export const translations = {
       firstName: 'First name',
       lastName: 'Last name',
       email: 'Email',
-<<<<<<< HEAD
       emailOptionalLabel: 'Email (optional)',
       emailOptionalHint: 'Email is optional. If provided, verify it to use email-based password recovery. Without email, sign in with your phone number and password; online password reset is unavailable.',
       loginInfo: 'Use your phone number to register and log in with your password. Email is optional; adding one can help you recover your account.',
-=======
-      loginInfo: 'Next time, log in with your email or phone number and password. You can sign in anytime after creating your account.',
       optional: 'Optional',
-      emailOptionalHint: 'Optional — leave blank if you prefer to sign in with your phone number.',
       emailOptionalNote: 'Email verification is optional — your account works immediately without verifying.',
       verifyEmailOptional: 'Verify email now (Optional)',
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       showPassword: 'Show password',
       verifyNow: 'Verify now',
       passwordRule: 'At least 8 characters, one capital letter, and one number or symbol.',
@@ -2679,11 +2671,7 @@ export const translations = {
       registerLink: 'Register as a seller',
       nicAlreadyRegistered: 'This NIC is already registered. Log in with the email and password for that seller account. If you forgot the password, use the “Forgot password?” link.',
       errors: {
-<<<<<<< HEAD
-        INVALID_CREDENTIALS: 'The phone number/email or password is incorrect.',
-=======
         INVALID_CREDENTIALS: 'The email, phone number, or password is incorrect.',
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
         EMAIL_NOT_VERIFIED: 'Your email has not been verified yet.',
         ACCOUNT_REMOVED: 'This seller account has been removed. Please contact the Ministry for details.',
         MISSING_DETAILS: 'Enter your phone number and password.',
@@ -3110,6 +3098,13 @@ export const translations = {
       heroCtaShop: 'Explore Marketplace',
       heroCtaSell: 'Sell on Platform',
       searchAllCategories: 'All Categories',
+      makerVideoPlay: 'Play video',
+      makerVideoPause: 'Pause video',
+      makerVideoNext: 'Next category video',
+      makerVideoMuted: 'Video is muted',
+      recentlyViewedEyebrow: 'Recently viewed',
+      recentlyViewedTitle: 'Pick up where you left off',
+      recentlyViewedSub: 'Your recent finds stay here while you explore the marketplace.',
       dealsTitle: 'Artisan Deals & Special Offers',
       dealsSub: 'Direct discounts offered by verified women entrepreneurs for a limited time',
       dealsBadge: 'Special Offers',
@@ -3164,6 +3159,7 @@ export const translations = {
         { label: 'Islandwide Delivery', sub: 'Safe direct courier to your doorstep' },
         { label: 'Empowering 25 Districts', sub: 'Connecting rural artisans to modern buyers' },
       ],
+      quickSearchLabel: 'Popular searches',
       quickTags: [
         { label: 'Cane & Wicker', query: 'wicker' },
         { label: 'Batik Sarees', query: 'batik' },
@@ -3265,6 +3261,8 @@ export const translations = {
       inCart: '{qty} in cart',
       details: 'View details',
       shareProduct: 'Share product',
+      guestContactPrompt: 'Create a customer account or sign in to contact this maker.',
+      guestContactCta: 'Create a free account',
       shareSuccess: 'Share options opened.',
       shareCopied: 'Product link copied.',
       shareError: 'Could not share the product. Please try again.',
@@ -4570,17 +4568,12 @@ export const translations = {
       firstName: 'முதல் பெயர்',
       lastName: 'கடைசிப் பெயர்',
       email: 'மின்னஞ்சல்',
-<<<<<<< HEAD
       emailOptionalLabel: 'மின்னஞ்சல் (விருப்பமானது)',
       emailOptionalHint: 'மின்னஞ்சல் விருப்பமானது. வழங்கினால், கடவுச்சொல்லை மீட்டெடுக்க அதைப் பயன்படுத்த அதை உறுதிப்படுத்த வேண்டும். மின்னஞ்சல் இல்லையெனில் தொலைபேசி எண் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தி உள்நுழையுங்கள்; இணையத்தில் கடவுச்சொல்லை மீட்டமைக்க முடியாது.',
       loginInfo: 'பதிவு செய்யவும் உள்நுழையவும் உங்கள் தொலைபேசி எண்ணைப் பயன்படுத்துங்கள். மின்னஞ்சல் விருப்பமானது; கணக்கை மீட்டெடுக்க உதவும்.',
-=======
-      loginInfo: 'அடுத்த முறை உங்கள் மின்னஞ்சல் அல்லது தொலைபேசி எண் மற்றும் கடவுச்சொல்லுடன் உள்நுழையுங்கள். கணக்கை உருவாக்கிய பின் எந்த நேரமும் உள்நுழையலாம்.',
       optional: 'விருப்பம்',
-      emailOptionalHint: 'விருப்பமானது — மின்னஞ்சல் இல்லையென்றால் தொலைபேசி எண்ணால் உள்நுழையலாம்.',
       emailOptionalNote: 'மின்னஞ்சல் உறுதிப்படுத்தல் விருப்பத்தேர்வானது (கட்டாயமில்லை). உங்கள் கணக்கு உடனே செயல்படும்.',
       verifyEmailOptional: 'மின்னஞ்சலை உறுதிப்படுத்துங்கள் (விருப்பம்)',
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       showPassword: 'கடவுச்சொல்லைக் காட்டு',
       verifyNow: 'இப்போது உறுதிப்படுத்துங்கள்',
       passwordRule: 'குறைந்தது 8 எழுத்துகள், ஒரு பெரிய எழுத்து, மற்றும் ஒரு எண் அல்லது குறியீடு தேவை.',
@@ -4767,11 +4760,7 @@ export const translations = {
       registerLink: 'விற்பனையாளராகப் பதிவு செய்க',
       nicAlreadyRegistered: 'இந்த NIC ஏற்கனவே பதிவு செய்யப்பட்டுள்ளது. அந்த விற்பனையாளர் கணக்கின் மின்னஞ்சல் மற்றும் கடவுச்சொல்லைப் பயன்படுத்தி உள்நுழையுங்கள். கடவுச்சொல் நினைவில் இல்லையெனில் “கடவுச்சொல்லை மறந்துவிட்டீர்களா?” என்பதைத் தேர்ந்தெடுக்கவும்.',
       errors: {
-<<<<<<< HEAD
-        INVALID_CREDENTIALS: 'தொலைபேசி எண்/மின்னஞ்சல் அல்லது கடவுச்சொல் தவறானது.',
-=======
         INVALID_CREDENTIALS: 'மின்னஞ்சல், தொலைபேசி எண் அல்லது கடவுச்சொல் தவறானது.',
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
         EMAIL_NOT_VERIFIED: 'உங்கள் மின்னஞ்சல் இன்னும் உறுதிப்படுத்தப்படவில்லை.',
         ACCOUNT_REMOVED: 'இந்த விற்பனையாளர் கணக்கு நீக்கப்பட்டுள்ளது. விவரங்களுக்கு அமைச்சைத் தொடர்பு கொள்ளவும்.',
         MISSING_DETAILS: 'தொலைபேசி எண் மற்றும் கடவுச்சொல்லை உள்ளிடவும்.',
@@ -5198,6 +5187,13 @@ export const translations = {
       heroCtaShop: 'சந்தையை ஆராயுங்கள்',
       heroCtaSell: 'விற்பனையாளராக இணையுங்கள்',
       searchAllCategories: 'அனைத்து வகைகள்',
+      makerVideoPlay: 'வீடியோவை இயக்கு',
+      makerVideoPause: 'வீடியோவை இடைநிறுத்து',
+      makerVideoNext: 'அடுத்த வகை வீடியோ',
+      makerVideoMuted: 'வீடியோ ஒலியின்றி உள்ளது',
+      recentlyViewedEyebrow: 'நீங்கள் சமீபத்தில் பார்த்தவை',
+      recentlyViewedTitle: 'நீங்கள் பார்த்த இடத்திலிருந்து தொடருங்கள்',
+      recentlyViewedSub: 'நீங்கள் பார்த்த தயாரிப்புகளை இங்கே எளிதாக மீண்டும் காணலாம்.',
       dealsTitle: 'சிறப்பு சலுகைகள் & தள்ளுபடிகள்',
       dealsSub: 'உறுதிப்படுத்தப்பட்ட பெண் தொழில்முனைவோரின் குறிப்பிட்ட கால நேரடி தள்ளுபடிகள்',
       dealsBadge: 'சிறப்பு சலுகைகள்',
@@ -5252,6 +5248,7 @@ export const translations = {
         { label: 'தீவு தழுவிய விநியோகம்', sub: 'உங்கள் வீட்டுக்கே பாதுகாப்பான விநியோகம்' },
         { label: '25 மாவட்டங்கள் இணைப்பு', sub: 'கிராமப்புற பெண்களை நேரடியாக சந்தையுடன் இணைத்தல்' },
       ],
+      quickSearchLabel: 'பிரபல தேடல்கள்',
       quickTags: [
         { label: 'பிரம்புப் பொருட்கள்', query: 'பிரம்பு' },
         { label: 'பாடிக் சேலைகள்', query: 'பாடிக்' },
@@ -5353,6 +5350,8 @@ export const translations = {
       inCart: 'கூடையில் {qty}',
       details: 'விவரங்களைப் பார்',
       shareProduct: 'தயாரிப்பைப் பகிர்',
+      guestContactPrompt: 'இந்த உற்பத்தியாளரைத் தொடர்புகொள்ள வாடிக்கையாளர் கணக்கை உருவாக்கவும் அல்லது உள்நுழையவும்.',
+      guestContactCta: 'இலவச கணக்கை உருவாக்கு',
       shareSuccess: 'பகிர்வு விருப்பங்கள் திறக்கப்பட்டன.',
       shareCopied: 'தயாரிப்பு இணைப்பு நகலெடுக்கப்பட்டது.',
       shareError: 'தயாரிப்பைப் பகிர முடியவில்லை. மீண்டும் முயற்சிக்கவும்.',

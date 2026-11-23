@@ -13,12 +13,6 @@ try {
     themeDocument.removeAttribute("data-theme");
     themeDocument.classList.remove("dark");
   }
-<<<<<<< HEAD
-  themeStorage.removeItem("lw-accent");
-  themeStorage.removeItem("lw-pattern");
-  themeDocument.removeAttribute("data-accent");
-  themeDocument.removeAttribute("data-pattern");
-=======
   var accent = themeStorage.getItem("lw-accent");
   var pattern = themeStorage.getItem("lw-pattern");
   if (/^(ocean|forest|royal|slate)$/.test(accent)) {
@@ -31,5 +25,4 @@ try {
   } else {
     themeDocument.removeAttribute("data-pattern");
   }
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
 } catch {}

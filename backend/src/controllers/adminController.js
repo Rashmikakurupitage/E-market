@@ -233,17 +233,10 @@ exports.getOverview = async (req, res) => {
     }
 
     const [customers, sellers, newRegistrations, orders, ordersByStatus, delivered, clicks, topRaw, pendingSellers, recentComplaints] = await Promise.all([
-<<<<<<< HEAD
       prisma.user.count({ where: { role: 'CUSTOMER', removedAt: null, OR: [{ emailVerifiedAt: { not: null } }, { email: null }] } }),
       prisma.user.count({ where: { role: 'SELLER', removedAt: null, sellerProfile: { is: { removedAt: null } } } }),
       prisma.user.findMany({
         where: { role: { in: ['CUSTOMER', 'SELLER'] }, OR: [{ emailVerifiedAt: { not: null } }, { email: null }], createdAt: { gte: start, lte: end } },
-=======
-      prisma.user.count({ where: { role: 'CUSTOMER', removedAt: null } }),
-      prisma.user.count({ where: { role: 'SELLER', removedAt: null, sellerProfile: { is: { removedAt: null } } } }),
-      prisma.user.findMany({
-        where: { role: { in: ['CUSTOMER', 'SELLER'] }, removedAt: null, createdAt: { gte: start, lte: end } },
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
         select: { role: true, createdAt: true }
       }),
       prisma.order.count(),
@@ -281,11 +274,7 @@ exports.getOverview = async (req, res) => {
       prisma.user.count({ where: { role: { in: ['CUSTOMER', 'SELLER'] }, createdAt: { gte: previousStart, lt: start } } }),
       prisma.clickAnalytics.count({ where: { timestamp: { gte: previousStart, lt: start } } }),
       prisma.user.findMany({
-<<<<<<< HEAD
         where: { role: { in: ['CUSTOMER', 'SELLER'] }, removedAt: null, OR: [{ emailVerifiedAt: { not: null } }, { email: null }] },
-=======
-        where: { role: { in: ['CUSTOMER', 'SELLER'] }, removedAt: null },
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
         orderBy: { createdAt: 'desc' },
         take: 6,
         select: {

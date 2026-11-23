@@ -62,11 +62,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <head>
         <script
           dangerouslySetInnerHTML={{
-<<<<<<< HEAD
-            __html: `try{var d=document.documentElement,l=localStorage;if(l.getItem('lang'))l.removeItem('lang');l.removeItem('lw-accent');l.removeItem('lw-pattern');d.removeAttribute('data-accent');d.removeAttribute('data-pattern');var s=l.getItem('lw-theme'),p=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;if(s==='dark'||(!s&&p)){d.setAttribute('data-theme','dark');d.classList.add('dark');}else{d.removeAttribute('data-theme');d.classList.remove('dark');}}catch(e){}`,
-=======
             __html: `try{var d=document.documentElement,l=localStorage;if(l.getItem('lang'))l.removeItem('lang');var s=l.getItem('lw-theme'),p=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;if(s==='dark'||(!s&&p)){d.setAttribute('data-theme','dark');d.classList.add('dark');}else{d.removeAttribute('data-theme');d.classList.remove('dark');}var a=l.getItem('lw-accent');if(/^(ocean|forest|royal|slate)$/.test(a)){d.setAttribute('data-accent',a);}else{d.removeAttribute('data-accent');}var pt=l.getItem('lw-pattern');if(/^(dots|lattice|waves)$/.test(pt)){d.setAttribute('data-pattern',pt);}else{d.removeAttribute('data-pattern');}}catch(e){}`,
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
           }}
         />
       </head>

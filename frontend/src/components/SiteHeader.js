@@ -276,6 +276,15 @@ export default function SiteHeader() {
               <div className="flex items-center gap-1">
                 <Link
                   href="/store"
+                  onClick={(event) => {
+                    if (pathname !== '/store') return;
+                    const storeSearch = document.getElementById('store-search');
+                    if (!storeSearch) return;
+                    event.preventDefault();
+                    setMenuOpen(false);
+                    storeSearch.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    storeSearch.focus({ preventScroll: true });
+                  }}
                   className="flex h-7.5 w-7.5 2xl:h-8 2xl:w-8 shrink-0 items-center justify-center rounded-full border border-ink/15 text-ink/75 transition-all duration-200 hover:border-magenta hover:bg-magenta/5 hover:text-magenta dark:border-white/20 dark:text-slate-200 dark:hover:border-magenta dark:hover:bg-magenta/10"
                   title="Search Products & Artisans"
                   aria-label="Search Products & Artisans"

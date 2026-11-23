@@ -5,19 +5,20 @@ import Link from 'next/link';
 import {
   Search, ArrowRight, Megaphone, HandCoins, Laptop, PackageSearch, ChevronDown, ShieldCheck, HandHeart, MapPin,
   Palette, Layers, Wheat, CookingPot, Flower2, Sparkles, PackageCheck, Store, BookOpen, Tag, Plus, CircleHelp,
-  HeartHandshake, Star, GraduationCap, Flame, SlidersHorizontal, ChevronUp,
-  X, Users, Truck, MessageCircle
+  GraduationCap, Flame, SlidersHorizontal, ChevronUp,
+  X, History
 } from 'lucide-react';
 import API from '../src/lib/api';
 import { useLanguage, fill } from '../src/lib/i18n';
 import { CATEGORIES, SAMPLE_PRODUCTS, getSeller, withSampleProducts } from '../src/lib/catalog';
 import ProductCard from '../src/components/ProductCard';
-import { useWallpapers } from '../src/lib/siteImage';
-import HeroSlideshow from '../src/components/HeroSlideshow';
+import SearchAutocomplete from '../src/components/SearchAutocomplete';
 import HomeImpact from '../src/components/HomeImpact';
+import HeroCategoryVideo from '../src/components/HeroCategoryVideo';
 import WhatsAppIcon from '../src/components/WhatsAppIcon';
 import Reveal from '../src/components/Reveal';
 import { Lotus, Sparkle, DotGrid, Squiggle } from '../src/components/Art';
+import { useRecentProducts } from '../src/lib/recentProducts';
 
 const SRI_LANKA_DISTRICTS = [
   'Ampara', 'Anuradhapura', 'Badulla', 'Batticaloa', 'Colombo', 'Galle', 'Gampaha',
@@ -89,6 +90,22 @@ const DEFAULT_LOOK = {
   activeCard: 'border-slate-600 bg-slate-50/50 ring-2 ring-slate-500/25 shadow-xs',
   hoverText: 'group-hover:text-slate-900',
   badge: 'bg-slate-50 text-slate-700',
+};
+
+const CATEGORY_IMAGE = {
+  Handicrafts: '/wallpapers/basketry.jpg',
+  Textiles: '/wallpapers/collage-violet.jpg',
+  'Agri-Products': '/wallpapers/tea-pickers.jpg',
+  'Food & Spices': '/wallpapers/spices.jpg',
+  'Beauty & Personal Care': '/wallpapers/collage-green.jpg',
+};
+
+const HERO_CATEGORY_VIDEO = {
+  Handicrafts: '/videos/hero-handicrafts.mp4',
+  Textiles: '/videos/hero-textiles.mp4',
+  'Agri-Products': '/videos/hero-agri.mp4',
+  'Food & Spices': '/videos/hero-food-spices.mp4',
+  'Beauty & Personal Care': '/videos/hero-beauty.mp4',
 };
 
 const BENEFIT_LOOK = [
@@ -179,7 +196,7 @@ function SectionTitle({ title, sub, badge }) {
 }
 
 // The hero title with one word in the signature brand magenta
-function HeroTitle() {
+function HeroTitle({ overVideo = false }) {
   const { t, lang } = useLanguage();
   const title = t.heroTitle;
   const word = t.home.heroHighlight;
@@ -190,7 +207,7 @@ function HeroTitle() {
       : 'text-[2rem] leading-[1.3] sm:text-5xl sm:leading-[1.25] xl:text-[3.5rem]';
 
   return (
-    <h1 className={`mt-6 animate-fade-up font-extrabold tracking-tight text-slate-900 [animation-delay:120ms] ${size}`}>
+    <h1 className={`mt-6 animate-fade-up font-extrabold tracking-tight [animation-delay:120ms] ${overVideo ? 'text-white drop-shadow-lg' : 'text-slate-900'} ${size}`}>
       {at < 0 ? (
         title
       ) : (
@@ -209,7 +226,6 @@ function HeroTitle() {
 
 export default function Home() {
   const { t, lang } = useLanguage();
-  const wallpapers = useWallpapers();
   const h = t.home;
   const [products, setProducts] = useState(SAMPLE_PRODUCTS);
   const [loading, setLoading] = useState(true);
@@ -220,6 +236,7 @@ export default function Home() {
   const [sortBy, setSortBy] = useState('featured');
   const [onlyDeals, setOnlyDeals] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const recentIds = useRecentProducts();
 
   useEffect(() => {
     let ignore = false;
@@ -274,7 +291,7 @@ export default function Home() {
       }
       if (!query) return true;
       const seller = getSeller(product);
-      return [product.title, product.description, product.category, seller.businessName, seller.district].some(
+      return [product.title, product.description, product.category, seller.businessName, seller.district, ...(Array.isArray(product.tags) ? product.tags : [])].some(
         (value) => value?.toLowerCase().includes(query)
       );
     });
@@ -295,6 +312,10 @@ export default function Home() {
   const dealsProducts = useMemo(() => {
     return products.filter((p) => (p.discountPercent || p.discount?.percent || 0) > 0).slice(0, 4);
   }, [products]);
+  const recentlyViewedProducts = useMemo(
+    () => recentIds.map((id) => products.find((product) => String(product.id) === id)).filter(Boolean).slice(0, 4),
+    [recentIds, products]
+  );
 
   const scrollToProducts = () => document.getElementById('products')?.scrollIntoView({ behavior: 'smooth' });
 
@@ -325,198 +346,136 @@ export default function Home() {
     { icon: HandCoins, label: t.finance },
     { icon: Laptop, label: t.digitalLiteracy },
   ];
+  const heroVideoClips = CATEGORIES.map((category) => ({
+    src: HERO_CATEGORY_VIDEO[category],
+    label: t.categories[category] || category,
+    category,
+  }));
 
   return (
     <>
-      {/* 1. Official National Announcement Bar */}
-      <aside aria-label="National Announcement" className="relative z-30 border-b border-slate-800 bg-slate-900 py-2.5 text-xs font-medium text-slate-200">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-2 truncate">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-slate-950 font-bold shadow-xs">
-              <ShieldCheck className="h-3.5 w-3.5" />
-            </span>
-            <span className="truncate tracking-wide text-slate-100 font-semibold">{h.announcement}</span>
-          </div>
-          <div className="hidden shrink-0 items-center gap-5 text-slate-400 text-[11px] md:flex">
-            <span className="inline-flex items-center gap-1.5"><Truck className="h-3.5 w-3.5 text-emerald-400" /> 25 Districts Islandwide</span>
-            <span className="inline-flex items-center gap-1.5"><MessageCircle className="h-3.5 w-3.5 text-emerald-400" /> Direct Maker Contact</span>
-            <span className="inline-flex items-center gap-1.5 font-bold text-amber-400"><Star className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> 4.9★ Rated</span>
-          </div>
-        </div>
-      </aside>
-
-      {/* 2. Enhanced Hero Section */}
-      <section className="relative isolate">
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 pb-16 pt-6 sm:px-6 lg:grid-cols-12 lg:gap-8 lg:pt-10">
-          {/* Text and search */}
-          <div className="relative lg:col-span-7">
-            <Sparkle className="pointer-events-none absolute -top-2 right-[18%] hidden h-7 w-7 animate-twinkle text-magenta/40 sm:block" />
-            <Sparkle className="pointer-events-none absolute right-[6%] top-40 hidden h-4 w-4 animate-twinkle text-slate-300 [animation-delay:-1.2s] sm:block" />
-            
-            <p className="inline-flex animate-fade-up items-center gap-2 rounded-full border border-slate-200/90 bg-white px-3.5 py-1.5 text-xs font-semibold text-slate-700 shadow-2xs sm:text-sm">
-              <span className="relative flex h-2 w-2">
+      {/* Full-bleed category video with the main message layered over it. */}
+      <section className="relative z-20 isolate overflow-visible bg-white">
+        <HeroCategoryVideo
+          className="h-[500px] rounded-none shadow-none ring-0 sm:h-[540px] lg:h-[520px]"
+          clips={heroVideoClips}
+          playLabel={h.makerVideoPlay}
+          pauseLabel={h.makerVideoPause}
+          nextLabel={h.makerVideoNext}
+          mutedLabel={h.makerVideoMuted}
+        >
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-[1] bg-gradient-to-r from-slate-950/80 via-slate-950/55 to-slate-950/15" />
+          <div className="relative z-[2] mx-auto max-w-7xl px-4 pt-8 sm:px-6 sm:pt-12 lg:pt-16">
+            <p className="inline-flex max-w-full animate-fade-up items-center gap-2 rounded-full border border-white/25 bg-slate-950/40 px-3.5 py-1.5 text-xs font-semibold text-white shadow-lg backdrop-blur-sm sm:text-sm">
+              <span className="relative flex h-2 w-2 shrink-0">
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-magenta opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-magenta" />
               </span>
               {h.badge}
             </p>
 
-            <HeroTitle />
-
-            <p className="mt-5 max-w-xl animate-fade-up text-base leading-relaxed text-slate-600 [animation-delay:240ms] sm:text-lg">
-              {t.heroSub}
-            </p>
-
-            {/* Standard Combined Search Bar */}
-            <form
-              onSubmit={handleSearch}
-              role="search"
-              className="mt-7 flex max-w-2xl animate-fade-up flex-col sm:flex-row items-stretch sm:items-center gap-1.5 rounded-2xl sm:rounded-full border border-slate-300/80 bg-white p-2 shadow-md shadow-slate-900/5 transition-all duration-300 [animation-delay:360ms] focus-within:border-magenta focus-within:ring-4 focus-within:ring-magenta/15"
-            >
-              {/* Category Dropdown */}
-              <div className="relative shrink-0 border-b pb-2 sm:border-b-0 sm:pb-0 sm:border-r border-slate-200 pr-2 pl-3">
-                <select
-                  value={searchCategory}
-                  onChange={(e) => setSearchCategory(e.target.value)}
-                  className="w-full sm:w-auto bg-transparent text-xs font-bold text-slate-700 outline-none cursor-pointer pr-4 hover:text-slate-900"
-                  aria-label={h.searchAllCategories}
-                >
-                  <option value="all">{h.searchAllCategories}</option>
-                  {CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {t.categories[cat] || cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="flex flex-1 items-center gap-2 min-w-0 px-2 sm:px-0">
-                <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
-                <input
-                  id="product-search"
-                  type="search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder={t.searchPlaceholder}
-                  className="w-full min-w-0 bg-transparent py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
-                />
-                {search && (
-                  <button
-                    type="button"
-                    onClick={() => setSearch('')}
-                    className="p-1 text-slate-400 hover:text-slate-600"
-                    aria-label="Clear search"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                aria-label={t.searchBtn}
-                className="btn-shine flex h-11 w-full sm:w-auto shrink-0 items-center justify-center gap-2 rounded-xl sm:rounded-full bg-magenta px-6 text-sm font-bold text-white shadow-md shadow-magenta/25 transition-all duration-200 hover:bg-magenta-dark active:scale-95"
-              >
-                <Search className="h-4 w-4" />
-                <span>{t.searchBtn}</span>
-              </button>
-            </form>
-
-
-            {/* Twin Action CTAs */}
-            <div className="mt-7 flex animate-fade-up flex-col sm:flex-row items-stretch sm:items-center gap-3 [animation-delay:550ms]">
-              <button
-                type="button"
-                onClick={scrollToProducts}
-                className="btn-shine inline-flex items-center justify-center gap-2 rounded-full bg-magenta px-6 py-3 text-sm font-bold text-white shadow-md shadow-magenta/20 transition-all hover:bg-magenta-dark active:scale-95"
-              >
-                <span>{h.heroCtaShop}</span>
-                <ChevronDown className="h-4 w-4 animate-bounce-soft" />
-              </button>
-
-              <Link
-                href="/register"
-                className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-2xs transition-all hover:bg-slate-50 hover:border-slate-400"
-              >
-                <Store className="h-4 w-4 text-magenta" />
-                <span>{h.heroCtaSell}</span>
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
-
-            {/* Hero Trust Counter Strip */}
-            <div className="mt-8 grid grid-cols-2 gap-3 border-t border-slate-200/80 pt-6 sm:grid-cols-4">
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/90 p-2.5 shadow-2xs">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                  <Users className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-sm font-extrabold text-slate-900">500+ Makers</p>
-                  <p className="text-[11px] text-slate-500">Registered women</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/90 p-2.5 shadow-2xs">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-red-50 text-red-500">
-                  <MapPin className="h-5 w-5 text-red-500" />
-                </span>
-                <div>
-                  <p className="text-sm font-extrabold text-slate-900">25 Districts</p>
-                  <p className="text-[11px] text-slate-500">Islandwide reach</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/90 p-2.5 shadow-2xs">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600">
-                  <HeartHandshake className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-sm font-extrabold text-slate-900">100% Direct</p>
-                  <p className="text-[11px] text-slate-500">Zero middleman cut</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/90 p-2.5 shadow-2xs">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-500">
-                  <Star className="h-5 w-5 fill-amber-400 text-amber-500" />
-                </span>
-                <div>
-                  <p className="text-sm font-extrabold text-slate-900">4.9★ Rated</p>
-                  <p className="text-[11px] text-slate-500">Buyer satisfaction</p>
-                </div>
-              </div>
+            <div className="max-w-5xl">
+              <HeroTitle overVideo />
+              <p className="mt-5 max-w-3xl animate-fade-up text-sm leading-relaxed text-white/90 drop-shadow [animation-delay:240ms] sm:text-lg">
+                {t.heroSub}
+              </p>
             </div>
           </div>
+        </HeroCategoryVideo>
 
-          {/* Photo Showcase */}
-          <div className="relative mx-auto w-full max-w-md animate-zoom-in [animation-delay:200ms] lg:col-span-5 lg:max-w-none">
-            <div aria-hidden="true" className="absolute -right-6 -top-6 -z-10 h-[88%] w-[88%] animate-morph bg-slate-200/50" />
-            <DotGrid className="absolute -left-10 top-16 -z-10 hidden w-24 text-slate-300 sm:block" />
-            <div aria-hidden="true" className="absolute -bottom-10 right-4 -z-10 h-28 w-28 animate-spin-slow rounded-full border-2 border-dashed border-slate-300" />
-            <Sparkle className="absolute -right-4 top-8 h-8 w-8 animate-twinkle text-magenta/40 [animation-delay:-0.6s] sm:-right-8" />
-
-            {/* Floating Trust Badge 1 (Top-Left) */}
-            <div className="absolute -left-6 top-10 z-20 hidden items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xl backdrop-blur-md sm:flex animate-float">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 shadow-2xs">
-                <HeartHandshake className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="text-xs font-bold text-slate-900">{h.heroBadge1Title || '100% Fair Trade'}</p>
-                <p className="text-[10px] font-medium text-slate-500">{h.heroBadge1Sub || 'Direct from rural makers'}</p>
-              </div>
+        <div className="relative z-40 mx-auto max-w-7xl px-4 pb-10 pt-5 sm:px-6 sm:pt-6">
+          {/* Search sits directly beneath the full-width video. */}
+          <form
+            onSubmit={handleSearch}
+            role="search"
+            className="relative z-40 flex max-w-4xl animate-fade-up flex-col items-stretch gap-1.5 rounded-2xl border border-slate-300/80 bg-white p-2 shadow-md shadow-slate-900/5 transition-all duration-300 sm:flex-row sm:items-center sm:rounded-full [animation-delay:360ms] focus-within:border-magenta focus-within:ring-4 focus-within:ring-magenta/15"
+          >
+            <div className="relative shrink-0 border-b border-slate-200 px-3 pb-2 sm:border-b-0 sm:border-r sm:pb-0">
+              <select
+                value={searchCategory}
+                onChange={(e) => setSearchCategory(e.target.value)}
+                className="w-full cursor-pointer bg-transparent pr-4 text-xs font-bold text-slate-700 outline-none hover:text-slate-900 sm:w-auto"
+                aria-label={h.searchAllCategories}
+              >
+                <option value="all">{h.searchAllCategories}</option>
+                {CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>{t.categories[cat] || cat}</option>
+                ))}
+              </select>
             </div>
 
-            {/* Floating Trust Badge 2 (Bottom-Right) */}
-            <div className="absolute -bottom-5 -right-4 z-20 hidden items-center gap-2.5 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-xl backdrop-blur-md sm:flex animate-float [animation-delay:-2.5s]">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-800 shadow-2xs">
-                <ShieldCheck className="h-5 w-5 text-slate-800" />
-              </span>
-              <div>
-                <p className="text-xs font-bold text-slate-900">{h.heroBadge2Title || 'Ministry Verified'}</p>
-                <p className="text-[10px] font-medium text-slate-500">{h.heroBadge2Sub || '25 Districts covered'}</p>
-              </div>
+            <div className="relative flex min-w-0 flex-1 items-center gap-2 px-2 sm:px-0">
+              <Search className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+              <SearchAutocomplete
+                id="product-search"
+                value={search}
+                products={products}
+                onChange={setSearch}
+                onSelect={() => {
+                  if (searchCategory !== 'all') setCategory(searchCategory);
+                  else setCategory('all');
+                  setOnlyDeals(false);
+                  scrollToProducts();
+                }}
+                placeholder={t.searchPlaceholder}
+                ariaLabel={t.searchPlaceholder}
+                className="w-full min-w-0 bg-transparent py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+              />
+              {search && (
+                <button type="button" onClick={() => setSearch('')} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Clear search">
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
 
-            <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[48px_160px_48px_160px] shadow-2xl shadow-slate-900/10 ring-8 ring-white sm:rounded-[48px_200px_48px_200px]">
-              <HeroSlideshow {...wallpapers} />
+            <button
+              type="submit"
+              aria-label={t.searchBtn}
+              className="btn-shine flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-xl bg-magenta px-6 text-sm font-bold text-white shadow-md shadow-magenta/25 transition-all duration-200 hover:bg-magenta-dark active:scale-95 sm:w-auto sm:rounded-full"
+            >
+              <Search className="h-4 w-4" />
+              <span>{t.searchBtn}</span>
+            </button>
+          </form>
+
+          {h.quickTags?.length > 0 && !search.trim() && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 animate-fade-up [animation-delay:440ms]">
+              <span className="mr-1 text-[11px] font-bold uppercase tracking-wider text-slate-500">{h.quickSearchLabel}</span>
+              {h.quickTags.slice(0, 5).map((tag, index) => (
+                <button
+                  key={tag.label}
+                  type="button"
+                  onClick={() => {
+                    setSearch(tag.query);
+                    setSearchCategory('all');
+                    setCategory('all');
+                    setOnlyDeals(false);
+                    scrollToProducts();
+                  }}
+                  style={{ animationDelay: `${440 + index * 55}ms` }}
+                  className="animate-fade-up rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-semibold text-slate-600 shadow-2xs transition-all hover:-translate-y-0.5 hover:border-magenta/40 hover:bg-white hover:text-magenta hover:shadow-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-magenta"
+                >
+                  {tag.label}
+                </button>
+              ))}
             </div>
+          )}
+
+          <div className="mt-6 flex animate-fade-up flex-col items-stretch gap-3 sm:flex-row sm:items-center [animation-delay:550ms]">
+            <button
+              type="button"
+              onClick={scrollToProducts}
+              className="btn-shine inline-flex items-center justify-center gap-2 rounded-full bg-magenta px-6 py-3 text-sm font-bold text-white shadow-md shadow-magenta/20 transition-all hover:bg-magenta-dark active:scale-95"
+            >
+              <span>{h.heroCtaShop}</span>
+              <ChevronDown className="h-4 w-4 animate-bounce-soft" />
+            </button>
+
+            <Link href="/register" className="group inline-flex items-center justify-center gap-2 rounded-full border border-slate-300 bg-white px-5 py-3 text-sm font-bold text-slate-800 shadow-2xs transition-all hover:border-slate-400 hover:bg-slate-50">
+              <Store className="h-4 w-4 text-magenta" />
+              <span>{h.heroCtaSell}</span>
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Link>
           </div>
         </div>
       </section>
@@ -576,6 +535,28 @@ export default function Home() {
         </section>
       )}
 
+      {recentlyViewedProducts.length > 0 && (
+        <section aria-labelledby="recently-viewed-title" className="mx-auto w-full max-w-7xl px-4 pb-12 pt-2 sm:px-6">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest text-magenta">
+                <History className="h-3.5 w-3.5" /> {h.recentlyViewedEyebrow || 'Your browsing trail'}
+              </span>
+              <h2 id="recently-viewed-title" className="mt-1 text-2xl font-extrabold tracking-tight text-slate-900 sm:text-3xl">
+                {h.recentlyViewedTitle || 'Pick up where you left off'}
+              </h2>
+              <p className="mt-1 text-sm text-slate-600">{h.recentlyViewedSub || 'Your recent finds stay close while you explore.'}</p>
+            </div>
+            <Link href="/store" className="inline-flex items-center gap-2 text-sm font-bold text-magenta transition hover:text-magenta-dark">
+              {h.viewStoreCta}<ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
+            {recentlyViewedProducts.map((product) => <ProductCard key={`recent-${product.id}`} product={product} />)}
+          </div>
+        </section>
+      )}
+
       {/* 5. Community in Numbers and Impact */}
       <HomeImpact />
 
@@ -589,8 +570,7 @@ export default function Home() {
         
         <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
           {CATEGORIES.map((value, index) => {
-            const config = CATEGORY_LOOK[value] || DEFAULT_LOOK;
-            const Icon = config.icon;
+            const Icon = (CATEGORY_LOOK[value] || DEFAULT_LOOK).icon;
             const active = category === value;
             const count = products.filter((product) => product.category === value).length;
             return (
@@ -599,29 +579,26 @@ export default function Home() {
                   type="button"
                   onClick={() => chooseCategory(value)}
                   aria-pressed={active}
-                  className={`group relative flex flex-col items-center rounded-2xl border p-5 text-center transition-all duration-300 hover:-translate-y-1.5 hover:shadow-lg ${
-                    active
-                      ? config.activeCard
-                      : `border-slate-200/90 bg-white ${config.hoverCard}`
-                  }`}
+                  className={`group relative flex min-h-44 flex-col justify-end overflow-hidden rounded-[1.6rem] border text-left shadow-sm transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-magenta sm:min-h-52 ${active ? 'border-magenta ring-2 ring-magenta/30 shadow-lg shadow-magenta/15' : 'border-white/70 hover:border-white'}`}
                 >
-                  <span
-                    className={`flex h-16 w-16 items-center justify-center rounded-2xl transition-all duration-300 group-hover:scale-110 ${
-                      active
-                        ? config.activeTile
-                        : `${config.tile} ${config.hoverTile}`
-                    }`}
-                  >
-                    <Icon className="h-8 w-8 transition-transform duration-300" strokeWidth={2} />
+                  <img
+                    src={CATEGORY_IMAGE[value]}
+                    alt=""
+                    aria-hidden="true"
+                    loading="lazy"
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                  <span aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-slate-950/85 via-slate-950/20 to-slate-950/5 transition-colors group-hover:from-slate-950/90" />
+                  <span className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-xl border border-white/30 bg-white/90 text-magenta shadow-md backdrop-blur-sm">
+                    <Icon className="h-4.5 w-4.5 transition-transform duration-300 group-hover:scale-110" strokeWidth={2} />
                   </span>
-                  <span className={`mt-3.5 text-sm font-bold text-slate-900 transition-colors ${config.hoverText}`}>
-                    {t.categories[value]}
-                  </span>
-                  {!loading && (
-                    <span className="mt-1.5 inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600 transition-colors group-hover:bg-slate-200/70">
-                      {count} {t.productsCount}
+                  <span className="relative flex items-end justify-between gap-2 p-4 sm:p-5">
+                    <span className="min-w-0">
+                      <span className="block text-sm font-extrabold leading-tight text-white sm:text-base">{t.categories[value]}</span>
+                      {!loading && <span className="mt-1 block text-[11px] font-medium text-white/75">{count} {t.productsCount}</span>}
                     </span>
-                  )}
+                    <ArrowRight className="mb-0.5 h-4 w-4 shrink-0 text-white/90 transition-transform group-hover:translate-x-1" />
+                  </span>
                 </button>
               </Reveal>
             );

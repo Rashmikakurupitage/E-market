@@ -34,13 +34,8 @@ function PasswordLogin({ redirectTo, footer, notice }) {
     setLoading(true);
 
     try {
-<<<<<<< HEAD
       const res = await API.post('/auth/login', { identifier: identifier.trim(), password });
-      saveSession(res.data.token, res.data.user);
-=======
-      const res = await API.post('/auth/login', { email: email.trim(), password });
       saveSession(res.data.user);
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
       router.push(redirectTo);
     } catch (err) {
       const responseError = err.response?.data;
@@ -84,7 +79,6 @@ function PasswordLogin({ redirectTo, footer, notice }) {
         </div>
       )}
 
-<<<<<<< HEAD
       <Field id="identifier" label={l.phoneOrEmail || 'Phone number or email'} required>
         <input
           id="identifier"
@@ -95,18 +89,6 @@ function PasswordLogin({ redirectTo, footer, notice }) {
           onChange={(e) => setIdentifier(e.target.value)}
           className={inputClass(false)}
           placeholder={l.phoneOrEmailPlaceholder || 'Phone number (or email for existing accounts)'}
-=======
-      <Field id="email" label={l.emailOrPhone || l.email || 'Email or Phone number'} required>
-        <input
-          id="email"
-          type="text"
-          required
-          autoComplete="username"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={inputClass(false)}
-          placeholder="name@example.com or 0771234567"
->>>>>>> ce33af8b9433d9bf86a99b249aa816aa83fb67e1
         />
       </Field>
 
