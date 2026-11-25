@@ -321,9 +321,8 @@ export default function Home() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (searchCategory !== 'all') {
-      setCategory(searchCategory);
-    }
+    setCategory(searchCategory);
+    setOnlyDeals(false);
     scrollToProducts();
   };
 
@@ -388,7 +387,7 @@ export default function Home() {
           <form
             onSubmit={handleSearch}
             role="search"
-            className="relative z-40 flex max-w-4xl animate-fade-up flex-col items-stretch gap-1.5 rounded-2xl border border-slate-300/80 bg-white p-2 shadow-md shadow-slate-900/5 transition-all duration-300 sm:flex-row sm:items-center sm:rounded-full [animation-delay:360ms] focus-within:border-magenta focus-within:ring-4 focus-within:ring-magenta/15"
+            className="relative z-40 mx-auto flex max-w-4xl animate-fade-up flex-col items-stretch gap-1.5 rounded-2xl border border-slate-300/80 bg-white p-2 shadow-md shadow-slate-900/5 transition-all duration-300 sm:flex-row sm:items-center sm:rounded-full [animation-delay:360ms] focus-within:border-magenta focus-within:ring-4 focus-within:ring-magenta/15"
           >
             <div className="relative shrink-0 border-b border-slate-200 px-3 pb-2 sm:border-b-0 sm:border-r sm:pb-0">
               <select
@@ -419,13 +418,9 @@ export default function Home() {
                 }}
                 placeholder={t.searchPlaceholder}
                 ariaLabel={t.searchPlaceholder}
+                clearLabel={t.clearSearch}
                 className="w-full min-w-0 bg-transparent py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
               />
-              {search && (
-                <button type="button" onClick={() => setSearch('')} className="p-1 text-slate-400 hover:text-slate-600" aria-label="Clear search">
-                  <X className="h-4 w-4" />
-                </button>
-              )}
             </div>
 
             <button

@@ -1,7 +1,7 @@
 'use client';
 
-import { useMemo, useState } from 'react';
-import { ArrowRight } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { ArrowRight, X } from 'lucide-react';
 import { getSeller } from '../lib/catalog';
 
 // Suggestions are derived from the already-loaded catalog; choosing one only fills the existing search.
@@ -13,8 +13,11 @@ export default function SearchAutocomplete({
   onSelect,
   placeholder,
   ariaLabel,
+  clearLabel = 'Clear search',
+  className = '',
   inputClassName = '',
 }) {
+  const inputRef = useRef(null);
   const [focused, setFocused] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const query = String(value || '').trim().toLocaleLowerCase();
@@ -69,6 +72,11 @@ export default function SearchAutocomplete({
   };
 
   const handleKeyDown = (event) => {
+    if (event.key === 'Escape') {
+      setFocused(false);
+      setActiveIndex(-1);
+      return;
+    }
     if (!suggestions.length) return;
     if (event.key === 'ArrowDown') {
       event.preventDefault();
@@ -81,17 +89,23 @@ export default function SearchAutocomplete({
     } else if (event.key === 'Enter' && activeIndex >= 0) {
       event.preventDefault();
       choose(suggestions[activeIndex]);
-    } else if (event.key === 'Escape') {
-      setFocused(false);
-      setActiveIndex(-1);
     }
   };
 
   return (
-    <div className="relative min-w-0 flex-1">
+    <div
+      className="relative flex min-w-0 flex-1 items-center"
+      onBlur={(event) => {
+        if (event.currentTarget.contains(event.relatedTarget)) return;
+        setFocused(false);
+        setActiveIndex(-1);
+      }}
+    >
       <input
+        ref={inputRef}
         id={id}
-        type="search"
+        type="text"
+        enterKeyHint="search"
         role="combobox"
         aria-label={ariaLabel}
         aria-autocomplete="list"
@@ -106,17 +120,32 @@ export default function SearchAutocomplete({
           setActiveIndex(-1);
         }}
         onFocus={() => setFocused(true)}
-        onBlur={() => window.setTimeout(() => setFocused(false), 120)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className={`${inputClassName} search-autocomplete-input`}
+        className={`${inputClassName} ${className} search-autocomplete-input min-w-0 flex-1 bg-transparent`}
       />
+      {value && (
+        <button
+          type="button"
+          aria-label={clearLabel}
+          onMouseDown={(event) => event.preventDefault()}
+          onClick={() => {
+            onChange('');
+            setActiveIndex(-1);
+            setFocused(true);
+            inputRef.current?.focus();
+          }}
+          className="ml-1 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-magenta"
+        >
+          <X className="h-4 w-4" aria-hidden="true" />
+        </button>
+      )}
       {isOpen && (
         <ul
           id={listId}
           role="listbox"
           aria-label="Search suggestions"
-          className="absolute left-0 right-0 top-[calc(100%+0.7rem)] z-[70] min-w-72 max-w-[calc(100vw-1.5rem)] max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1.5 text-ink shadow-2xl shadow-slate-900/15 animate-page-in"
+          className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-[70] min-w-full max-w-[calc(100vw-1.5rem)] max-h-72 overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1.5 text-ink shadow-2xl shadow-slate-900/15 animate-page-in"
         >
           {suggestions.map((suggestion, index) => (
             <li key={suggestion.label} role="presentation">
@@ -125,10 +154,7 @@ export default function SearchAutocomplete({
                 type="button"
                 role="option"
                 aria-selected={index === activeIndex}
-                onPointerDown={(event) => {
-                  event.preventDefault();
-                  choose(suggestion);
-                }}
+                onMouseDown={(event) => event.preventDefault()}
                 onClick={() => choose(suggestion)}
                 className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-sm transition-colors ${index === activeIndex ? 'bg-brand-50 text-brand-800' : 'text-ink/80 hover:bg-slate-50'}`}
               >

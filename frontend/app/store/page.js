@@ -560,6 +560,7 @@ export default function StorePage() {
                     onChange={setQuery}
                     placeholder={t.searchPlaceholder}
                     ariaLabel={t.searchPlaceholder}
+                    clearLabel={t.clearSearch}
                     className="min-w-0 flex-1 bg-transparent px-1 py-2 text-sm text-white placeholder:text-white/45 focus:outline-none sm:text-base"
                   />
                 </div>
