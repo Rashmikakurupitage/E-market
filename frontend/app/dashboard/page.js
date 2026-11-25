@@ -374,7 +374,8 @@ export default function DashboardPage() {
   const d = t.dash;
 
   const role = session?.user?.role;
-  const loggedIn = Boolean(session?.token);
+  // The login itself lives in an httpOnly cookie; the browser only keeps the public user details.
+  const loggedIn = Boolean(session?.user);
   const isSeller = role === 'SELLER';
   const otherAccount = loggedIn && !isSeller;
 
