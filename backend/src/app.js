@@ -48,6 +48,20 @@ if (COOKIE_SAME_SITE === 'none' && process.env.NODE_ENV !== 'production') {
   console.error('AUTH_COOKIE_SAME_SITE=none requires NODE_ENV=production and HTTPS.');
   process.exit(1);
 }
+// Uploaded photo links are saved with this address, so production must not take it from the request's Host header
+if (process.env.NODE_ENV === 'production') {
+  let publicApiUrl;
+  try {
+    publicApiUrl = new URL(process.env.PUBLIC_API_URL || '');
+  } catch {
+    publicApiUrl = null;
+  }
+  if (!publicApiUrl || publicApiUrl.protocol !== 'https:') {
+    console.error('PUBLIC_API_URL must be set to the HTTPS address of this API, e.g. https://api.example.com');
+    process.exit(1);
+  }
+}
+
 const proxyHops = process.env.TRUST_PROXY_HOPS;
 if (proxyHops) {
   if (!/^[1-5]$/.test(proxyHops)) {

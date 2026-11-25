@@ -1103,15 +1103,36 @@ exports.verifyEmailChange = async (req, res) => {
 };
 
 // Scan NIC photos via OCR and extract NIC number and Date of Birth
-exports.scanNic = async (req, res) => {
-  try {
-    const { image, frontImage, backImage } = req.body;
-    const front = frontImage || image;
-    const back = backImage;
+// At most this many NIC photos are read at the same time, so sign-ups can't tie up the whole server.
+const MAX_CONCURRENT_NIC_SCANS = 2;
+const MAX_NIC_SCAN_IMAGE_BYTES = 3 * 1024 * 1024;
+let activeNicScans = 0;
 
-    if (!front && !back) {
-      return res.status(400).json({ success: false, message: 'Image data is required.' });
-    }
+// A NIC photo for OCR: a JPEG, PNG or WebP data URL of a sensible size, or null
+const readScanImage = (value) => {
+  if (value === undefined || value === null || value === '') return undefined;
+  if (typeof value !== 'string') return null;
+  const match = value.match(/^data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/);
+  if (!match) return null;
+  const bytes = Buffer.from(match[1], 'base64');
+  return bytes.length > 0 && bytes.length <= MAX_NIC_SCAN_IMAGE_BYTES ? bytes : null;
+};
+
+exports.scanNic = async (req, res) => {
+  const front = readScanImage(req.body?.frontImage ?? req.body?.image);
+  const back = readScanImage(req.body?.backImage);
+  if (front === null || back === null) {
+    return res.status(400).json({ success: false, code: 'INVALID_IMAGE', message: 'Upload a JPG, PNG or WebP photo of up to 3 MB.' });
+  }
+  if (!front && !back) {
+    return res.status(400).json({ success: false, message: 'Image data is required.' });
+  }
+  if (activeNicScans >= MAX_CONCURRENT_NIC_SCANS) {
+    return res.status(503).json({ success: false, code: 'SCANNER_BUSY', message: 'The NIC reader is busy. Please try again in a moment or type your NIC number.' });
+  }
+
+  activeNicScans += 1;
+  try {
 
     let result = null;
     let combinedText = '';
@@ -1164,5 +1185,7 @@ exports.scanNic = async (req, res) => {
   } catch (error) {
     console.error('SCAN_NIC_ERROR:', error);
     return res.status(500).json({ success: false, message: 'Failed to process NIC image.' });
+  } finally {
+    activeNicScans -= 1;
   }
 };
