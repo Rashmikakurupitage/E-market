@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Reveal from '../../src/components/Reveal';
 import { Lotus, PageArt } from '../../src/components/Art';
 import Portal from '../../src/components/Portal';
-import { LANGUAGES, useLanguage } from '../../src/lib/i18n';
+import { LANGUAGES, fill, useLanguage } from '../../src/lib/i18n';
 import API from '../../src/lib/api';
 import { useSession } from '../../src/lib/auth';
 
@@ -439,7 +439,12 @@ export default function ELearning() {
       setCertificateCode(response.data.certificateCode);
     } catch (error) {
       console.error('LEARNING_CERTIFICATE_ISSUE_ERROR:', error?.response?.status || error?.message || 'Unknown error');
-      setCertificateError(error.response?.data?.message || hub.certificateError);
+      const data = error.response?.data;
+      setCertificateError(
+        data?.code === 'COURSE_NOT_PASSED' && hub.certificateNeedsPass
+          ? fill(hub.certificateNeedsPass, { pass: data.passMark, total: data.quizQuestionCount })
+          : data?.message || hub.certificateError
+      );
     } finally {
       setCertificateLoading(false);
     }
