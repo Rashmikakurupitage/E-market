@@ -54,6 +54,9 @@ async function main() {
     return fail('this NIC number already has an admin account.');
   }
 
+  // The very first admin becomes the primary (super) admin, who can add and remove other admins in the portal
+  const isPrimary = (await prisma.adminProfile.count()) === 0;
+
   // Admins log in with email + NIC + emailed code, so the password is a random one nobody knows
   await prisma.user.create({
     data: {
@@ -61,12 +64,13 @@ async function main() {
       phone,
       role: 'SUPER_ADMIN',
       passwordHash: await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10),
-      adminProfile: { create: { fullName, nicNumber } }
+      adminProfile: { create: { fullName, nicNumber, isPrimary } }
     }
   });
 
-  console.log(`Admin account added for ${fullName} (${email}).`);
+  console.log(`Admin account added for ${fullName} (${email})${isPrimary ? ' as the primary admin' : ''}.`);
   console.log('They can now log in at /admin/login with this email and NIC number.');
+  console.log('The 6-digit login code is emailed. In local development with EMAIL_PROVIDER=dev it is printed in the backend terminal instead.');
 }
 
 main()
