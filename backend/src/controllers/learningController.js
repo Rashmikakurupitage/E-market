@@ -1,5 +1,6 @@
 const prisma = require('../config/db');
 const { randomUUID } = require('node:crypto');
+const { BUILT_IN_COURSES, passMarkFor } = require('../utils/builtInCourses');
 
 const MAX_COURSES = 100;
 const MAX_LESSONS = 100;
@@ -96,13 +97,11 @@ function certificateResponse(certificate) {
 
 exports.issueLearningCertificate = async (req, res) => {
   const { courseId } = req.body || {};
-  const requestedTitle = typeof req.body?.courseTitle === 'string' ? req.body.courseTitle.trim() : '';
   const requestedLessonCount = req.body?.lessonCount;
   const requestedQuizQuestionCount = req.body?.quizQuestionCount;
   if (
     typeof courseId !== 'string' ||
     !/^(?:[1-6]|[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$/i.test(courseId) ||
-    requestedTitle.length > 160 ||
     !Number.isInteger(requestedLessonCount) ||
     requestedLessonCount < 1 ||
     requestedLessonCount > MAX_LESSONS ||
@@ -128,12 +127,11 @@ exports.issueLearningCertificate = async (req, res) => {
         where: { userId: req.user.userId },
         select: { progress: true },
       }),
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(courseId)
-        ? prisma.learningCourse.findUnique({
-          where: { courseId },
-          select: { content: true, published: true },
-        })
-        : Promise.resolve(null),
+      // An admin-edited version of a starter course (ids 1-6) or an admin-made course (UUID)
+      prisma.learningCourse.findUnique({
+        where: { courseId },
+        select: { content: true, published: true },
+      }),
     ]);
     if (!user || !['CUSTOMER', 'SELLER'].includes(user.role)) {
       return res.status(403).json({ code: 'CERTIFICATE_LEARNER_REQUIRED', message: 'A learner account is required for certificates.' });
@@ -147,22 +145,29 @@ exports.issueLearningCertificate = async (req, res) => {
       return res.status(400).json({ code: 'CERTIFICATE_PROFILE_NAME_REQUIRED', message: 'Add a name to your account profile before requesting a certificate.' });
     }
 
-    let courseTitle = requestedTitle;
-    let lessonCount = requestedLessonCount;
+    // The course title, lesson count and number of questions always come from the server.
+    let courseTitle = '';
+    let lessonCount = 0;
+    let quizQuestionCount = 0;
     if (managedCourse) {
       if (!managedCourse.published) {
         return res.status(404).json({ code: 'CERTIFICATE_COURSE_NOT_FOUND', message: 'Published course was not found.' });
       }
-      const content = managedCourse.content;
-      courseTitle = content?.translations?.en?.title || content?.translations?.si?.title || content?.translations?.ta?.title || '';
-      lessonCount = content?.translations?.en?.lessons?.length
-        || content?.translations?.si?.lessons?.length
-        || content?.translations?.ta?.lessons?.length;
-      if (lessonCount !== requestedLessonCount) {
-        return res.status(409).json({ code: 'CERTIFICATE_COURSE_CHANGED', message: 'The course content changed. Refresh the course before requesting a certificate.' });
-      }
-    } else if (!/^[1-6]$/.test(courseId) || !courseTitle) {
+      const translations = managedCourse.content?.translations || {};
+      const version = ['en', 'si', 'ta'].map((lang) => translations[lang]).find((item) => item?.title && Array.isArray(item.lessons)) || {};
+      courseTitle = String(version.title || '').trim().slice(0, 160);
+      lessonCount = Array.isArray(version.lessons) ? version.lessons.length : 0;
+      quizQuestionCount = Array.isArray(version.quiz) ? version.quiz.length : 0;
+    } else if (BUILT_IN_COURSES[courseId]) {
+      ({ title: courseTitle, lessonCount, quizQuestionCount } = BUILT_IN_COURSES[courseId]);
+    } else {
       return res.status(404).json({ code: 'CERTIFICATE_COURSE_NOT_FOUND', message: 'Course was not found.' });
+    }
+    if (!courseTitle || lessonCount < 1 || quizQuestionCount < 1) {
+      return res.status(409).json({ code: 'CERTIFICATE_COURSE_INCOMPLETE', message: 'This course has no knowledge check yet, so no certificate can be issued.' });
+    }
+    if (lessonCount !== requestedLessonCount || quizQuestionCount !== requestedQuizQuestionCount) {
+      return res.status(409).json({ code: 'CERTIFICATE_COURSE_CHANGED', message: 'The course content changed. Refresh the course before requesting a certificate.' });
     }
 
     const courseProgress = savedProgress?.progress?.[courseId];
@@ -172,9 +177,18 @@ exports.issueLearningCertificate = async (req, res) => {
       && completed.every((lesson) => Number.isInteger(lesson) && lesson >= 0 && lesson < lessonCount)
       && Number.isInteger(courseProgress.quizScore)
       && courseProgress.quizScore >= 0
-      && courseProgress.quizScore <= requestedQuizQuestionCount;
+      && courseProgress.quizScore <= quizQuestionCount;
     if (!isComplete) {
       return res.status(403).json({ code: 'COURSE_COMPLETION_REQUIRED', message: 'Complete every lesson and the knowledge check before requesting a certificate.' });
+    }
+    const passMark = passMarkFor(quizQuestionCount);
+    if (courseProgress.quizScore < passMark) {
+      return res.status(403).json({
+        code: 'COURSE_NOT_PASSED',
+        passMark,
+        quizQuestionCount,
+        message: `Answer at least ${passMark} of ${quizQuestionCount} questions correctly to get a certificate. You can retake the knowledge check.`
+      });
     }
 
     const existing = await prisma.learningCertificate.findUnique({
@@ -191,7 +205,7 @@ exports.issueLearningCertificate = async (req, res) => {
         learnerName,
         lessonCount,
         quizScore: courseProgress.quizScore,
-        quizQuestionCount: requestedQuizQuestionCount,
+        quizQuestionCount,
       },
     });
     res.status(201).json(certificateResponse(certificate));
