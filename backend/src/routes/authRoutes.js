@@ -39,6 +39,9 @@ const sellerLoginCodeLimiter = createAuthLimiter(20, 60 * 60 * 1000);
 const customerLoginCodeLimiter = createAuthLimiter(20, 60 * 60 * 1000);
 const adminLoginCodeLimiter = createAuthLimiter(20, 60 * 60 * 1000);
 const emailChangeCodeLimiter = createAuthLimiter(20, 60 * 60 * 1000);
+// NIC photo reading (OCR) is slow and CPU-heavy, and it runs before login during seller sign-up,
+// so each visitor gets a small number of scans. Typing the NIC by hand always works.
+const scanNicLimiter = createAuthLimiter(10, 15 * 60 * 1000);
 
 router.get('/csrf', getCsrfToken);
 router.post('/logout', (_req, res) => {
@@ -46,7 +49,7 @@ router.post('/logout', (_req, res) => {
   res.json({ message: 'Logged out.' });
 });
 
-router.post('/scan-nic', scanNic);
+router.post('/scan-nic', scanNicLimiter, scanNic);
 router.post('/register', registerLimiter, register);
 router.post('/login', authAttemptLimiter, login);
 router.post('/verify-email', authAttemptLimiter, verifyEmail);

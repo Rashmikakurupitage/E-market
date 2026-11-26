@@ -11,7 +11,27 @@ const MAX_PHOTO_BYTES = 600 * 1024;
 const MAX_STOCK = 1000000;
 const PHOTO_DATA_URL = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/]+={0,2})$/;
 
+const MAX_PRICE = 10000000;
+const MAX_TITLE_LENGTH = 150;
+const MAX_DESCRIPTION_LENGTH = 5000;
+const MAX_CATEGORY_LENGTH = 60;
+const CLICK_PLATFORMS = new Set(['WHATSAPP', 'MESSENGER', 'FACEBOOK']);
+
+// Address the API is reached at, used in saved photo links. Production must set PUBLIC_API_URL
+// (checked at start-up): the request's Host header can be spoofed and would be saved into product data.
 const publicBase = (req) => (process.env.PUBLIC_API_URL || `${req.protocol}://${req.get('host')}`).replace(/\/$/, '');
+
+// Price in rupees: empty or 0 means no price shown; otherwise more than 0, at most 10 million, up to 2 decimals.
+// Returns { price } (a number or null) or { error }
+const readPrice = (input) => {
+  if (input === undefined || input === null || input === '') return { price: null };
+  const text = String(input).trim();
+  if (!/^\d+(?:\.\d{1,2})?$/.test(text)) return { error: true };
+  const price = Number(text);
+  if (price === 0) return { price: null }; // 0 has always meant "no price shown"
+  if (!Number.isFinite(price) || price > MAX_PRICE) return { error: true };
+  return { price };
+};
 
 // Returns { urls, uploads } or { error }
 const readPhotos = (input, req) => {
@@ -48,7 +68,18 @@ const readPhotos = (input, req) => {
 // 1. Add a new product (sellers only).
 exports.createProduct = async (req, res) => {
   try {
-    const { title, description, category, images, price } = req.body;
+    const title = typeof req.body.title === 'string' ? req.body.title.trim() : '';
+    const description = typeof req.body.description === 'string' ? req.body.description.trim() : '';
+    const category = typeof req.body.category === 'string' ? req.body.category.trim() : '';
+    const { images } = req.body;
+    const priceInput = readPrice(req.body.price);
+    if (priceInput.error) {
+      return res.status(400).json({
+        code: 'INVALID_PRICE',
+        message: `Price must be a number above 0 and up to ${MAX_PRICE.toLocaleString('en-US')} rupees, or empty.`
+      });
+    }
+    const { price } = priceInput;
     const stockInput = req.body.stock;
     const stock = stockInput === '' || stockInput === undefined || stockInput === null ? null : Number(stockInput);
     if (stock !== null && (!Number.isInteger(stock) || stock < 0 || stock > MAX_STOCK)) {
@@ -78,6 +109,12 @@ exports.createProduct = async (req, res) => {
 
     if (!title || !description || !category) {
       return res.status(400).json({ message: 'Title, Description සහ Category ඇතුළත් කිරීම අනිවාර්යයි.' });
+    }
+    if (title.length > MAX_TITLE_LENGTH || description.length > MAX_DESCRIPTION_LENGTH || category.length > MAX_CATEGORY_LENGTH) {
+      return res.status(400).json({
+        code: 'TEXT_TOO_LONG',
+        message: `Keep the title under ${MAX_TITLE_LENGTH} characters and the description under ${MAX_DESCRIPTION_LENGTH}.`
+      });
     }
 
     // Photos: 0 to 5 links or uploaded pictures
@@ -119,7 +156,7 @@ exports.createProduct = async (req, res) => {
         images: photos.urls,
         stock,
         productImages: { create: photos.uploads },
-        price: price ? parseFloat(price) : null,
+        price,
         messengerUrl: messengerUrl || null,
         discountPercent: discount.percent,
         discountEndsAt: discount.endsAt
@@ -484,19 +521,33 @@ exports.deleteProduct = async (req, res) => {
   }
 };
 
-// Track when a customer clicks on a product or enquiry button
+// Track when a logged-in customer taps a seller's WhatsApp / Messenger / Facebook button.
+// Contact buttons are only shown to customers, so only customer sessions are counted.
+// The seller is taken from the product, so a request can't credit clicks to any seller it likes.
 exports.trackClick = async (req, res) => {
   try {
-    const { productId, sellerId, type } = req.body;
-    if (!type) {
-      return res.status(400).json({ message: 'Click type is required.' });
+    if (req.user.role !== 'CUSTOMER') {
+      return res.status(403).json({ code: 'NOT_CUSTOMER', message: 'Only customer clicks are counted.' });
+    }
+    const productId = typeof req.body?.productId === 'string' ? req.body.productId : '';
+    const platform = String(req.body?.platform || req.body?.type || '').toUpperCase();
+    if (!productId || productId.length > 64 || !CLICK_PLATFORMS.has(platform)) {
+      return res.status(400).json({ code: 'INVALID_CLICK', message: 'A product and a contact platform are required.' });
+    }
+
+    const product = await prisma.product.findFirst({
+      where: { id: productId, isPublished: true, seller: { status: 'APPROVED', removedAt: null } },
+      select: { id: true, sellerId: true }
+    });
+    if (!product) {
+      return res.status(404).json({ code: 'NOT_FOUND', message: 'Product not found.' });
     }
 
     await prisma.clickAnalytics.create({
       data: {
-        productId: productId || null,
-        sellerId: sellerId || null,
-        type
+        productId: product.id,
+        sellerId: product.sellerId,
+        type: platform
       }
     });
 

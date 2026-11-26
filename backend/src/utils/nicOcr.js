@@ -73,6 +73,16 @@ function extractNicFromText(rawText) {
   return null;
 }
 
+const OCR_STEP_TIMEOUT_MS = 30 * 1000;
+
+function withTimeout(promise, ms) {
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('NIC scan timed out.')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
 /**
  * Perform OCR on an image data URL or Buffer and extract NIC details.
  */
@@ -91,8 +101,19 @@ async function scanNicImage(imageInput) {
     throw new Error('Invalid image format.');
   }
 
-  // Perform recognition
-  const { data: { text } } = await Tesseract.recognize(buffer, 'eng');
+  // Without an errorHandler, a failure inside the OCR worker (for example the language data can't be
+  // downloaded) is thrown as an uncaught exception and stops the whole API. Such a failure can also leave
+  // the job waiting forever, so every step has a time limit and the worker is always shut down.
+  let worker;
+  let text;
+  try {
+    worker = await withTimeout(Tesseract.createWorker('eng', 1, {
+      errorHandler: (error) => console.warn('NIC_OCR_WORKER_ERROR:', String(error?.message || error).slice(0, 200))
+    }), OCR_STEP_TIMEOUT_MS);
+    ({ data: { text } } = await withTimeout(worker.recognize(buffer), OCR_STEP_TIMEOUT_MS));
+  } finally {
+    if (worker) worker.terminate().catch(() => {});
+  }
   const extracted = extractNicFromText(text);
 
   return {
