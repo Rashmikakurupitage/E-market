@@ -1032,7 +1032,7 @@ export default function DashboardPage() {
             <div className="overflow-hidden rounded-[28px] border border-ink/10 bg-white shadow-xs dark:border-white/10 dark:bg-slate-900">
               {filteredProducts.length === 0 ? (
                 <div className="px-6 py-16 text-center">
-                  <Package className="mx-auto h-12 w-12 text-slate-300 dark:text-slate-600" />
+                  <Lotus className="mx-auto h-auto w-20 opacity-75" />
                   <p className="mt-4 font-bold text-slate-800 dark:text-white">
                     {productSearch ? 'No matching products found' : d.noProducts}
                   </p>

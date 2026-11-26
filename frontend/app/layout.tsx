@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Noto_Sans_Sinhala, Noto_Sans_Tamil, Playfair_Display
 import "./globals.css";
 import "./dark-theme.css";
 import "./glass-theme.css";
+import "./motion.css";
 import { LanguageProvider } from "../src/lib/i18n";
 import SiteFrame from "../src/components/SiteFrame";
 import AppShell from "../src/components/AppShell";
