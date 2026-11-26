@@ -1,0 +1,222 @@
+/* ==========================================================================
+   "Lotus Glass" theme
+   A soft frosted-glass look over a warm lotus-coloured background.
+
+   Who it is for: many of our sellers and customers are older women using
+   low-cost Android phones, reading Sinhala, Tamil or English. So:
+   - text always sits on a light, mostly solid layer (WCAG AA contrast);
+   - real blur (backdrop-filter, slow on cheap phones) is only used on a few
+     things that float over moving content: the header, the bottom tab bar,
+     drawers and pop-up windows. Cards get the glass look from a light
+     gradient, a white edge and a soft shadow, which costs nothing to draw;
+   - phones that cannot blur, and people who ask their device for less
+     transparency, get solid surfaces instead.
+
+   It re-skins the existing Tailwind classes, so pages keep their layout.
+   Unlayered CSS wins over Tailwind utilities, so these rules stay small and
+   only touch backgrounds, borders and shadows of resting surfaces.
+   ========================================================================== */
+
+:root {
+  /* Glass tokens (light) */
+  --glass-fill: rgb(255 255 255 / 0.7);
+  --glass-fill-strong: rgb(255 255 255 / 0.86);
+  --glass-sheen: linear-gradient(145deg, rgb(255 255 255 / 0.9) 0%, rgb(255 255 255 / 0.55) 55%, rgb(255 255 255 / 0.72) 100%);
+  --glass-edge: rgb(255 255 255 / 0.85);
+  --glass-line: rgb(var(--accent-rgb) / 0.12);
+  --glass-shadow: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 14px 34px -18px rgb(var(--accent-rgb) / 0.32), 0 4px 12px -6px rgb(30 32 41 / 0.08);
+  --glass-shadow-lift: 0 1px 0 rgb(255 255 255 / 0.9) inset, 0 22px 44px -18px rgb(var(--accent-rgb) / 0.38), 0 6px 16px -8px rgb(30 32 41 / 0.1);
+  --glass-blur: blur(18px) saturate(170%);
+
+  /* Deep "aubergine" panels instead of near-black ink: warmer and softer */
+  --plum-panel: linear-gradient(140deg, #3d1633 0%, #5b1d47 48%, #2c1230 100%);
+  --rose-button: linear-gradient(135deg, var(--color-magenta) 0%, var(--color-magenta-dark) 100%);
+}
+
+/* ---------- Background: soft lotus, saffron and leaf glows ---------- */
+:root:not([data-theme='dark']) .bg-mesh {
+  background-image:
+    radial-gradient(52rem 38rem at 6% 4%, rgb(var(--accent-rgb) / 0.2), transparent 62%),
+    radial-gradient(46rem 34rem at 98% 10%, rgb(var(--accent2-rgb) / 0.2), transparent 60%),
+    radial-gradient(48rem 36rem at 78% 96%, var(--theme-bg-glow1, rgb(244 185 62 / 0.3)), transparent 62%),
+    radial-gradient(40rem 30rem at 0% 92%, var(--theme-bg-glow2, rgb(79 154 82 / 0.16)), transparent 60%),
+    radial-gradient(60rem 40rem at 50% 45%, rgb(255 255 255 / 0.65), transparent 70%);
+}
+
+/* ---------- Ready-made classes for new code ---------- */
+@layer components {
+  .glass,
+  .glass-card {
+    background-color: var(--glass-fill);
+    background-image: var(--glass-sheen);
+    border: 1px solid var(--glass-edge);
+    box-shadow: var(--glass-shadow);
+  }
+  /* Only for things that float over moving content */
+  .glass {
+    backdrop-filter: var(--glass-blur);
+  }
+  .glass-strong {
+    background-color: var(--glass-fill-strong);
+    backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--glass-edge);
+    box-shadow: var(--glass-shadow);
+  }
+  .btn-rose {
+    background-image: var(--rose-button);
+    color: #fff;
+    box-shadow: 0 10px 22px -10px rgb(var(--accent-rgb) / 0.7), 0 1px 0 rgb(255 255 255 / 0.25) inset;
+  }
+}
+
+/* ---------- Light theme re-skin of existing surfaces ---------- */
+
+/* Cards and panels: white rounded boxes become frosted glass.
+   Form fields, buttons and links keep their own look. */
+:root:not([data-theme='dark'])
+  :is(div, section, article, aside, form, li, fieldset, details, dialog, nav, main):is(.bg-white, .bg-white\/95, .bg-white\/90, .bg-white\/80, .bg-white\/70):is(.rounded-xl, .rounded-2xl, .rounded-3xl, [class*='rounded-[']):not(.no-glass) {
+  background-color: var(--glass-fill);
+  background-image: var(--glass-sheen);
+  border-color: var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+/* Cream / sand panels inside cards: a lighter, see-through tint */
+:root:not([data-theme='dark'])
+  :is(div, section, article, aside, li):is(.bg-cream, .bg-sand\/60, .bg-sand\/50, .bg-cream\/60, .bg-cream\/70):is(.rounded-xl, .rounded-2xl, .rounded-3xl):not(.no-glass) {
+  background-color: rgb(255 255 255 / 0.5);
+  border-color: rgb(255 255 255 / 0.75);
+}
+/* Product and course cards lift a little on hover/tap */
+:root:not([data-theme='dark']) :is(article, li, div).group:is(.bg-white, .bg-white\/90):is(.rounded-2xl, .rounded-3xl, [class*='rounded-[']):hover {
+  box-shadow: var(--glass-shadow-lift);
+}
+
+/* Dark "ink" banners and panels (store hero, login side panel, footer) become deep plum */
+:root:not([data-theme='dark']) :is(div, section, aside, footer, header).bg-ink:is(.rounded-2xl, .rounded-3xl, [class*='rounded-'], footer) {
+  background-color: #3d1633;
+  background-image: var(--plum-panel);
+}
+
+/* Main dark buttons become a rose gradient (the brand colour, softer than black) */
+:root:not([data-theme='dark']) :is(button, a).bg-ink:not(:disabled) {
+  background-color: var(--color-magenta-dark);
+  background-image: var(--rose-button);
+  box-shadow: 0 10px 22px -10px rgb(var(--accent-rgb) / 0.7), 0 1px 0 rgb(255 255 255 / 0.25) inset;
+}
+:root:not([data-theme='dark']) :is(button, a).bg-ink:not(:disabled):hover {
+  filter: brightness(1.07) saturate(1.05);
+}
+/* Selected tab in on/off switches (Seller / Customer) uses the same rose */
+:root:not([data-theme='dark']) :is(button, a).bg-ink[aria-pressed='true'],
+:root:not([data-theme='dark']) :is(button, a).bg-ink[aria-selected='true'],
+:root:not([data-theme='dark']) :is(button, a).bg-ink[aria-current='page'] {
+  background-image: var(--rose-button);
+}
+
+/* Form fields: clear white, a gentle rose edge and a visible focus ring */
+:root:not([data-theme='dark']) :is(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']), select, textarea):is(.bg-white, .bg-cream, .bg-white\/80, .bg-white\/90, [class*='bg-slate-50']) {
+  background-color: rgb(255 255 255 / 0.92);
+}
+:is(input:not([type='checkbox']):not([type='radio']):not([type='file']):not([type='range']), select, textarea):focus-visible {
+  outline: 3px solid rgb(var(--accent-rgb) / 0.35);
+  outline-offset: 1px;
+}
+
+/* ---------- Things that float: real frosted blur ---------- */
+:root:not([data-theme='dark']) header.sticky {
+  background-color: rgb(255 255 255 / 0.72);
+  backdrop-filter: var(--glass-blur);
+  border-bottom-color: rgb(255 255 255 / 0.8);
+  box-shadow: 0 8px 24px -18px rgb(var(--accent-rgb) / 0.45);
+}
+:root:not([data-theme='dark']) .bottom-tabs {
+  background-color: rgb(255 255 255 / 0.78);
+  backdrop-filter: var(--glass-blur);
+  border-top-color: rgb(255 255 255 / 0.85);
+  box-shadow: 0 -8px 24px -16px rgb(var(--accent-rgb) / 0.35);
+}
+/* Pop-up windows and drawers */
+:root:not([data-theme='dark']) :is([role='dialog'], [aria-modal='true']) :is(div, section, aside, form).bg-white:is([class*='rounded'], [class*='shadow']) {
+  background-color: rgb(255 255 255 / 0.9);
+  background-image: var(--glass-sheen);
+  backdrop-filter: var(--glass-blur);
+  border-color: var(--glass-edge);
+}
+
+/* ---------- Dark theme glass ---------- */
+[data-theme='dark'] {
+  --glass-fill: rgb(30 24 38 / 0.72);
+  --glass-sheen: linear-gradient(145deg, rgb(255 255 255 / 0.07) 0%, rgb(255 255 255 / 0.02) 60%, rgb(255 255 255 / 0.04) 100%);
+  --glass-edge: rgb(255 255 255 / 0.1);
+  --glass-shadow: 0 1px 0 rgb(255 255 255 / 0.06) inset, 0 16px 36px -18px rgb(0 0 0 / 0.7);
+}
+[data-theme='dark'] :is(div, section, article, aside, form, li):is(.bg-white, .bg-white\/95, .bg-white\/90):is(.rounded-2xl, .rounded-3xl, [class*='rounded-[']):not(.no-glass) {
+  background-color: var(--glass-fill);
+  background-image: var(--glass-sheen);
+  border-color: var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+[data-theme='dark'] header.sticky,
+[data-theme='dark'] .bottom-tabs {
+  background-color: rgb(18 14 24 / 0.78);
+  backdrop-filter: var(--glass-blur);
+}
+
+/* ---------- Fallbacks ---------- */
+/* Browsers or phones without blur: use solid surfaces so text stays easy to read */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root:not([data-theme='dark']) header.sticky,
+  :root:not([data-theme='dark']) .bottom-tabs,
+  :root:not([data-theme='dark']) .glass,
+  :root:not([data-theme='dark']) .glass-strong {
+    background-color: rgb(255 255 255 / 0.97);
+  }
+  [data-theme='dark'] header.sticky,
+  [data-theme='dark'] .bottom-tabs {
+    background-color: rgb(18 14 24 / 0.97);
+  }
+}
+/* People who turned on "reduce transparency" (iPhone, Mac, some Android) */
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --glass-fill: rgb(255 255 255 / 0.97);
+    --glass-sheen: none;
+  }
+  [data-theme='dark'] {
+    --glass-fill: rgb(24 21 32 / 0.98);
+  }
+  header.sticky,
+  .bottom-tabs,
+  .glass,
+  .glass-strong {
+    backdrop-filter: none !important;
+  }
+  :root:not([data-theme='dark']) header.sticky,
+  :root:not([data-theme='dark']) .bottom-tabs {
+    background-color: #fff;
+  }
+}
+
+/* ---------- Readability on phones ---------- */
+/* Phones used to shrink everything to 12.5px, which made small labels about 9px.
+   14px keeps layouts compact but the text readable for older eyes. */
+@media (max-width: 639px) {
+  html {
+    font-size: 14px;
+  }
+}
+/* No text smaller than 11px anywhere (12px on phones) */
+:is(.text-\[8px\], .text-\[8\.5px\], .text-\[9px\], .text-\[9\.5px\], .text-\[10px\], .text-\[10\.5px\]) {
+  font-size: 11px;
+}
+@media (max-width: 639px) {
+  :is(.text-\[8px\], .text-\[8\.5px\], .text-\[9px\], .text-\[9\.5px\], .text-\[10px\], .text-\[10\.5px\], .text-\[11px\]) {
+    font-size: 12px;
+  }
+}
+/* The header's three-language name is already tight on small phones: keep it at 11px there */
+@media (max-width: 639px) {
+  header.sticky :is(.text-\[9\.5px\], .text-\[10px\], .text-\[10\.5px\]) {
+    font-size: 10.5px;
+  }
+}
