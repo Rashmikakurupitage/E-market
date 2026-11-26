@@ -197,7 +197,7 @@ export default function DashboardSidebar({
   const statusBadgeText = statusLabel || roleLabel || s.portalBadge;
 
   return (
-    <div className="dashboard-canvas flex min-h-screen w-full bg-slate-50 text-ink dark:bg-slate-950 dark:text-white">
+    <div className="dashboard-canvas flex min-h-screen w-full flex-col lg:flex-row bg-slate-50 text-ink dark:bg-slate-950 dark:text-white">
       {/* 1. DESKTOP SIDEBAR: Mounted flush against left edge */}
       <aside
         aria-label={menuLabel || 'Dashboard Navigation'}
