@@ -37,8 +37,8 @@ export function Kpi({ icon: Icon, label, value, sub, tone = 'ink', delay, onClic
   const cfg = KPI_CONFIG[tone] || KPI_CONFIG.ink;
   return (
     <Reveal delay={delay} className="group relative overflow-hidden rounded-[22px] sm:rounded-[26px] border border-ink/8 bg-white p-3.5 sm:p-5 shadow-sm shadow-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-ink/10 hover:border-ink/15">
-      <span aria-hidden="true" className="pointer-events-none absolute -right-6 -top-6 h-20 w-20 sm:h-24 sm:w-24 rounded-full opacity-15 transition-transform duration-500 group-hover:scale-125" style={{ background: cfg.bg, backgroundColor: cfg.solid }} />
-      <span className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl sm:rounded-2xl text-white transition-transform duration-300 group-hover:scale-105" style={{ background: cfg.bg, backgroundColor: cfg.solid }}>
+      <span aria-hidden="true" className="kpi-glow pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-20 blur-2xl transition-[opacity,scale] duration-500 group-hover:scale-125 group-hover:opacity-35" style={{ background: cfg.bg, backgroundColor: cfg.solid }} />
+      <span className="relative flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl sm:rounded-2xl text-white shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6" style={{ background: cfg.bg, backgroundColor: cfg.solid, boxShadow: `0 10px 22px -10px ${cfg.solid}` }}>
         <Icon className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
       </span>
       <p className="mt-2.5 sm:mt-3.5 text-2xl sm:text-3xl font-extrabold tabular-nums tracking-tight text-ink">{typeof value === 'number' ? <CountUp value={value} /> : value ?? '–'}</p>

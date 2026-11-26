@@ -4,9 +4,11 @@ import "./globals.css";
 import "./dark-theme.css";
 import "./glass-theme.css";
 import "./motion.css";
+import "./premium.css";
 import { LanguageProvider } from "../src/lib/i18n";
 import SiteFrame from "../src/components/SiteFrame";
 import AppShell from "../src/components/AppShell";
+import Spotlight from "../src/components/Spotlight";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -74,6 +76,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <LanguageProvider>
           <SiteFrame>{children}</SiteFrame>
           <AppShell />
+          <Spotlight />
         </LanguageProvider>
       </body>
     </html>
