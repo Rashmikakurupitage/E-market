@@ -21,6 +21,8 @@ const {
   verifyEmailChange,
   scanNic
 } = require('../controllers/authController');
+const jwt = require('jsonwebtoken');
+const prisma = require('../config/db');
 const authMiddleware = require('../middlewares/authmiddleware');
 const { clearSessionCookies, getCsrfToken } = require('../utils/authCookies');
 
@@ -44,7 +46,27 @@ const emailChangeCodeLimiter = createAuthLimiter(20, 60 * 60 * 1000);
 const scanNicLimiter = createAuthLimiter(10, 15 * 60 * 1000);
 
 router.get('/csrf', getCsrfToken);
-router.post('/logout', (_req, res) => {
+// Logging out ends the session on the server too: the account's session version goes up, so the old
+// login cookie (or a copy of it) stops working straight away, on every device where the account was logged in.
+router.post('/logout', async (req, res) => {
+  let token = req.cookies?.lw_session;
+  if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+    token = req.headers.authorization.slice(7);
+  }
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ['HS256'] });
+      await prisma.user.updateMany({
+        where: { id: decoded.userId, sessionVersion: decoded.sessionVersion ?? 0 },
+        data: { sessionVersion: { increment: 1 } }
+      });
+    } catch (error) {
+      // An expired or invalid token is already unusable; just clear the cookies.
+      if (error.name !== 'JsonWebTokenError' && error.name !== 'TokenExpiredError' && error.name !== 'NotBeforeError') {
+        console.error('LOGOUT_ERROR:', error);
+      }
+    }
+  }
   clearSessionCookies(res);
   res.json({ message: 'Logged out.' });
 });

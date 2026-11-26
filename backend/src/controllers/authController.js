@@ -75,12 +75,6 @@ const phoneLookupValues = (value) => {
   return [...new Set([phone, `+94${national}`, `94${national}`, `0${national}`])];
 };
 
-const signToken = (user, expiresIn = '7d') =>
-  jwt.sign(
-    { userId: user.id, role: user.role, sessionVersion: user.sessionVersion || 0 },
-    process.env.JWT_SECRET || 'fallback_secret',
-    { expiresIn }
-  );
 const MAX_IDENTITY_IMAGE_BYTES = 1024 * 1024;
 const parseIdentityImage = (value) => {
   if (typeof value !== 'string' || value.length > 1_400_000) return null;
@@ -375,7 +369,6 @@ exports.register = async (req, res) => {
       sentTo: emailSent && user.email ? maskEmail(user.email) : null,
       expiresInMinutes: issued?.expiresInMinutes || 10,
       resendAfterSeconds: issued?.resendAfterSeconds || 60,
-      token: signToken(user),
       user: toPublicUser(user),
       ...(emailSent && process.env.EMAIL_DEV_LOG_CODES === 'true' && issued?.code ? { devCode: issued.code } : {})
     });
@@ -430,7 +423,6 @@ exports.login = async (req, res) => {
 
     res.json({
       message: 'සාර්ථකව Log විය!',
-      token: signToken(user),
       user: toPublicUser(user)
     });
   } catch (error) {
@@ -577,7 +569,6 @@ const verifyLoginCode = (type) => async (req, res) => {
 
     res.json({
       message: 'සාර්ථකව Log විය!',
-      token: signToken(user, type.sessionLength),
       user: toPublicUser(user)
     });
   } catch (error) {
@@ -630,7 +621,6 @@ exports.verifyEmail = async (req, res) => {
       message: isSeller
         ? 'Your email is verified. Your seller account will be active once an admin has checked your NIC and photo.'
         : 'Your email is verified.',
-      token: signToken(verified),
       user: toPublicUser(verified)
     });
   } catch (error) {
