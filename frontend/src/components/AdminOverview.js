@@ -11,6 +11,7 @@ import { formatPrice, initials } from '../lib/catalog';
 import CountUp from './CountUp';
 import Reveal from './Reveal';
 import { ComplaintStatusBadge } from './Complaints';
+import { Lotus } from './Art';
 
 export const ORDER_COLORS = { PENDING: '#f59e0b', CONFIRMED: '#3b82f6', SHIPPED: '#8b5cf6', DELIVERED: '#16a34a', CANCELLED: '#94a3b8' };
 const SELLER_COLORS = { PENDING: '#f59e0b', APPROVED: '#16a34a', REJECTED: '#94a3b8' };
@@ -249,7 +250,12 @@ function RegistrationChart({ days, lang, labels, previousTotal }) {
 }
 
 export function Empty({ children }) {
-  return <p className="rounded-2xl bg-cream px-4 py-6 text-center text-sm text-ink/50">{children}</p>;
+  return (
+    <div className="photo-placeholder flex flex-col items-center gap-2 rounded-2xl px-4 py-6 text-center">
+      <Lotus className="h-auto w-16 opacity-70" />
+      <p className="text-sm font-medium text-ink/70 dark:text-white/70">{children}</p>
+    </div>
+  );
 }
 
 export default function AdminOverview({ stats, onNavigate, onAuthError }) {

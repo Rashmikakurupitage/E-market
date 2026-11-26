@@ -1,0 +1,100 @@
+/* ==========================================================================
+   Smooth motion and small touches ("Lotus Glass", part 2)
+
+   Rules for every animation here:
+   - short (under half a second) and gentle: fades, small lifts, soft presses;
+   - only opacity and transform, which phones can animate cheaply;
+   - switched off for people who ask their device for less motion.
+   ========================================================================== */
+
+/* ---------- Page changes: the old page fades out, the new one rises in ---------- */
+::view-transition-old(.page-exit) {
+  animation: vt-fade-out 160ms ease-in both;
+}
+::view-transition-new(.page-enter) {
+  animation: vt-rise-in 340ms cubic-bezier(0.22, 1, 0.36, 1) 60ms both;
+}
+@keyframes vt-fade-out {
+  to { opacity: 0; }
+}
+@keyframes vt-rise-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: none; }
+}
+/* Browsers with view transitions get the fade above, so the older fade-in is not doubled */
+@supports (view-transition-name: none) {
+  .page-fallback-fade {
+    animation: none;
+  }
+}
+
+/* ---------- Buttons: a soft press you can feel on a touch screen ---------- */
+:is(button, a, summary):is(.rounded-full, .rounded-xl, .rounded-2xl):not(:disabled) {
+  transition-property: color, background-color, border-color, box-shadow, filter, translate, scale, transform, opacity;
+  transition-duration: 200ms;
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+:is(button, a, summary):is(.rounded-full, .rounded-xl, .rounded-2xl):not(:disabled):active {
+  scale: 0.97;
+}
+/* Clear keyboard focus, in the brand colour */
+:is(button, a, summary, [role='button'], [role='tab']):focus-visible {
+  outline: 3px solid rgb(var(--accent-rgb) / 0.45);
+  outline-offset: 2px;
+}
+
+/* ---------- Cards rise a little when touched or hovered ---------- */
+@media (hover: hover) {
+  :root:not([data-theme='dark']) :is(article, li, div).group:is([class*='rounded-[2'], .rounded-3xl):is(.bg-white, .bg-white\/90):hover {
+    translate: 0 -4px;
+  }
+}
+
+/* ---------- Photos fade in when they finish loading, instead of popping in ---------- */
+.img-fade {
+  opacity: 0;
+  transition: opacity 500ms ease-out, scale 700ms cubic-bezier(0.22, 1, 0.36, 1), transform 700ms ease-out;
+  scale: 1.03;
+}
+.img-fade[data-loaded='true'] {
+  opacity: 1;
+  scale: 1;
+}
+
+/* ---------- Product photo placeholder: a soft lotus instead of a grey box ---------- */
+.photo-placeholder {
+  background-color: var(--color-brand-50);
+  background-image:
+    radial-gradient(120% 90% at 15% 10%, rgb(var(--accent2-rgb) / 0.18), transparent 60%),
+    radial-gradient(110% 90% at 90% 95%, rgb(var(--accent-rgb) / 0.2), transparent 60%),
+    linear-gradient(160deg, #fff8f1, var(--color-brand-50));
+}
+[data-theme='dark'] .photo-placeholder {
+  background-color: #2a1f33;
+  background-image:
+    radial-gradient(120% 90% at 15% 10%, rgb(var(--accent2-rgb) / 0.16), transparent 60%),
+    radial-gradient(110% 90% at 90% 95%, rgb(var(--accent-rgb) / 0.22), transparent 60%);
+}
+
+/* ---------- Loading placeholders shimmer in soft rose instead of beige ---------- */
+:root:not([data-theme='dark']) .skeleton {
+  background: linear-gradient(90deg, rgb(var(--accent-rgb) / 0.07) 25%, rgb(255 255 255 / 0.75) 50%, rgb(var(--accent-rgb) / 0.07) 75%);
+  background-size: 200% 100%;
+}
+
+/* ---------- Less motion: switch all of the above off ---------- */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation: none !important;
+  }
+  :is(button, a, summary):active {
+    scale: none !important;
+  }
+  .img-fade {
+    opacity: 1;
+    scale: none;
+    transition: none;
+  }
+}

@@ -727,7 +727,7 @@ export default function StorePage() {
             ) : visible.length > 0 ? (
               <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-6 xl:grid-cols-3">
                 {visible.map((product, index) => (
-                  <Reveal key={product.id} delay={(index % 3) * 80} className="grid">
+                  <Reveal key={product.id} delay={(index % 3) * 80} className="grid min-w-0 grid-cols-1">
                     <ProductCard product={product} onOpen={() => openProduct(product)} />
                   </Reveal>
                 ))}

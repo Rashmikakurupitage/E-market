@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { BadgeCheck, MapPin, Package, Star } from 'lucide-react';
+import { BadgeCheck, MapPin, Star } from 'lucide-react';
 import WhatsAppIcon from './WhatsAppIcon';
 import MessengerIcon from './MessengerIcon';
 import { useCanContact } from './ContactGate';
 import PriceTag, { DiscountBurst } from './DiscountBadge';
 import SellerStatusBadge from './SellerStatusBadge';
+import FadeImage from './FadeImage';
+import { Lotus } from './Art';
 import API from '../lib/api';
 import { fill, useLanguage } from '../lib/i18n';
 import { useHydrated } from '../lib/auth';
@@ -60,7 +62,7 @@ export default function ProductCard({ product, onOpen }) {
   return (
     <>
       <article
-        className="group flex h-full flex-col rounded-[22px] border border-ink/8 bg-white p-2 shadow-sm sm:rounded-[28px] sm:p-3 shadow-ink/5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-ink/10 hover:border-ink/15"
+        className="group flex h-full min-w-0 flex-col rounded-[22px] border border-ink/8 bg-white p-2 shadow-sm sm:rounded-[28px] sm:p-3 shadow-ink/5 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl hover:shadow-ink/10 hover:border-ink/15"
       >
         <button
           type="button"
@@ -69,19 +71,24 @@ export default function ProductCard({ product, onOpen }) {
           className="flex w-full flex-1 flex-col rounded-[18px] text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-magenta"
         >
           {/* Image */}
-          <div className="shine relative aspect-square overflow-hidden rounded-[20px] bg-sand">
+          <div className="shine photo-placeholder relative aspect-square overflow-hidden rounded-[20px]">
             {image && !imageFailed ? (
-              <img
+              <FadeImage
                 src={image}
-                alt=""
                 loading="lazy"
                 decoding="async"
                 onError={() => setImageFailed(true)}
                 className="h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
               />
             ) : (
-              <div className="flex h-full w-full items-center justify-center text-ink/20">
-                <Package className="h-12 w-12" />
+              // No photo yet: a soft lotus with the product's category
+              <div className="flex h-full w-full flex-col items-center justify-center gap-2 px-3 text-center">
+                <Lotus className="h-auto w-2/5 max-w-28 opacity-80 transition-transform duration-700 ease-out group-hover:scale-105" />
+                {product.category && (
+                  <span className="text-xs font-semibold text-magenta-dark/80 dark:text-magenta-light/80">
+                    {t.categories[product.category] || product.category}
+                  </span>
+                )}
               </div>
             )}
             {example ? (

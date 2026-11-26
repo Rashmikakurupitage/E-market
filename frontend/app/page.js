@@ -602,7 +602,7 @@ export default function Home() {
       </section>
 
       {/* 9. Lower Half: Main Product Catalog */}
-      <div className="rounded-t-[48px] bg-slate-50/70 border-t border-slate-200">
+      <div className="rounded-t-[48px] border-t border-white/80 bg-white/35 shadow-[0_-18px_40px_-30px_rgb(var(--accent-rgb)/0.35)] dark:border-white/10 dark:bg-white/[0.02]">
         <main id="products" className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6">
           <Reveal className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -821,7 +821,7 @@ export default function Home() {
             <>
               <div className="mt-8 grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
                 {visibleProducts.map((product, index) => (
-                  <Reveal key={product.id} delay={(index % 4) * 80} className="grid">
+                  <Reveal key={product.id} delay={(index % 4) * 80} className="grid min-w-0 grid-cols-1">
                     <ProductCard product={product} />
                   </Reveal>
                 ))}
