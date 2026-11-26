@@ -306,8 +306,10 @@ exports.register = async (req, res) => {
                 businessName: businessName || 'My Business',
                 businessType,
                 district: district || 'Colombo',
-                status: email ? 'PENDING' : 'APPROVED',
-                nicNumber: nicNumberInput,
+                // Every new seller waits for an admin to review her NIC and selfie, with or without an email.
+                status: 'PENDING',
+                // The real NIC is kept only encrypted (nicData); this unique column gets a placeholder.
+                nicNumber: `SELF-SELLER-${crypto.randomBytes(8).toString('hex').toUpperCase()}`,
                 ...nicData,
                 dateOfBirth: nicInfo ? new Date(`${nicInfo.birthDate}T00:00:00.000Z`) : null,
                 firstName: profileFirstName || null,
@@ -316,8 +318,7 @@ exports.register = async (req, res) => {
                 messengerUrl: sellerMessengerUrl,
                 facebookUrl: sellerFacebookUrl,
                 description: description || null,
-                nicFront: nicFront || null,
-                nicBack: nicBack || null,
+                // NIC photos are stored only in encrypted form (identityDocuments), never as plain images.
                 ...identityDocuments
               }
             }
@@ -334,10 +335,9 @@ exports.register = async (req, res) => {
         phone,
         passwordHash,
         role,
-        ...profile,
-        ...(facePhoto && typeof facePhoto === 'string' && facePhoto.startsWith('data:image/')
-          ? { profilePhoto: { create: { data: facePhoto } } }
-          : {})
+        // The liveness selfie is an identity document (kept encrypted in identityDocuments).
+        // It is not used as the public profile photo; sellers choose their own profile photo later.
+        ...profile
       },
       include: { sellerProfile: true, customerProfile: true, profilePhoto: true }
     });
@@ -617,16 +617,10 @@ exports.verifyEmail = async (req, res) => {
     }
 
     const isSeller = user.role === 'SELLER';
-    const updateData = {
-      emailVerifiedAt: new Date(),
-      ...(isSeller && user.sellerProfile
-        ? { sellerProfile: { update: { status: 'APPROVED' } } }
-        : {})
-    };
-
+    // Verifying an email only proves the address. Seller approval stays with the admin identity review.
     const verified = await prisma.user.update({
       where: { id: user.id },
-      data: updateData,
+      data: { emailVerifiedAt: new Date() },
       include: { sellerProfile: true, customerProfile: true, profilePhoto: { select: { updatedAt: true } } }
     });
 
@@ -634,8 +628,8 @@ exports.verifyEmail = async (req, res) => {
 
     res.json({
       message: isSeller
-        ? 'Your email is verified and your seller account is approved!'
-        : 'Your email is verified and your customer account is approved!',
+        ? 'Your email is verified. Your seller account will be active once an admin has checked your NIC and photo.'
+        : 'Your email is verified.',
       token: signToken(verified),
       user: toPublicUser(verified)
     });
@@ -878,16 +872,13 @@ exports.resetPassword = async (req, res) => {
       return res.status(400).json({ code: 'WRONG_CODE', message: 'User not found or code expired.' });
     }
 
-    const isSeller = user.role === 'SELLER';
+    // Changing a password never changes a seller's approval status.
     await prisma.user.update({
       where: { id: user.id },
       data: {
         passwordHash: await bcrypt.hash(newPassword, 10),
         emailVerifiedAt: user.emailVerifiedAt || new Date(),
-        sessionVersion: { increment: 1 },
-        ...(isSeller && user.sellerProfile && user.sellerProfile.status === 'PENDING'
-          ? { sellerProfile: { update: { status: 'APPROVED' } } }
-          : {})
+        sessionVersion: { increment: 1 }
       }
     });
     clearSessionCookies(res);
