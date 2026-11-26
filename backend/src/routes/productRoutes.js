@@ -11,14 +11,15 @@ const {
   deleteProduct,
   trackClick
 } = require('../controllers/productController');
-const { getProductReviews, saveProductReview, getSellerReviews } = require('../controllers/reviewController');
+const { getProductReviews, saveProductReview, getMyProductReviews } = require('../controllers/reviewController');
 const authMiddleware = require('../middlewares/authmiddleware');
 
 // Public routes
 router.get('/', getAllProducts);
 router.post('/track-click', trackClick);
 router.get('/images/:id', getProductImage);
-router.get('/seller/reviews', authMiddleware, getSellerReviews);
+// Reviews on the logged-in seller's products (Seller workspace > Reviews)
+router.get('/seller/reviews', authMiddleware, getMyProductReviews);
 router.get('/:id/reviews', getProductReviews);
 router.post('/:id/reviews', authMiddleware, saveProductReview);
 

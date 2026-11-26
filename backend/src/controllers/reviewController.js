@@ -8,6 +8,39 @@ const getCustomer = (userId) => prisma.customerProfile.findUnique({
   select: { id: true }
 });
 
+// Reviews are public, so these routes have no login middleware. When the visitor is logged in
+// (session cookie, or a Bearer token from older clients), return their customer profile so the
+// page can show the review form and their existing review. Revoked or removed sessions count as logged out.
+const getOptionalCustomer = async (req) => {
+  let token = req.cookies?.lw_session;
+  if (!token && req.headers.authorization?.startsWith('Bearer ')) {
+    token = req.headers.authorization.slice(7);
+  }
+  if (!token) return null;
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch {
+    return null;
+  }
+  if (decoded.role !== 'CUSTOMER') return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: decoded.userId },
+    select: { role: true, removedAt: true, sessionVersion: true }
+  });
+  if (
+    !user ||
+    user.role !== 'CUSTOMER' ||
+    user.removedAt ||
+    (decoded.sessionVersion !== undefined && decoded.sessionVersion !== user.sessionVersion)
+  ) {
+    return null;
+  }
+  return getCustomer(decoded.userId);
+};
+
 // Reviews are public; an authenticated customer receives their review eligibility and existing review.
 exports.getProductReviews = async (req, res) => {
   try {
@@ -38,24 +71,13 @@ exports.getProductReviews = async (req, res) => {
 
     let canReview = false;
     let myReview = null;
-    const authorization = req.headers.authorization;
-    if (authorization?.startsWith('Bearer ')) {
-      try {
-        const decoded = jwt.verify(authorization.slice(7), process.env.JWT_SECRET);
-        if (decoded.role === 'CUSTOMER') {
-          const customer = await getCustomer(decoded.userId);
-          if (customer) {
-            const savedReview = await prisma.productReview.findUnique({
-              where: { productId_customerId: { productId, customerId: customer.id } },
-              select: { id: true, rating: true, comment: true, createdAt: true, updatedAt: true }
-            });
-            canReview = true;
-            myReview = savedReview;
-          }
-        }
-      } catch (error) {
-        if (error.name !== 'JsonWebTokenError' && error.name !== 'TokenExpiredError') throw error;
-      }
+    const customer = await getOptionalCustomer(req);
+    if (customer) {
+      canReview = true;
+      myReview = await prisma.productReview.findUnique({
+        where: { productId_customerId: { productId, customerId: customer.id } },
+        select: { id: true, rating: true, comment: true, createdAt: true, updatedAt: true }
+      });
     }
 
     const deliveredCustomerIds = new Set(
@@ -157,24 +179,13 @@ exports.getSellerReviews = async (req, res) => {
 
     let canReview = false;
     let myReview = null;
-    const authorization = req.headers.authorization;
-    if (authorization?.startsWith('Bearer ')) {
-      try {
-        const decoded = jwt.verify(authorization.slice(7), process.env.JWT_SECRET);
-        if (decoded.role === 'CUSTOMER') {
-          const customer = await getCustomer(decoded.userId);
-          if (customer) {
-            const savedReview = await prisma.sellerReview.findUnique({
-              where: { sellerId_customerId: { sellerId, customerId: customer.id } },
-              select: { id: true, rating: true, comment: true, createdAt: true, updatedAt: true }
-            });
-            canReview = true;
-            myReview = savedReview;
-          }
-        }
-      } catch (error) {
-        if (error.name !== 'JsonWebTokenError' && error.name !== 'TokenExpiredError') throw error;
-      }
+    const customer = await getOptionalCustomer(req);
+    if (customer) {
+      canReview = true;
+      myReview = await prisma.sellerReview.findUnique({
+        where: { sellerId_customerId: { sellerId, customerId: customer.id } },
+        select: { id: true, rating: true, comment: true, createdAt: true, updatedAt: true }
+      });
     }
 
     const deliveredCustomerIds = new Set(
@@ -282,5 +293,52 @@ exports.getMySellerReviews = async (req, res) => {
   } catch (error) {
     console.error('GET_MY_SELLER_REVIEWS_ERROR:', error);
     res.status(500).json({ message: 'Could not load your reviews.' });
+  }
+};
+
+// For the logged-in seller's workspace: reviews customers left on her products, with a star breakdown.
+exports.getMyProductReviews = async (req, res) => {
+  try {
+    const seller = await prisma.sellerProfile.findUnique({
+      where: { userId: req.user.userId },
+      select: { id: true }
+    });
+    if (!seller) {
+      return res.status(403).json({ code: 'NOT_SELLER', message: 'Only seller accounts have this.' });
+    }
+
+    const where = { product: { sellerId: seller.id } };
+    const [summary, byRating, reviews] = await Promise.all([
+      prisma.productReview.aggregate({ where, _avg: { rating: true }, _count: { _all: true } }),
+      prisma.productReview.groupBy({ by: ['rating'], where, _count: { _all: true } }),
+      prisma.productReview.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: 50,
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          updatedAt: true,
+          product: { select: { id: true, title: true } }
+        }
+      })
+    ]);
+
+    const ratingCounts = Object.fromEntries([1, 2, 3, 4, 5].map((rating) => [rating, 0]));
+    byRating.forEach(({ rating, _count }) => {
+      ratingCounts[rating] = _count._all;
+    });
+    const reviewCount = summary._count._all;
+    res.json({
+      reviewCount,
+      averageRating: reviewCount ? Math.round((summary._avg.rating || 0) * 10) / 10 : 0,
+      ratingCounts,
+      reviews
+    });
+  } catch (error) {
+    console.error('MY_PRODUCT_REVIEWS_ERROR:', error);
+    res.status(500).json({ message: 'Could not load your product reviews.' });
   }
 };
