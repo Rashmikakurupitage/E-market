@@ -157,3 +157,28 @@
   color: #fff;
   box-shadow: 0 10px 24px -10px rgb(var(--accent-rgb) / 0.75), 0 1px 0 rgb(255 255 255 / 0.2) inset;
 }
+
+/* ---------- Layout safety: grid items never grow past their column ---------- */
+/* Long Sinhala/Tamil words or prices used to push cards wider than their column, so they overlapped */
+.reveal.grid:not([class*='grid-cols']) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.grid > .reveal {
+  min-width: 0;
+}
+
+/* ---------- Fields inside a search/filter bar blend into the bar ---------- */
+/* Dark mode gives every field a dark box; fields marked bg-transparent sit inside a styled bar, so keep them see-through */
+[data-theme='dark'] :is(input, select, textarea).bg-transparent:not([type='checkbox']):not([type='radio']):not([type='file']) {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+[data-theme='dark'] :is(input, select, textarea).bg-transparent:-webkit-autofill {
+  box-shadow: 0 0 0 40px rgb(36 26 48) inset;
+}
+
+/* Dark mode: full-width white bands (like the home search band) show the aurora background instead of a flat grey strip */
+[data-theme='dark'] section.bg-white:not([class*='rounded']) {
+  background-color: rgb(255 255 255 / 0.02);
+}

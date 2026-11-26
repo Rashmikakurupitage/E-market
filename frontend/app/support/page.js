@@ -240,7 +240,7 @@ export default function Support() {
       <style>{PRINT_STYLES}</style>
 
       {/* Title */}
-      <section className="relative isolate mx-auto mt-4 w-[calc(100%-1.5rem)] max-w-7xl rounded-[28px] sm:rounded-[40px] sm:mt-6 sm:w-[calc(100%-3rem)] overflow-hidden px-4 pb-28 pt-12 text-white sm:pb-36 sm:pt-16 print:hidden">
+      <section className="relative isolate mx-auto mt-4 w-[calc(100%-1.5rem)] max-w-7xl rounded-[28px] sm:rounded-[40px] sm:mt-6 sm:w-[calc(100%-3rem)] overflow-hidden px-4 pb-12 pt-12 text-white sm:pb-16 sm:pt-16 print:hidden">
         <img src={HERO_IMAGE} alt="" className="absolute inset-0 -z-20 h-full w-full animate-ken-burns object-cover" />
         <div className="absolute inset-0 -z-10 bg-linear-to-br from-ink/95 via-ink/85 to-brand-700/80" />
         <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />
@@ -260,9 +260,10 @@ export default function Support() {
 
       <div className="mx-auto max-w-6xl px-4 pb-10 print:max-w-none print:p-0">
         {/* Quick links, rising over the edge of the banner */}
-        <div className="relative z-10 -mt-20 grid gap-4 sm:-mt-24 sm:grid-cols-2 lg:grid-cols-5 print:hidden">
+        {/* Quick links: below the banner, 3 per row on computers (last row centred) so long Sinhala and Tamil words have room */}
+        <div className="relative z-10 mt-6 flex flex-wrap justify-center gap-4 sm:mt-8 print:hidden">
           {quickLinks.map((link, index) => (
-            <Reveal key={link.href} animation="zoom-in" delay={300 + index * 100} className="grid">
+            <Reveal key={link.href} animation="zoom-in" delay={150 + index * 90} className="grid w-full min-w-0 grid-cols-1 sm:w-[calc(50%-0.5rem)] lg:w-[calc((100%-2rem)/3)]">
               <QuickLink {...link} />
             </Reveal>
           ))}
