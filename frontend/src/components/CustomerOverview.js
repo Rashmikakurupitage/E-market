@@ -7,6 +7,8 @@ import API from '../lib/api';
 import { useLanguage } from '../lib/i18n';
 import { formatDate, formatPrice } from '../lib/catalog';
 import { Card, Kpi, ORDER_COLORS } from './AdminOverview';
+import { Lotus } from './Art';
+import Reveal from './Reveal';
 
 // The customer's overview: order numbers, quick actions and the latest orders
 export default function CustomerOverview({ onNavigate, onAuthError }) {
@@ -87,24 +89,28 @@ export default function CustomerOverview({ onNavigate, onAuthError }) {
           { href: '/store', icon: ShoppingBag, label: d.browseStore, hint: d.browseHint },
           { tab: 'orders', icon: ClipboardList, label: t.orders.myTitle, hint: d.ordersHint },
           { tab: 'complaints', icon: Flag, label: t.complaints.myTitle, hint: d.complaintsHint },
-        ].map(({ href, tab, icon: Icon, label, hint }) => {
+        ].map(({ href, tab, icon: Icon, label, hint }, index) => {
           const inner = (
             <>
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-ink text-white transition-colors group-hover:bg-magenta">
+              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-linear-to-br from-magenta to-magenta-dark text-white shadow-md shadow-magenta/30 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-6">
                 <Icon className="h-6 w-6" />
               </span>
               <span className="min-w-0 flex-1">
                 <span className="block font-bold text-ink">{label}</span>
-                <span className="block text-xs text-ink/50">{hint}</span>
+                <span className="block text-xs text-ink/65">{hint}</span>
               </span>
               <ArrowRight className="h-5 w-5 text-ink/30 transition-transform group-hover:translate-x-1 group-hover:text-magenta" />
             </>
           );
           const cls = 'group flex items-center gap-4 rounded-[28px] bg-white p-5 text-left shadow-sm ring-1 ring-ink/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg';
-          return href ? (
-            <Link key={label} href={href} className={cls}>{inner}</Link>
-          ) : (
-            <button key={label} type="button" onClick={() => onNavigate(tab)} className={cls}>{inner}</button>
+          return (
+            <Reveal key={label} delay={index * 90} className="grid">
+              {href ? (
+                <Link href={href} className={cls}>{inner}</Link>
+              ) : (
+                <button type="button" onClick={() => onNavigate(tab)} className={cls}>{inner}</button>
+              )}
+            </Reveal>
           );
         })}
       </section>
@@ -121,9 +127,9 @@ export default function CustomerOverview({ onNavigate, onAuthError }) {
         {orders === null ? (
           <div className="skeleton h-32 rounded-2xl" />
         ) : orders.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 rounded-2xl bg-cream px-4 py-8 text-center">
-            <ShoppingBag className="h-9 w-9 text-ink/20" />
-            <p className="text-sm text-ink/60">{d.noOrdersYet}</p>
+          <div className="photo-placeholder flex flex-col items-center gap-3 rounded-2xl px-4 py-8 text-center">
+            <Lotus className="h-auto w-20 opacity-80" />
+            <p className="text-sm font-medium text-ink/70">{d.noOrdersYet}</p>
             <Link href="/store" className="btn-shine inline-flex items-center gap-2 rounded-full bg-ink px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-magenta">
               {d.startShopping}
               <ArrowRight className="h-4 w-4" />

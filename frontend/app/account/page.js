@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { LoaderCircle, CircleAlert, RefreshCw, ShoppingBag, UserRound, LayoutDashboard, ClipboardList, Flag, Settings, Heart } from 'lucide-react';
+import { LoaderCircle, CircleAlert, RefreshCw, ShoppingBag, UserRound, LayoutDashboard, ClipboardList, Flag, Settings, Heart, Phone, Mail } from 'lucide-react';
 import API from '../../src/lib/api';
 import { useLanguage, fill } from '../../src/lib/i18n';
 import { useSession, useHydrated, clearSession, updateSessionUser, homePathFor } from '../../src/lib/auth';
@@ -160,13 +160,13 @@ export default function Account() {
         stickyClass="lg:top-28" 
         card={{ icon: ShoppingBag, title: t.store.title, text: c.browse, label: c.browse, href: '/store' }}
       >
-        {section === 'overview' && <>
+        {section === 'overview' && <div className="space-y-6">
         {/* Welcome */}
-        <Reveal as="section" animation="fade-down" className="relative isolate flex flex-col gap-4 sm:gap-5 overflow-hidden rounded-[24px] sm:rounded-[32px] bg-ink p-4 sm:p-8 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between">
+        <Reveal as="section" animation="fade-down" className="hero-clip relative isolate flex flex-col gap-4 sm:gap-5 overflow-hidden rounded-[24px] sm:rounded-[32px] bg-ink p-4 sm:p-8 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between">
           <div aria-hidden="true" className="pattern-batik pointer-events-none absolute inset-0 -z-10" />
           <div aria-hidden="true" className="pointer-events-none absolute -right-10 -top-16 -z-10 h-48 w-48 animate-float rounded-full bg-magenta/50 blur-3xl" />
           <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 right-10 -z-10 h-56 w-56 animate-float rounded-full bg-saffron/35 blur-3xl [animation-delay:-4s]" />
-          <Lotus color="white" className="pointer-events-none absolute -bottom-3 right-1/3 -z-10 hidden w-40 opacity-60 md:block" />
+          <Lotus color="white" className="pointer-events-none absolute -bottom-3 right-[30%] -z-10 hidden w-36 opacity-25 md:block" />
 
           <div className="flex items-center gap-4">
             <ProfilePhotoEditor user={user} name={name} onChanged={contactUpdated} onAuthError={loggedOut} />
@@ -186,18 +186,20 @@ export default function Account() {
 
         <CustomerOverview onNavigate={setSection} onAuthError={loggedOut} />
 
+        {/* My details and how buying works, side by side on bigger screens */}
         <div className="grid gap-6 md:grid-cols-2">
           {/* Details */}
-          <Reveal as="section" animation="fade-right" className="rounded-[28px] bg-white px-6 py-5 shadow-sm ring-1 ring-ink/5">
+          <Reveal as="section" animation="fade-right" className="h-full rounded-[28px] bg-white px-6 py-5 shadow-sm ring-1 ring-ink/5">
             <h2 className="font-sans text-sm font-bold uppercase tracking-wider text-slate-800">{c.detailsTitle}</h2>
             <dl className="mt-2 divide-y divide-slate-100">
               <Detail icon={UserRound} label={r.fullName} value={name} />
+              {user?.phone && <Detail icon={Phone} label={r.phone} value={user.phone} />}
+              {user?.email && <Detail icon={Mail} label={r.email} value={user.email} />}
             </dl>
           </Reveal>
 
-
           {/* How buying works */}
-          <Reveal as="section" delay={100} className="rounded-[28px] bg-white px-6 py-5 shadow-sm ring-1 ring-ink/5 md:col-span-2">
+          <Reveal as="section" animation="fade-left" delay={100} className="h-full rounded-[28px] bg-white px-6 py-5 shadow-sm ring-1 ring-ink/5">
             <h2 className="font-sans text-sm font-bold uppercase tracking-wider text-slate-800">{c.howTitle}</h2>
             <ol className="mt-4 space-y-4">
               {c.howSteps.map((step, index) => (
@@ -211,7 +213,7 @@ export default function Account() {
             </ol>
           </Reveal>
         </div>
-        </>}
+        </div>}
 
         {section === 'orders' && <CustomerOrders onAuthError={loggedOut} />}
 {section === 'wishlist' && <CustomerWishlist onAuthError={loggedOut} />}
