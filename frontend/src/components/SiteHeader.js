@@ -220,7 +220,7 @@ export default function SiteHeader() {
             {/* Brand Identity: Logo, State Emblem, Trilingual Titles */}
             <Link
               href="/"
-              className="group flex min-w-0 shrink-0 items-center gap-1.5 sm:gap-2 2xl:gap-3"
+              className="group flex min-w-0 shrink items-center gap-1.5 sm:shrink-0 sm:gap-2 2xl:gap-3"
               onClick={() => setMenuOpen(false)}
             >
               <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 2xl:h-10 2xl:w-10 shrink-0 items-center justify-center">
@@ -234,13 +234,13 @@ export default function SiteHeader() {
                 className="h-7.5 w-7.5 shrink-0 object-contain drop-shadow-sm transition-transform duration-300 group-hover:scale-110 sm:h-8 sm:w-8 2xl:h-9 2xl:w-9"
               />
               <div className="min-w-0 leading-tight">
-                <span className="block whitespace-nowrap text-xs font-extrabold tracking-tight text-magenta-dark dark:text-magenta-light sm:text-[13px] 2xl:text-base">
+                <span className="block truncate text-xs font-extrabold tracking-tight text-magenta-dark dark:text-magenta-light sm:text-[13px] 2xl:text-base">
                   {SITE_TITLES.en}
                 </span>
-                <span className="block whitespace-nowrap text-[10px] font-bold text-ink dark:text-white sm:text-[10.5px] 2xl:text-xs">
+                <span className="block truncate text-[10px] font-bold text-ink dark:text-white sm:text-[10.5px] 2xl:text-xs">
                   {SITE_TITLES.si}
                 </span>
-                <span className="block whitespace-nowrap text-[9.5px] font-semibold text-ink/75 dark:text-slate-300 sm:text-[10px] 2xl:text-[11px]">
+                <span className="block truncate text-[9.5px] font-semibold text-ink/75 dark:text-slate-300 sm:text-[10px] 2xl:text-[11px]">
                   {SITE_TITLES.ta}
                 </span>
               </div>
